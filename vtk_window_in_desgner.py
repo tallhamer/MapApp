@@ -270,10 +270,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         render_window.AddRenderer(renderer)
         interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
 
-        orientation_widget.SetInteractor(interactor)
-        orientation_widget.EnabledOn()
-        orientation_widget.InteractiveOff()
-
         # Add the actors to the renderer
         renderer.AddActor(dcm_mesh_actor)
         renderer.AddActor(obj_actor)
