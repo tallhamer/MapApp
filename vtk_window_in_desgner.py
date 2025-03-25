@@ -121,7 +121,7 @@ def load_dicom_mesh(dcm_filename):
 
     return mesh
 
-def load_obj_mesh(dcm_filename):
+def load_obj_mesh(obj_filename):
     # OBJ  File Processing
     print('Loading .obj surface')
     obj_mesh = trimesh.load(obj_filename)
@@ -232,7 +232,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_le_obj_file.setText(filename)
 
             # Load the .obj mesh
-            obj_mesh = load_obj_mesh(obj_filename)
+            obj_mesh = load_obj_mesh(filename)
 
             ###########################
             # START: OBJ Surface Data #

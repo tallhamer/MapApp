@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
     QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QPushButton, QSizePolicy, QSpacerItem, QStatusBar,
-    QVBoxLayout, QWidget)
+    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
+    QStatusBar, QVBoxLayout, QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(958, 600)
+        MainWindow.resize(1086, 654)
         MainWindow.setMinimumSize(QSize(0, 0))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -98,8 +98,8 @@ class Ui_MainWindow(object):
 
         self.groupBox_2 = QGroupBox(self.centralwidget)
         self.groupBox_2.setObjectName(u"groupBox_2")
-        self.horizontalLayout_2 = QHBoxLayout(self.groupBox_2)
-        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.verticalLayout_2 = QVBoxLayout(self.groupBox_2)
+        self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.vtk_widget = QVTKRenderWindowInteractor(self.groupBox_2)
         self.vtk_widget.setObjectName(u"vtk_widget")
         sizePolicy.setHeightForWidth(self.vtk_widget.sizePolicy().hasHeightForWidth())
@@ -107,7 +107,48 @@ class Ui_MainWindow(object):
         self.vtk_widget.setMinimumSize(QSize(400, 400))
         self.vtk_widget.setMaximumSize(QSize(16777215, 16777215))
 
-        self.horizontalLayout_2.addWidget(self.vtk_widget)
+        self.verticalLayout_2.addWidget(self.vtk_widget)
+
+        self.widget_2 = QWidget(self.groupBox_2)
+        self.widget_2.setObjectName(u"widget_2")
+        self.horizontalLayout_2 = QHBoxLayout(self.widget_2)
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.w_rb_front = QRadioButton(self.widget_2)
+        self.w_rb_front.setObjectName(u"w_rb_front")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_front)
+
+        self.w_rb_back = QRadioButton(self.widget_2)
+        self.w_rb_back.setObjectName(u"w_rb_back")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_back)
+
+        self.w_rb_left = QRadioButton(self.widget_2)
+        self.w_rb_left.setObjectName(u"w_rb_left")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_left)
+
+        self.w_rb_right = QRadioButton(self.widget_2)
+        self.w_rb_right.setObjectName(u"w_rb_right")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_right)
+
+        self.w_rb_top = QRadioButton(self.widget_2)
+        self.w_rb_top.setObjectName(u"w_rb_top")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_top)
+
+        self.w_rb_bottom = QRadioButton(self.widget_2)
+        self.w_rb_bottom.setObjectName(u"w_rb_bottom")
+
+        self.horizontalLayout_2.addWidget(self.w_rb_bottom)
+
+        self.horizontalSpacer = QSpacerItem(330, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_2.addItem(self.horizontalSpacer)
+
+
+        self.verticalLayout_2.addWidget(self.widget_2)
 
 
         self.horizontalLayout.addWidget(self.groupBox_2)
@@ -115,7 +156,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 958, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1086, 33))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -134,5 +175,11 @@ class Ui_MainWindow(object):
         self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.w_pb_dicom_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Test Area 2", None))
+        self.w_rb_front.setText(QCoreApplication.translate("MainWindow", u"Front", None))
+        self.w_rb_back.setText(QCoreApplication.translate("MainWindow", u"Back", None))
+        self.w_rb_left.setText(QCoreApplication.translate("MainWindow", u"Left", None))
+        self.w_rb_right.setText(QCoreApplication.translate("MainWindow", u"Right", None))
+        self.w_rb_top.setText(QCoreApplication.translate("MainWindow", u"Top", None))
+        self.w_rb_bottom.setText(QCoreApplication.translate("MainWindow", u"Bottom", None))
     # retranslateUi
 
