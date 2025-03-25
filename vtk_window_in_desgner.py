@@ -156,129 +156,117 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
         self.setWindowTitle("VTK Test Window")
 
-        # Load the DICOM mesh
-        dcm_mesh = load_dicom_mesh(dcm_filename)
-
-        # Load the .obj mesh
-        obj_mesh = load_obj_mesh(obj_filename)
-
-        ######################
-        # Visualize with VTK #
-        ######################
-
-        colors = vtk.vtkNamedColors()
-
-        #############################
-        # START: DICOM Surface Data #
-        #############################
-
-        dcm_verts = vtk.vtkPoints()
-        for vert in dcm_mesh.vertices:
-            dcm_verts.InsertNextPoint(*vert)
-
-        # Create a polydata object and add the points
-        dcm_mesh_poly = vtk.vtkPolyData()
-        dcm_mesh_poly.points = dcm_verts
-
-        # Create a vertex cell array to hold the triagles
-        dcm_triangles = vtk.vtkCellArray()
-        for i in range(len(dcm_mesh.triangles)):
-            dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-        dcm_mesh_poly.polys = dcm_triangles
-
-        # Create a mapper and actor
-        dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-        dcm_mesh_poly >> dcm_mesh_mapper
-
-        # Create the scene actor that represents the point cloud
-        dcm_mesh_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-        dcm_mesh_actor.property.color = colors.GetColor3d('Green')
-        dcm_mesh_actor.property.opacity = 1
-
-        ###########################
-        # END: DICOM Surface Data #
-        ###########################
-
-        ###########################
-        # START: OBJ Surface Data #
-        ###########################
-
-        obj_points = vtk.vtkPoints()
-        obj_cells = vtk.vtkCellArray()
-
-        for point in obj_mesh.vertices:
-            obj_points.InsertNextPoint(*point)
-
-        obj_poly = vtk.vtkPolyData()
-        obj_poly.points = obj_points
-
-        for i in range(len(obj_mesh.triangles)):
-            obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-        obj_poly.polys = obj_cells
-
-        obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-        obj_poly >> obj_mapper
-
-        obj_actor = vtk.vtkActor(mapper=obj_mapper)
-        obj_actor.property.color = colors.GetColor3d('LightBlue')
-
-        #########################
-        # END: OBJ Surface Data #
-        #########################
-
-        ########################
-        # START: Sphere Source #
-        ########################
-
-        # Create a sphere.
-        sphere_source = vtk.vtkSphereSource(center=(0.0, 0.0, 0.0),
-                                            radius=25.0,
-                                            phi_resolution=50,
-                                            theta_resolution=50,
-                                            lat_long_tessellation=False
-                                            )
-
-        sphere_mapper = vtk.vtkPolyDataMapper()
-        sphere_source >> sphere_mapper
-
-        sphere_actor_prop = vtk.vtkProperty(color=colors.GetColor3d('Red'),
-                                            # edge_color=colors.GetColor3d('DarkSlateBlue'),
-                                            edge_visibility=True
-                                            )
-
-        sphere_actor = vtk.vtkActor(property=sphere_actor_prop,
-                                    mapper=sphere_mapper
-                                    )
-
-        ######################
-        # END: Sphere Source #
-        ######################
-
-        # Create axes actor
-        axes_actor = vtk.vtkAxesActor()
-        axes_actor.SetTotalLength(2, 2, 2)
-        axes_actor.SetShaftTypeToCylinder()
-
-        # Create orientation marker widget
-        orientation_widget = vtk.vtkOrientationMarkerWidget()
-        orientation_widget.SetOrientationMarker(axes_actor)
+        self.w_pb_dicom_file.clicked.connect(self.openDicomFile)
+        self.w_pb_obj_file.clicked.connect(self.openObjFile)
 
 
         # VTK rendering setup
-        renderer = vtk.vtkRenderer()
-        render_window = self.vtk_widget.GetRenderWindow()
-        render_window.AddRenderer(renderer)
-        interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
+        self.vtk_renderer = vtk.vtkRenderer()
 
-        # Add the actors to the renderer
-        renderer.AddActor(dcm_mesh_actor)
-        renderer.AddActor(obj_actor)
-        renderer.AddActor(sphere_actor)
+        self.vtk_render_window = self.vtk_widget.GetRenderWindow()
+        self.vtk_render_window.AddRenderer(self.vtk_renderer)
+        self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
 
-        renderer.ResetCamera()
-
-        interactor.Initialize()
+        self.vtk_interactor.Initialize()
         self.vtk_widget.show()
+
+    def openDicomFile(self):
+        filename, _ = qtw.QFileDialog.getOpenFileName(self,
+                                                      "Select DICOM Structureset File",
+                                                      ".",
+                                                      "DICOM Files (*.dcm)"
+                                                      )
+        if filename:
+            self.w_le_dicom_file.setText(filename)
+
+            # Load the DICOM mesh
+            dcm_mesh = load_dicom_mesh(filename)
+
+            #############################
+            # START: DICOM Surface Data #
+            #############################
+
+            colors = vtk.vtkNamedColors()
+
+            dcm_verts = vtk.vtkPoints()
+            for vert in dcm_mesh.vertices:
+                dcm_verts.InsertNextPoint(*vert)
+
+            # Create a polydata object and add the points
+            dcm_mesh_poly = vtk.vtkPolyData()
+            dcm_mesh_poly.points = dcm_verts
+
+            # Create a vertex cell array to hold the triagles
+            dcm_triangles = vtk.vtkCellArray()
+            for i in range(len(dcm_mesh.triangles)):
+                dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
+            dcm_mesh_poly.polys = dcm_triangles
+
+            # Create a mapper and actor
+            dcm_mesh_mapper = vtk.vtkPolyDataMapper()
+            dcm_mesh_poly >> dcm_mesh_mapper
+
+            # Create the scene actor that represents the point cloud
+            dcm_mesh_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+            dcm_mesh_actor.property.color = colors.GetColor3d('Green')
+            dcm_mesh_actor.property.opacity = 1
+
+
+            self.vtk_renderer.AddActor(dcm_mesh_actor)
+            self.vtk_renderer.ResetCamera()
+
+            self.vtk_render_window.Render()
+
+
+            ###########################
+            # END: DICOM Surface Data #
+            ###########################
+
+    def openObjFile(self):
+        filename, _ = qtw.QFileDialog.getOpenFileName(self,
+                                                      "Select DICOM Structureset File",
+                                                      ".",
+                                                      "OBJ Files (*.obj)"
+                                                      )
+        if filename:
+            self.w_le_obj_file.setText(filename)
+
+            # Load the .obj mesh
+            obj_mesh = load_obj_mesh(obj_filename)
+
+            ###########################
+            # START: OBJ Surface Data #
+            ###########################
+
+            colors = vtk.vtkNamedColors()
+
+            obj_points = vtk.vtkPoints()
+            obj_cells = vtk.vtkCellArray()
+
+            for point in obj_mesh.vertices:
+                obj_points.InsertNextPoint(*point)
+
+            obj_poly = vtk.vtkPolyData()
+            obj_poly.points = obj_points
+
+            for i in range(len(obj_mesh.triangles)):
+                obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
+            obj_poly.polys = obj_cells
+
+            obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+            obj_poly >> obj_mapper
+
+            obj_mesh_actor = vtk.vtkActor(mapper=obj_mapper)
+            obj_mesh_actor.property.color = colors.GetColor3d('LightBlue')
+
+            self.vtk_renderer.AddActor(obj_mesh_actor)
+            self.vtk_renderer.ResetCamera()
+
+            self.vtk_render_window.Render()
+
+            #########################
+            # END: OBJ Surface Data #
+            #########################
 
 
 if __name__ == '__main__':
