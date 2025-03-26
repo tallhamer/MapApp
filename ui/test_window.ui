@@ -159,44 +159,44 @@
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
-           <widget class="QRadioButton" name="w_rb_front">
+           <widget class="QRadioButton" name="w_rb_plusX">
             <property name="text">
-             <string>Front</string>
+             <string>+X</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="w_rb_back">
+           <widget class="QRadioButton" name="w_rb_minusX">
             <property name="text">
-             <string>Back</string>
+             <string>-X</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="w_rb_left">
+           <widget class="QRadioButton" name="w_rb_plusY">
             <property name="text">
-             <string>Left</string>
+             <string>+Y</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="w_rb_right">
+           <widget class="QRadioButton" name="w_rb_minusY">
             <property name="text">
-             <string>Right</string>
+             <string>-Y</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="w_rb_top">
+           <widget class="QRadioButton" name="w_rb_plusZ">
             <property name="text">
-             <string>Top</string>
+             <string>+Z</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="w_rb_bottom">
+           <widget class="QRadioButton" name="w_rb_minusZ">
             <property name="text">
-             <string>Bottom</string>
+             <string>-Z</string>
             </property>
            </widget>
           </item>

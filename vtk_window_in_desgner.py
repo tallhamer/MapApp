@@ -159,8 +159,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_dicom_file.clicked.connect(self.openDicomFile)
         self.w_pb_obj_file.clicked.connect(self.openObjFile)
 
+        self.w_rb_plusX.toggled.connect(self.setCameraToPlusX)
+
 
         # VTK rendering setup
+        self.dcm_actor = None
+        self.obj_actor = None
+
         self.vtk_renderer = vtk.vtkRenderer()
 
         self.vtk_render_window = self.vtk_widget.GetRenderWindow()
@@ -206,14 +211,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             dcm_mesh_mapper = vtk.vtkPolyDataMapper()
             dcm_mesh_poly >> dcm_mesh_mapper
 
-            # Create the scene actor that represents the point cloud
-            dcm_mesh_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-            dcm_mesh_actor.property.color = colors.GetColor3d('Green')
-            dcm_mesh_actor.property.opacity = 1
+            if self.dcm_actor is None:
+                # Create the scene actor that represents the point cloud
+                self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+                self.dcm_actor.property.color = colors.GetColor3d('Green')
+                self.dcm_actor.property.opacity = 1
 
+                self.vtk_renderer.AddActor(self.dcm_actor)
+                self.vtk_renderer.ResetCamera()
+            else:
+                self.vtk_renderer.RemoveActor(self.dcm_actor)
 
-            self.vtk_renderer.AddActor(dcm_mesh_actor)
-            self.vtk_renderer.ResetCamera()
+                # Create the scene actor that represents the point cloud
+                self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+                self.dcm_actor.property.color = colors.GetColor3d('Green')
+                self.dcm_actor.property.opacity = 1
+
+                self.vtk_renderer.AddActor(self.dcm_actor)
+                self.vtk_renderer.ResetCamera()
 
             self.vtk_render_window.Render()
 
@@ -256,17 +271,31 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             obj_mapper = vtk.vtkOpenGLPolyDataMapper()
             obj_poly >> obj_mapper
 
-            obj_mesh_actor = vtk.vtkActor(mapper=obj_mapper)
-            obj_mesh_actor.property.color = colors.GetColor3d('LightBlue')
+            if self.obj_actor is None:
+                self.obj_actor = vtk.vtkActor(mapper=obj_mapper)
+                self.obj_actor.property.color = colors.GetColor3d('LightBlue')
 
-            self.vtk_renderer.AddActor(obj_mesh_actor)
-            self.vtk_renderer.ResetCamera()
+                self.vtk_renderer.AddActor(self.obj_actor)
+                self.vtk_renderer.ResetCamera()
+            else:
+                self.vtk_renderer.RemoveActor(self.obj_actor)
+
+                self.obj_actor = vtk.vtkActor(mapper=obj_mapper)
+                self.obj_actor.property.color = colors.GetColor3d('LightBlue')
+
+                self.vtk_renderer.AddActor(self.obj_actor)
+                self.vtk_renderer.ResetCamera()
 
             self.vtk_render_window.Render()
 
             #########################
             # END: OBJ Surface Data #
             #########################
+
+    def setCameraToPlusX(self):
+        if self.w_rb_plusX.isChecked():
+            pass
+
 
 
 if __name__ == '__main__':

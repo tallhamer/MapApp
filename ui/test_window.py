@@ -113,35 +113,35 @@ class Ui_MainWindow(object):
         self.widget_2.setObjectName(u"widget_2")
         self.horizontalLayout_2 = QHBoxLayout(self.widget_2)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.w_rb_front = QRadioButton(self.widget_2)
-        self.w_rb_front.setObjectName(u"w_rb_front")
+        self.w_rb_plusX = QRadioButton(self.widget_2)
+        self.w_rb_plusX.setObjectName(u"w_rb_plusX")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_front)
+        self.horizontalLayout_2.addWidget(self.w_rb_plusX)
 
-        self.w_rb_back = QRadioButton(self.widget_2)
-        self.w_rb_back.setObjectName(u"w_rb_back")
+        self.w_rb_minusX = QRadioButton(self.widget_2)
+        self.w_rb_minusX.setObjectName(u"w_rb_minusX")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_back)
+        self.horizontalLayout_2.addWidget(self.w_rb_minusX)
 
-        self.w_rb_left = QRadioButton(self.widget_2)
-        self.w_rb_left.setObjectName(u"w_rb_left")
+        self.w_rb_plusY = QRadioButton(self.widget_2)
+        self.w_rb_plusY.setObjectName(u"w_rb_plusY")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_left)
+        self.horizontalLayout_2.addWidget(self.w_rb_plusY)
 
-        self.w_rb_right = QRadioButton(self.widget_2)
-        self.w_rb_right.setObjectName(u"w_rb_right")
+        self.w_rb_minusY = QRadioButton(self.widget_2)
+        self.w_rb_minusY.setObjectName(u"w_rb_minusY")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_right)
+        self.horizontalLayout_2.addWidget(self.w_rb_minusY)
 
-        self.w_rb_top = QRadioButton(self.widget_2)
-        self.w_rb_top.setObjectName(u"w_rb_top")
+        self.w_rb_plusZ = QRadioButton(self.widget_2)
+        self.w_rb_plusZ.setObjectName(u"w_rb_plusZ")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_top)
+        self.horizontalLayout_2.addWidget(self.w_rb_plusZ)
 
-        self.w_rb_bottom = QRadioButton(self.widget_2)
-        self.w_rb_bottom.setObjectName(u"w_rb_bottom")
+        self.w_rb_minusZ = QRadioButton(self.widget_2)
+        self.w_rb_minusZ.setObjectName(u"w_rb_minusZ")
 
-        self.horizontalLayout_2.addWidget(self.w_rb_bottom)
+        self.horizontalLayout_2.addWidget(self.w_rb_minusZ)
 
         self.horizontalSpacer = QSpacerItem(330, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
 
@@ -175,11 +175,11 @@ class Ui_MainWindow(object):
         self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.w_pb_dicom_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Test Area 2", None))
-        self.w_rb_front.setText(QCoreApplication.translate("MainWindow", u"Front", None))
-        self.w_rb_back.setText(QCoreApplication.translate("MainWindow", u"Back", None))
-        self.w_rb_left.setText(QCoreApplication.translate("MainWindow", u"Left", None))
-        self.w_rb_right.setText(QCoreApplication.translate("MainWindow", u"Right", None))
-        self.w_rb_top.setText(QCoreApplication.translate("MainWindow", u"Top", None))
-        self.w_rb_bottom.setText(QCoreApplication.translate("MainWindow", u"Bottom", None))
+        self.w_rb_plusX.setText(QCoreApplication.translate("MainWindow", u"+X", None))
+        self.w_rb_minusX.setText(QCoreApplication.translate("MainWindow", u"-X", None))
+        self.w_rb_plusY.setText(QCoreApplication.translate("MainWindow", u"+Y", None))
+        self.w_rb_minusY.setText(QCoreApplication.translate("MainWindow", u"-Y", None))
+        self.w_rb_plusZ.setText(QCoreApplication.translate("MainWindow", u"+Z", None))
+        self.w_rb_minusZ.setText(QCoreApplication.translate("MainWindow", u"-Z", None))
     # retranslateUi
 
