@@ -13,6 +13,7 @@ import trimesh
 import open3d as o3d
 
 import vtk
+from sympy import cycle_length
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from MapApp.ui.test_window import Ui_MainWindow
@@ -160,6 +161,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_obj_file.clicked.connect(self.openObjFile)
 
         self.w_rb_plusX.toggled.connect(self.setCameraToPlusX)
+        self.w_rb_minusX.toggled.connect(self.setCameraToMinusX)
+        self.w_rb_plusY.toggled.connect(self.setCameraToPlusY)
+        self.w_rb_minusY.toggled.connect(self.setCameraToMinusY)
+        self.w_rb_plusZ.toggled.connect(self.setCameraToPlusZ)
+        self.w_rb_minusZ.toggled.connect(self.setCameraToMinusZ)
 
 
         # VTK rendering setup
@@ -198,18 +204,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 dcm_verts.InsertNextPoint(*vert)
 
             # Create a polydata object and add the points
-            dcm_mesh_poly = vtk.vtkPolyData()
-            dcm_mesh_poly.points = dcm_verts
+            self.dcm_polydata = vtk.vtkPolyData()
+            self.dcm_polydata.points = dcm_verts
 
             # Create a vertex cell array to hold the triagles
             dcm_triangles = vtk.vtkCellArray()
             for i in range(len(dcm_mesh.triangles)):
                 dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-            dcm_mesh_poly.polys = dcm_triangles
+            self.dcm_polydata.polys = dcm_triangles
 
             # Create a mapper and actor
             dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-            dcm_mesh_poly >> dcm_mesh_mapper
+            self.dcm_polydata >> dcm_mesh_mapper
 
             if self.dcm_actor is None:
                 # Create the scene actor that represents the point cloud
@@ -261,18 +267,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             for point in obj_mesh.vertices:
                 obj_points.InsertNextPoint(*point)
 
-            obj_poly = vtk.vtkPolyData()
-            obj_poly.points = obj_points
+            self.obj_polydata = vtk.vtkPolyData()
+            self.obj_polydata.points = obj_points
 
             for i in range(len(obj_mesh.triangles)):
                 obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-            obj_poly.polys = obj_cells
+            self.obj_polydata.polys = obj_cells
 
-            obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-            obj_poly >> obj_mapper
+            self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+            self.obj_polydata >> self.obj_mapper
 
             if self.obj_actor is None:
-                self.obj_actor = vtk.vtkActor(mapper=obj_mapper)
+                self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
                 self.obj_actor.property.color = colors.GetColor3d('LightBlue')
 
                 self.vtk_renderer.AddActor(self.obj_actor)
@@ -280,7 +286,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             else:
                 self.vtk_renderer.RemoveActor(self.obj_actor)
 
-                self.obj_actor = vtk.vtkActor(mapper=obj_mapper)
+                self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
                 self.obj_actor.property.color = colors.GetColor3d('LightBlue')
 
                 self.vtk_renderer.AddActor(self.obj_actor)
@@ -292,9 +298,163 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # END: OBJ Surface Data #
             #########################
 
+    def _getViewingFlag(self):
+        if self.dcm_actor is None:
+            if self.obj_actor is None:
+                return None
+            else:
+                return 2
+        else:
+            if self.obj_actor is None:
+                return 1
+            else:
+                return 3
+
+    def _getViewingBounds(self):
+        flag = self._getViewingFlag()
+        if flag == 1:
+            print('Viewport contains DICOM only')
+            print(self.dcm_polydata.bounds)
+
+            return self.dcm_polydata.bounds
+        elif flag == 2:
+            print('Viewport contains OBJ only')
+            print(self.obj_polydata.bounds)
+
+            return self.obj_polydata.bounds
+        elif flag == 3:
+            print('Viewport contains both DICOM and OBJ')
+            print(self.dcm_polydata.bounds)
+            print(self.obj_polydata.bounds)
+
+            _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = self.dcm_polydata.bounds
+            __x_min, __x_max, __y_min, __y_max, __z_min, __z_max = self.obj_polydata.bounds
+
+            x_min = _x_min if _x_min <= __x_min else __x_min
+            x_max = _x_max if _x_max >= __x_max else __x_max
+            y_min = _y_min if _y_min <= __y_min else __y_min
+            y_max = _y_max if _y_max >= __y_max else __y_max
+            z_min = _z_min if _z_min <= __z_min else __z_min
+            z_max = _z_max if _z_max >= __z_max else __z_max
+
+            return (x_min, x_max, y_min, y_max, z_min, z_max)
+
     def setCameraToPlusX(self):
         if self.w_rb_plusX.isChecked():
-            pass
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            # # Set near clipping distance to a small fraction of the max length
+            # near_clipping = max_length / 1000.0
+            # # Set far clipping distance to a value larger than the max length
+            # far_clipping = max_length * 10
+            # camera.SetClippingRange(near_clipping, far_clipping)
+
+            camera.SetPosition(x_max + max_length, center[1], center[2])
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 1, 0)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+    def setCameraToMinusX(self):
+        if self.w_rb_minusX.isChecked():
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            camera.SetPosition(x_min - max_length, center[1], center[2])
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 1, 0)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+    def setCameraToPlusY(self):
+        if self.w_rb_plusY.isChecked():
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            camera.SetPosition(center[0], y_max + max_length, center[2])
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 0, -1)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+    def setCameraToMinusY(self):
+        if self.w_rb_minusY.isChecked():
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            camera.SetPosition(center[0], y_min - max_length, center[2])
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 0, -1)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+    def setCameraToPlusZ(self):
+        if self.w_rb_plusZ.isChecked():
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            camera.SetPosition(center[0], center[1], z_max + max_length)
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 1, 0)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+    def setCameraToMinusZ(self):
+        if self.w_rb_minusZ.isChecked():
+            camera = self.vtk_renderer.GetActiveCamera()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._getViewingBounds()
+            center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
+
+            x_length = x_max - x_min
+            y_length = y_max - y_min
+            z_length = z_max - z_min
+            max_length = max(x_length, y_length, z_length)
+
+            camera.SetPosition(center[0], center[1], z_min - max_length)
+            camera.SetFocalPoint(center[0], center[1], center[2])
+            camera.SetViewUp(0, 1, 0)
+            camera.SetParallelProjection(True)
+            self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_render_window.Render()
+
+
+
 
 
 
