@@ -18,8 +18,22 @@ from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from MapApp.ui.test_window import Ui_MainWindow
 
-dcm_filename = r'C:\__python__\Projects\PythonUIProjectsWithQt\VTK_Window\data\matched_dicom_ss.dcm'
-obj_filename = r'C:\__python__\Projects\PythonUIProjectsWithQt\VTK_Window\data\matched_mergedSurface.obj'
+obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
+                                         [0, 1, 0],
+                                         [0, 0, 1]
+                                         ]
+                                        ),
+                         'HFS': np.array([[0, 1, 0],
+                                          [0, 0, 1],
+                                          [1, 0, 0]
+                                          ]
+                                         ),
+                         'HFP': np.array([[0, 1, 0],
+                                          [0, 0, -1],
+                                          [1, 0, 0]
+                                          ]
+                                         )
+                         }
 
 # Define helper functions
 def get_dcm_body_point_cloud(dcm_filename):
@@ -112,93 +126,6 @@ def pcloud_to_mesh(pcd, voxel_size=3, iso_level_percentile=5):
 
     return mesh
 
-def load_dicom_mesh(dcm_filename):
-    # DICOM Point Cloud and Surface Mesh
-    print('Reading in DICOM "Body" structure from DICOM file')
-    _pcloud = get_dcm_body_point_cloud(dcm_filename)
-
-    #  Transpose the axes to match the DICOM orientation
-    points = np.asarray(_pcloud.points)
-
-    # #HFS
-    # S = np.array([[0, 0, 1],
-    #               [1, 0, 0],
-    #               [0, 1, 0]
-    #               ]
-    #              )
-
-    # # HFP
-    # S = np.array([[0, 0, 1],
-    #               [1, 0, 0],
-    #               [0, -1, 0]
-    #               ]
-    #              )
-
-    # Identity
-    S = np.array([[1, 0, 0],
-                  [0, 1, 0],
-                  [0, 0, 1]
-                  ]
-                 )
-
-    new_points = (S @ points.T).T
-
-    dcm_pcloud = o3d.geometry.PointCloud()
-    dcm_pcloud.points = o3d.utility.Vector3dVector(new_points)
-
-
-    print("Generating DICOM surface using marchine cubes.")
-    mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
-    print('DICOM Surface complete')
-
-    return mesh
-
-def load_obj_mesh(obj_filename):
-    # OBJ  File Processing
-    print('Loading .obj surface')
-    obj_mesh = trimesh.load(obj_filename)
-
-    #  Transpose the axes to match the DICOM orientation
-    points = np.asarray(obj_mesh.vertices)
-
-    # HFS
-    S = np.array([[0, 1, 0],
-                  [0, 0, 1],
-                  [1, 0, 0]
-                  ]
-                 )
-
-    # # HFP
-    # S = np.array([[0, 1, 0],
-    #               [0, 0, -1],
-    #               [1, 0, 0]
-    #               ]
-    #              )
-
-    # # Identity
-    # S = np.array([[1, 0, 0],
-    #               [0, 1, 0],
-    #               [0, 0, 1]
-    #               ]
-    #              )
-
-    new_points = (S @ points.T).T
-    new_point_colors = np.random.rand(*new_points.shape)
-
-    obj_pcloud = o3d.geometry.PointCloud()
-    obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
-    obj_pcloud.colors = o3d.utility.Vector3dVector(new_point_colors)
-
-    mesh = o3d.geometry.TriangleMesh()
-    mesh.vertices = o3d.utility.Vector3dVector(new_points)
-    mesh.triangles = o3d.utility.Vector3iVector(np.array(obj_mesh.faces))
-
-    mesh.compute_vertex_normals()
-    mesh.compute_triangle_normals()
-    mesh.paint_uniform_color([0.5, 0, 0.5])
-
-    return mesh
-
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -218,7 +145,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         color_names_string = self.named_colors.GetColorNames()
         color_names_list = color_names_string.split('\n')
 
-        self.w_pb_dicom_file.clicked.connect(self.openDicomFile)
+        self.patient_orientation = None
+        self.w_pb_dicom_plan_file.clicked.connect(self.openDicomPlanFile)
+        self.w_pb_dicom_struct_file.clicked.connect(self.openDicomStructFile)
         self.w_cb_dicom_color.addItems(color_names_list)
         self.w_cb_dicom_color.currentTextChanged.connect(self.dicomColorNameChanged)
         self.w_cb_dicom_color.setCurrentText('green')
@@ -230,6 +159,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.w_cb_background_color.addItems(color_names_list)
         self.w_cb_background_color.currentTextChanged.connect(self.backgroundColorNameChanged)
+        self.w_cb_background_color.setCurrentText('black')
 
         self.w_pb_save_image.clicked.connect(self.saveImage)
 
@@ -243,17 +173,34 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
 
-    def openDicomFile(self):
+    def openDicomPlanFile(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
-            self.w_le_dicom_file.setText(filename)
+            self.w_le_dicom_plan_file.setText(filename)
+            ds = pydicom.dcmread(filename)
+
+            for setup in ds.PatientSetupSequence:
+                if self.patient_orientation is None:
+                    self.patient_orientation = setup.PatientPosition
+
+                if not setup.PatientPosition == self.patient_orientation:
+                    print("There are multiple patient orientations reported")
+
+    def openDicomStructFile(self):
+        filename, _ = qtw.QFileDialog.getOpenFileName(self,
+                                                      "Select DICOM Structureset File",
+                                                      ".",
+                                                      "DICOM Files (*.dcm)"
+                                                      )
+        if filename:
+            self.w_le_dicom_struct_file.setText(filename)
 
             # Load the DICOM mesh
-            dcm_mesh = load_dicom_mesh(filename)
+            dcm_mesh = self._loadDicomMesh(filename)
 
             #############################
             # START: DICOM Surface Data #
@@ -305,6 +252,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # END: DICOM Surface Data #
             ###########################
 
+    def _loadDicomMesh(self, dcm_filename):
+        # DICOM Point Cloud and Surface Mesh
+        print('Reading in DICOM "Body" structure from DICOM file')
+        dcm_pcloud = get_dcm_body_point_cloud(dcm_filename)
+
+        print("Generating DICOM surface using marchine cubes.")
+        mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
+        print('DICOM Surface complete')
+
+        return mesh
+
     def openObjFile(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
@@ -315,13 +273,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_le_obj_file.setText(filename)
 
             # Load the .obj mesh
-            obj_mesh = load_obj_mesh(filename)
+            obj_mesh = self._loadOBJMesh(filename)
 
             ###########################
             # START: OBJ Surface Data #
             ###########################
 
-            colors = vtk.vtkNamedColors()
+            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
 
             obj_points = vtk.vtkPoints()
             obj_cells = vtk.vtkCellArray()
@@ -341,7 +299,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             if self.obj_actor is None:
                 self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-                R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+                # R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
                 self.obj_actor.GetProperty().SetColor(R/255.0, G/255.0, B/255.0)
 
                 self.vtk_renderer.AddActor(self.obj_actor)
@@ -350,7 +308,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_renderer.RemoveActor(self.obj_actor)
 
                 self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-                self.obj_actor.property.color = colors.GetColor3d('LightBlue')
+                self.obj_actor.GetProperty().SetColor(R/255.0, G/255.0, B/255.0)
 
                 self.vtk_renderer.AddActor(self.obj_actor)
                 self.vtk_renderer.ResetCamera()
@@ -360,6 +318,34 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             #########################
             # END: OBJ Surface Data #
             #########################
+
+    def _loadOBJMesh(self, obj_filename):
+        # OBJ  File Processing
+        print('Loading .obj surface')
+        obj_mesh = trimesh.load(obj_filename)
+
+        #  Transpose the axes to match the DICOM orientation
+        points = np.asarray(obj_mesh.vertices)
+
+        # S = obj2dcm_transform_map[self.patient_orientation]
+        S = obj2dcm_transform_map['HFP']
+
+        new_points = (S @ points.T).T
+        new_point_colors = np.random.rand(*new_points.shape)
+
+        obj_pcloud = o3d.geometry.PointCloud()
+        obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
+        obj_pcloud.colors = o3d.utility.Vector3dVector(new_point_colors)
+
+        mesh = o3d.geometry.TriangleMesh()
+        mesh.vertices = o3d.utility.Vector3dVector(new_points)
+        mesh.triangles = o3d.utility.Vector3iVector(np.array(obj_mesh.faces))
+
+        mesh.compute_vertex_normals()
+        mesh.compute_triangle_normals()
+        mesh.paint_uniform_color([0.5, 0, 0.5])
+
+        return mesh
 
     def dicomColorNameChanged(self):
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
@@ -410,8 +396,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.SetFileName(filename)
             writer.SetInputConnection(window_to_image_filter.GetOutputPort())
             writer.Write()
-
-
 
     def _getViewingFlag(self):
         if self.dcm_actor is None:
