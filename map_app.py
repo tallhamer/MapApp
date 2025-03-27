@@ -13,7 +13,7 @@ import trimesh
 import open3d as o3d
 
 import vtk
-from sympy import cycle_length
+from sympy import cycle_length, false
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from MapApp.ui.test_window import Ui_MainWindow
@@ -32,7 +32,17 @@ obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                                           [0, 0, -1],
                                           [1, 0, 0]
                                           ]
-                                         )
+                                         ),
+                         'FFS': np.array([[0, 1, 0],
+                                          [0, 0, 1],
+                                          [-1, 0, 0]
+                                          ]
+                                         ),
+                         'FFP': np.array([[0, 1, 0],
+                                          [0, 0, -1],
+                                          [-1, 0, 0]
+                                          ]
+                                         ),
                          }
 
 # Define helper functions
@@ -145,17 +155,25 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         color_names_string = self.named_colors.GetColorNames()
         color_names_list = color_names_string.split('\n')
 
-        self.patient_orientation = None
         self.w_pb_dicom_plan_file.clicked.connect(self.openDicomPlanFile)
         self.w_pb_dicom_struct_file.clicked.connect(self.openDicomStructFile)
         self.w_cb_dicom_color.addItems(color_names_list)
         self.w_cb_dicom_color.currentTextChanged.connect(self.dicomColorNameChanged)
         self.w_cb_dicom_color.setCurrentText('green')
+        self.w_hs_dicom_transparency.valueChanged.connect(self.dicomTransparencyChanged)
+
+        self.patient_orientation = None
 
         self.w_pb_obj_file.clicked.connect(self.openObjFile)
         self.w_cb_obj_color.addItems(color_names_list)
         self.w_cb_obj_color.currentTextChanged.connect(self.objColorNameChanged)
         self.w_cb_obj_color.setCurrentText('light_grey')
+        self.w_hs_obj_transparency.valueChanged.connect(self.objTransparencyChanged)
+
+        self.w_rb_hfs.toggled.connect(self.setPatientOrientation)
+        self.w_rb_hfp.toggled.connect(self.setPatientOrientation)
+        self.w_rb_ffs.toggled.connect(self.setPatientOrientation)
+        self.w_rb_ffp.toggled.connect(self.setPatientOrientation)
 
         self.w_cb_background_color.addItems(color_names_list)
         self.w_cb_background_color.currentTextChanged.connect(self.backgroundColorNameChanged)
@@ -183,12 +201,46 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_le_dicom_plan_file.setText(filename)
             ds = pydicom.dcmread(filename)
 
-            for setup in ds.PatientSetupSequence:
-                if self.patient_orientation is None:
-                    self.patient_orientation = setup.PatientPosition
+            current_orientation = None
+            bypass = False
 
-                if not setup.PatientPosition == self.patient_orientation:
-                    print("There are multiple patient orientations reported")
+            for setup in ds.PatientSetupSequence:
+                if current_orientation is None:
+                    current_orientation = setup.PatientPosition
+                elif current_orientation != setup.PatientPosition:
+                    print("There are multiple patient orientations reported in the DICOM Plan")
+                else:
+                    pass
+
+                if (self.patient_orientation is None) or \
+                        (self.patient_orientation != setup.PatientPosition and not bypass):
+                    if setup.PatientPosition == 'HFS':
+                        self.w_rb_hfs.setChecked(True)
+                    elif setup.PatientPosition == 'HFP':
+                        self.w_rb_hfp.setChecked(True)
+                    elif setup.PatientPosition == 'FFS':
+                        self.w_rb_ffs.setChecked(True)
+                    elif setup.PatientPosition == 'FFP':
+                        self.w_rb_ffp.setChecked(True)
+                    else:
+                        pass
+                    bypass = True
+                else:
+                    pass
+                # elif self.patient_orientation == setup.PatientPosition:
+                #     pass
+                # elif self.patient_orientation != setup.PatientPosition and not bypass:
+                #     if setup.PatientPosition == 'HFS':
+                #         self.w_rb_hfs.setChecked(True)
+                #     elif setup.PatientPosition == 'HFP':
+                #         self.w_rb_hfp.setChecked(True)
+                #     elif setup.PatientPosition == 'FFS':
+                #         self.w_rb_ffs.setChecked(True)
+                #     elif setup.PatientPosition == 'FFP':
+                #         self.w_rb_ffp.setChecked(True)
+                #     else:
+                #         pass
+                #     bypass = True
 
     def openDicomStructFile(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -197,60 +249,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
-            self.w_le_dicom_struct_file.setText(filename)
-
             # Load the DICOM mesh
-            dcm_mesh = self._loadDicomMesh(filename)
-
-            #############################
-            # START: DICOM Surface Data #
-            #############################
-
-            colors = vtk.vtkNamedColors()
-
-            dcm_verts = vtk.vtkPoints()
-            for vert in dcm_mesh.vertices:
-                dcm_verts.InsertNextPoint(*vert)
-
-            # Create a polydata object and add the points
-            self.dcm_polydata = vtk.vtkPolyData()
-            self.dcm_polydata.points = dcm_verts
-
-            # Create a vertex cell array to hold the triagles
-            dcm_triangles = vtk.vtkCellArray()
-            for i in range(len(dcm_mesh.triangles)):
-                dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-            self.dcm_polydata.polys = dcm_triangles
-
-            # Create a mapper and actor
-            dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-            self.dcm_polydata >> dcm_mesh_mapper
-
-            if self.dcm_actor is None:
-                # Create the scene actor that represents the point cloud
-                self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-                R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
-                self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-
-                self.vtk_renderer.AddActor(self.dcm_actor)
-                self.vtk_renderer.ResetCamera()
-            else:
-                self.vtk_renderer.RemoveActor(self.dcm_actor)
-
-                # Create the scene actor that represents the point cloud
-                self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-                self.dcm_actor.property.color = colors.GetColor3d('Green')
-                self.dcm_actor.property.opacity = 1
-
-                self.vtk_renderer.AddActor(self.dcm_actor)
-                self.vtk_renderer.ResetCamera()
-
-            self.vtk_render_window.Render()
-
-
-            ###########################
-            # END: DICOM Surface Data #
-            ###########################
+            self._loadDicomMesh(filename)
 
     def _loadDicomMesh(self, dcm_filename):
         # DICOM Point Cloud and Surface Mesh
@@ -258,10 +258,56 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         dcm_pcloud = get_dcm_body_point_cloud(dcm_filename)
 
         print("Generating DICOM surface using marchine cubes.")
-        mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
+        dcm_mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
         print('DICOM Surface complete')
 
-        return mesh
+        self.w_le_dicom_struct_file.setText(dcm_filename)
+
+        #############################
+        # START: DICOM Surface Data #
+        #############################
+
+        colors = vtk.vtkNamedColors()
+
+        dcm_verts = vtk.vtkPoints()
+        for vert in dcm_mesh.vertices:
+            dcm_verts.InsertNextPoint(*vert)
+
+        # Create a polydata object and add the points
+        self.dcm_polydata = vtk.vtkPolyData()
+        self.dcm_polydata.points = dcm_verts
+
+        # Create a vertex cell array to hold the triagles
+        dcm_triangles = vtk.vtkCellArray()
+        for i in range(len(dcm_mesh.triangles)):
+            dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
+        self.dcm_polydata.polys = dcm_triangles
+
+        # Create a mapper and actor
+        dcm_mesh_mapper = vtk.vtkPolyDataMapper()
+        self.dcm_polydata >> dcm_mesh_mapper
+
+        if self.dcm_actor is None:
+            # Create the scene actor that represents the point cloud
+            self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+            R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
+            self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+
+            self.vtk_renderer.AddActor(self.dcm_actor)
+            self.vtk_renderer.ResetCamera()
+        else:
+            self.vtk_renderer.RemoveActor(self.dcm_actor)
+
+            # Create the scene actor that represents the point cloud
+            self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+            self.dcm_actor.property.color = colors.GetColor3d('Green')
+            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+
+            self.vtk_renderer.AddActor(self.dcm_actor)
+            self.vtk_renderer.ResetCamera()
+
+        self.vtk_render_window.Render()
 
     def openObjFile(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -270,65 +316,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "OBJ Files (*.obj)"
                                                       )
         if filename:
-            self.w_le_obj_file.setText(filename)
-
             # Load the .obj mesh
             obj_mesh = self._loadOBJMesh(filename)
-
-            ###########################
-            # START: OBJ Surface Data #
-            ###########################
-
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
-
-            obj_points = vtk.vtkPoints()
-            obj_cells = vtk.vtkCellArray()
-
-            for point in obj_mesh.vertices:
-                obj_points.InsertNextPoint(*point)
-
-            self.obj_polydata = vtk.vtkPolyData()
-            self.obj_polydata.points = obj_points
-
-            for i in range(len(obj_mesh.triangles)):
-                obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-            self.obj_polydata.polys = obj_cells
-
-            self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-            self.obj_polydata >> self.obj_mapper
-
-            if self.obj_actor is None:
-                self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-                # R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
-                self.obj_actor.GetProperty().SetColor(R/255.0, G/255.0, B/255.0)
-
-                self.vtk_renderer.AddActor(self.obj_actor)
-                self.vtk_renderer.ResetCamera()
-            else:
-                self.vtk_renderer.RemoveActor(self.obj_actor)
-
-                self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-                self.obj_actor.GetProperty().SetColor(R/255.0, G/255.0, B/255.0)
-
-                self.vtk_renderer.AddActor(self.obj_actor)
-                self.vtk_renderer.ResetCamera()
-
-            self.vtk_render_window.Render()
-
-            #########################
-            # END: OBJ Surface Data #
-            #########################
 
     def _loadOBJMesh(self, obj_filename):
         # OBJ  File Processing
         print('Loading .obj surface')
-        obj_mesh = trimesh.load(obj_filename)
+        original_mesh = trimesh.load(obj_filename)
+
+        self.w_le_obj_file.setText(obj_filename)
 
         #  Transpose the axes to match the DICOM orientation
-        points = np.asarray(obj_mesh.vertices)
+        points = np.asarray(original_mesh.vertices)
 
-        # S = obj2dcm_transform_map[self.patient_orientation]
-        S = obj2dcm_transform_map['HFP']
+        S = obj2dcm_transform_map[self.patient_orientation]
+        # S = obj2dcm_transform_map['FFS']
 
         new_points = (S @ points.T).T
         new_point_colors = np.random.rand(*new_points.shape)
@@ -337,15 +339,53 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
         obj_pcloud.colors = o3d.utility.Vector3dVector(new_point_colors)
 
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.vertices = o3d.utility.Vector3dVector(new_points)
-        mesh.triangles = o3d.utility.Vector3iVector(np.array(obj_mesh.faces))
+        obj_mesh = o3d.geometry.TriangleMesh()
+        obj_mesh.vertices = o3d.utility.Vector3dVector(new_points)
+        obj_mesh.triangles = o3d.utility.Vector3iVector(np.array(original_mesh.faces))
 
-        mesh.compute_vertex_normals()
-        mesh.compute_triangle_normals()
-        mesh.paint_uniform_color([0.5, 0, 0.5])
+        obj_mesh.compute_vertex_normals()
+        obj_mesh.compute_triangle_normals()
+        # obj_mesh.paint_uniform_color([0.5, 0, 0.5])
 
-        return mesh
+        ###########################
+        # START: OBJ Surface Data #
+        ###########################
+
+        R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+
+        obj_points = vtk.vtkPoints()
+        obj_cells = vtk.vtkCellArray()
+
+        for point in obj_mesh.vertices:
+            obj_points.InsertNextPoint(*point)
+
+        self.obj_polydata = vtk.vtkPolyData()
+        self.obj_polydata.points = obj_points
+
+        for i in range(len(obj_mesh.triangles)):
+            obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
+        self.obj_polydata.polys = obj_cells
+
+        self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+        self.obj_polydata >> self.obj_mapper
+
+        if self.obj_actor is None:
+            self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+            self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+
+            self.vtk_renderer.AddActor(self.obj_actor)
+            self.vtk_renderer.ResetCamera()
+        else:
+            self.vtk_renderer.RemoveActor(self.obj_actor)
+
+            self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+            self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+
+            self.vtk_renderer.AddActor(self.obj_actor)
+            self.vtk_renderer.ResetCamera()
+
+        self.vtk_render_window.Render()
 
     def dicomColorNameChanged(self):
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
@@ -356,6 +396,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.vtk_render_window.Render()
 
+    def dicomTransparencyChanged(self):
+        self.w_l_dicom_transparency.setText(str(self.w_hs_dicom_transparency.value()))
+        if self.dcm_actor.property is not None:
+            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+            self.vtk_render_window.Render()
+        else:
+            pass
+
     def objColorNameChanged(self):
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
         self.w_obj_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
@@ -365,6 +413,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.vtk_render_window.Render()
 
+    def objTransparencyChanged(self):
+        self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
+        if self.obj_actor.property is not None:
+            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.vtk_render_window.Render()
+        else:
+            pass
+
     def backgroundColorNameChanged(self):
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_background_color.currentText())
         self.w_background_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
@@ -372,6 +428,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_renderer.SetBackground(R/255.0, G/255.0, B/255.0)
         self.vtk_render_window.Render()
+
+    def setPatientOrientation(self):
+        if self.w_rb_hfs.isChecked():
+            self.patient_orientation = 'HFS'
+        elif self.w_rb_hfp.isChecked():
+            self.patient_orientation = 'HFP'
+        elif self.w_rb_ffs.isChecked():
+            self.patient_orientation = 'FFS'
+        elif self.w_rb_ffp.isChecked():
+            self.patient_orientation = 'FFP'
+        else:
+            self.patient_orientation = None
+
+        if self.obj_actor is not None:
+            self._loadOBJMesh(self.w_le_obj_file.text())
 
     def saveImage(self):
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
