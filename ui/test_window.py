@@ -15,10 +15,11 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QGridLayout, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QMainWindow, QMenuBar,
-    QPushButton, QRadioButton, QSizePolicy, QSpacerItem,
-    QStatusBar, QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QFrame, QGridLayout,
+    QGroupBox, QHBoxLayout, QLabel, QLineEdit,
+    QMainWindow, QMenuBar, QPushButton, QRadioButton,
+    QSizePolicy, QSpacerItem, QStatusBar, QVBoxLayout,
+    QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -39,59 +40,144 @@ class Ui_MainWindow(object):
         self.horizontalLayout.setObjectName(u"horizontalLayout")
         self.groupBox = QGroupBox(self.centralwidget)
         self.groupBox.setObjectName(u"groupBox")
+        self.groupBox.setMaximumSize(QSize(400, 16777215))
         self.verticalLayout = QVBoxLayout(self.groupBox)
         self.verticalLayout.setObjectName(u"verticalLayout")
-        self.widget = QWidget(self.groupBox)
-        self.widget.setObjectName(u"widget")
-        self.gridLayout = QGridLayout(self.widget)
-        self.gridLayout.setObjectName(u"gridLayout")
-        self.label = QLabel(self.widget)
-        self.label.setObjectName(u"label")
-
-        self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
-
-        self.label_2 = QLabel(self.widget)
-        self.label_2.setObjectName(u"label_2")
-
-        self.gridLayout.addWidget(self.label_2, 1, 0, 1, 1)
-
-        self.w_pb_obj_file = QPushButton(self.widget)
-        self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        self.groupBox_3 = QGroupBox(self.groupBox)
+        self.groupBox_3.setObjectName(u"groupBox_3")
+        self.gridLayout_2 = QGridLayout(self.groupBox_3)
+        self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.w_dicom_color_frame = QFrame(self.groupBox_3)
+        self.w_dicom_color_frame.setObjectName(u"w_dicom_color_frame")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
         sizePolicy1.setHorizontalStretch(0)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.w_pb_obj_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_obj_file.setSizePolicy(sizePolicy1)
-        self.w_pb_obj_file.setMaximumSize(QSize(25, 16777215))
+        sizePolicy1.setHeightForWidth(self.w_dicom_color_frame.sizePolicy().hasHeightForWidth())
+        self.w_dicom_color_frame.setSizePolicy(sizePolicy1)
+        self.w_dicom_color_frame.setMaximumSize(QSize(25, 25))
+        self.w_dicom_color_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.w_dicom_color_frame.setFrameShadow(QFrame.Shadow.Raised)
 
-        self.gridLayout.addWidget(self.w_pb_obj_file, 1, 3, 1, 1)
+        self.gridLayout_2.addWidget(self.w_dicom_color_frame, 2, 3, 1, 1)
 
-        self.w_le_dicom_file = QLineEdit(self.widget)
+        self.w_pb_dicom_file = QPushButton(self.groupBox_3)
+        self.w_pb_dicom_file.setObjectName(u"w_pb_dicom_file")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.w_pb_dicom_file.sizePolicy().hasHeightForWidth())
+        self.w_pb_dicom_file.setSizePolicy(sizePolicy2)
+        self.w_pb_dicom_file.setMaximumSize(QSize(25, 16777215))
+
+        self.gridLayout_2.addWidget(self.w_pb_dicom_file, 0, 3, 1, 1)
+
+        self.w_cb_dicom_color = QComboBox(self.groupBox_3)
+        self.w_cb_dicom_color.setObjectName(u"w_cb_dicom_color")
+
+        self.gridLayout_2.addWidget(self.w_cb_dicom_color, 2, 1, 1, 1)
+
+        self.label_3 = QLabel(self.groupBox_3)
+        self.label_3.setObjectName(u"label_3")
+
+        self.gridLayout_2.addWidget(self.label_3, 2, 0, 1, 1)
+
+        self.label = QLabel(self.groupBox_3)
+        self.label.setObjectName(u"label")
+
+        self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
+
+        self.w_le_dicom_file = QLineEdit(self.groupBox_3)
         self.w_le_dicom_file.setObjectName(u"w_le_dicom_file")
         self.w_le_dicom_file.setMinimumSize(QSize(100, 0))
 
-        self.gridLayout.addWidget(self.w_le_dicom_file, 0, 1, 1, 2)
+        self.gridLayout_2.addWidget(self.w_le_dicom_file, 0, 1, 1, 1)
 
-        self.w_pb_dicom_file = QPushButton(self.widget)
-        self.w_pb_dicom_file.setObjectName(u"w_pb_dicom_file")
-        sizePolicy1.setHeightForWidth(self.w_pb_dicom_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_dicom_file.setSizePolicy(sizePolicy1)
-        self.w_pb_dicom_file.setMaximumSize(QSize(25, 16777215))
 
-        self.gridLayout.addWidget(self.w_pb_dicom_file, 0, 3, 1, 1)
+        self.verticalLayout.addWidget(self.groupBox_3)
 
-        self.w_le_obj_file = QLineEdit(self.widget)
+        self.groupBox_4 = QGroupBox(self.groupBox)
+        self.groupBox_4.setObjectName(u"groupBox_4")
+        self.gridLayout_3 = QGridLayout(self.groupBox_4)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
+        self.w_pb_obj_file = QPushButton(self.groupBox_4)
+        self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
+        sizePolicy2.setHeightForWidth(self.w_pb_obj_file.sizePolicy().hasHeightForWidth())
+        self.w_pb_obj_file.setSizePolicy(sizePolicy2)
+        self.w_pb_obj_file.setMaximumSize(QSize(25, 16777215))
+
+        self.gridLayout_3.addWidget(self.w_pb_obj_file, 0, 2, 1, 1)
+
+        self.label_2 = QLabel(self.groupBox_4)
+        self.label_2.setObjectName(u"label_2")
+
+        self.gridLayout_3.addWidget(self.label_2, 0, 0, 1, 1)
+
+        self.w_le_obj_file = QLineEdit(self.groupBox_4)
         self.w_le_obj_file.setObjectName(u"w_le_obj_file")
         self.w_le_obj_file.setMinimumSize(QSize(100, 0))
 
-        self.gridLayout.addWidget(self.w_le_obj_file, 1, 1, 1, 2)
+        self.gridLayout_3.addWidget(self.w_le_obj_file, 0, 1, 1, 1)
+
+        self.label_4 = QLabel(self.groupBox_4)
+        self.label_4.setObjectName(u"label_4")
+
+        self.gridLayout_3.addWidget(self.label_4, 1, 0, 1, 1)
+
+        self.w_obj_color_frame = QFrame(self.groupBox_4)
+        self.w_obj_color_frame.setObjectName(u"w_obj_color_frame")
+        sizePolicy1.setHeightForWidth(self.w_obj_color_frame.sizePolicy().hasHeightForWidth())
+        self.w_obj_color_frame.setSizePolicy(sizePolicy1)
+        self.w_obj_color_frame.setMinimumSize(QSize(0, 0))
+        self.w_obj_color_frame.setMaximumSize(QSize(25, 25))
+        self.w_obj_color_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.w_obj_color_frame.setFrameShadow(QFrame.Shadow.Raised)
+
+        self.gridLayout_3.addWidget(self.w_obj_color_frame, 1, 2, 1, 1)
+
+        self.w_cb_obj_color = QComboBox(self.groupBox_4)
+        self.w_cb_obj_color.setObjectName(u"w_cb_obj_color")
+
+        self.gridLayout_3.addWidget(self.w_cb_obj_color, 1, 1, 1, 1)
 
 
-        self.verticalLayout.addWidget(self.widget)
+        self.verticalLayout.addWidget(self.groupBox_4)
+
+        self.groupBox_5 = QGroupBox(self.groupBox)
+        self.groupBox_5.setObjectName(u"groupBox_5")
+        self.gridLayout = QGridLayout(self.groupBox_5)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.w_background_color_frame = QFrame(self.groupBox_5)
+        self.w_background_color_frame.setObjectName(u"w_background_color_frame")
+        sizePolicy1.setHeightForWidth(self.w_background_color_frame.sizePolicy().hasHeightForWidth())
+        self.w_background_color_frame.setSizePolicy(sizePolicy1)
+        self.w_background_color_frame.setMinimumSize(QSize(0, 0))
+        self.w_background_color_frame.setMaximumSize(QSize(25, 25))
+        self.w_background_color_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.w_background_color_frame.setFrameShadow(QFrame.Shadow.Raised)
+
+        self.gridLayout.addWidget(self.w_background_color_frame, 0, 2, 1, 1)
+
+        self.label_5 = QLabel(self.groupBox_5)
+        self.label_5.setObjectName(u"label_5")
+
+        self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
+
+        self.w_cb_background_color = QComboBox(self.groupBox_5)
+        self.w_cb_background_color.setObjectName(u"w_cb_background_color")
+
+        self.gridLayout.addWidget(self.w_cb_background_color, 0, 1, 1, 1)
+
+
+        self.verticalLayout.addWidget(self.groupBox_5)
 
         self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout.addItem(self.verticalSpacer)
+
+        self.w_pb_save_image = QPushButton(self.groupBox)
+        self.w_pb_save_image.setObjectName(u"w_pb_save_image")
+
+        self.verticalLayout.addWidget(self.w_pb_save_image)
 
 
         self.horizontalLayout.addWidget(self.groupBox)
@@ -169,12 +255,19 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"Test Area 1", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"DICOM Structure Set File", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"OBJ File", None))
-        self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"View Settings and FIle Information", None))
+        self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"DICOM Structure Set", None))
         self.w_pb_dicom_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Test Area 2", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
+        self.label.setText(QCoreApplication.translate("MainWindow", u"File Path", None))
+        self.groupBox_4.setTitle(QCoreApplication.translate("MainWindow", u"OBJ File", None))
+        self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"FIle Parth", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
+        self.groupBox_5.setTitle(QCoreApplication.translate("MainWindow", u"Render Settings", None))
+        self.label_5.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
+        self.w_pb_save_image.setText(QCoreApplication.translate("MainWindow", u"Save Render Window Image", None))
+        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Render Window", None))
         self.w_rb_plusX.setText(QCoreApplication.translate("MainWindow", u"+X", None))
         self.w_rb_minusX.setText(QCoreApplication.translate("MainWindow", u"-X", None))
         self.w_rb_plusY.setText(QCoreApplication.translate("MainWindow", u"+Y", None))
