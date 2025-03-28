@@ -155,12 +155,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         color_names_string = self.named_colors.GetColorNames()
         color_names_list = color_names_string.split('\n')
 
-        self.w_pb_dicom_plan_file.clicked.connect(self.openDicomPlanFile)
-        self.w_pb_dicom_struct_file.clicked.connect(self.openDicomStructFile)
-        self.w_cb_dicom_color.addItems(color_names_list)
-        self.w_cb_dicom_color.currentTextChanged.connect(self.dicomColorNameChanged)
-        self.w_cb_dicom_color.setCurrentText('green')
-        self.w_hs_dicom_transparency.valueChanged.connect(self.dicomTransparencyChanged)
+        self.w_pb_dcm_plan_file.clicked.connect(self.openDcmPlanFile)
+        self.w_pb_dcm_struct_file.clicked.connect(self.openDcmStructFile)
+        self.w_cb_dcm_color.addItems(color_names_list)
+        self.w_cb_dcm_color.currentTextChanged.connect(self.dcmColorNameChanged)
+        self.w_cb_dcm_color.setCurrentText('green')
+        self.w_hs_dcm_transparency.valueChanged.connect(self.dcmTransparencyChanged)
 
         self.patient_orientation = None
 
@@ -191,15 +191,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
 
-    def openDicomPlanFile(self):
-        print(">>openDicomPlanFile")
+    def openDcmPlanFile(self):
+        print(">>openDcmPlanFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
-            self.w_le_dicom_plan_file.setText(filename)
+            self.w_le_dcm_plan_file.setText(filename)
             ds = pydicom.dcmread(filename)
 
             current_orientation = None
@@ -230,8 +230,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 else:
                     pass
 
-    def openDicomStructFile(self):
-        print(">>openDicomStructFile")
+    def openDcmStructFile(self):
+        print(">>openDcmStructFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -239,10 +239,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       )
         if filename:
             # Load the DICOM mesh
-            self._loadDicomMesh(filename)
+            self._loadDcmMesh(filename)
 
-    def _loadDicomMesh(self, dcm_filename):
-        print(">>_loadDicomMesh")
+    def _loadDcmMesh(self, dcm_filename):
+        print(">>_loadDcmMesh")
         # DICOM Point Cloud and Surface Mesh
         print('Reading in DICOM "Body" structure from DICOM file')
         dcm_pcloud = get_dcm_body_point_cloud(dcm_filename)
@@ -251,7 +251,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         dcm_mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
         print('DICOM Surface complete')
 
-        self.w_le_dicom_struct_file.setText(dcm_filename)
+        self.w_le_dcm_struct_file.setText(dcm_filename)
 
         #############################
         # START: DICOM Surface Data #
@@ -280,9 +280,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.dcm_actor is None:
             # Create the scene actor that represents the point cloud
             self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
+            R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dcm_actor)
             self.vtk_renderer.ResetCamera()
@@ -292,7 +292,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # Create the scene actor that represents the point cloud
             self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
             self.dcm_actor.property.color = colors.GetColor3d('Green')
-            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dcm_actor)
             self.vtk_renderer.ResetCamera()
@@ -324,11 +324,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # S = obj2dcm_transform_map['FFS']
 
         new_points = (S @ points.T).T
-        new_point_colors = np.random.rand(*new_points.shape)
 
         obj_pcloud = o3d.geometry.PointCloud()
         obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
-        obj_pcloud.colors = o3d.utility.Vector3dVector(new_point_colors)
 
         obj_mesh = o3d.geometry.TriangleMesh()
         obj_mesh.vertices = o3d.utility.Vector3dVector(new_points)
@@ -373,21 +371,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def dicomColorNameChanged(self):
-        print(">>dicomColorNameChanged")
-        R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
-        self.w_dicom_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
-        self.w_dicom_color_frame.show()
+    def dcmColorNameChanged(self):
+        print(">>dcmColorNameChanged")
+        R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
+        self.w_dcm_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
+        self.w_dcm_color_frame.show()
 
         if self.dcm_actor is not None:
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.vtk_render_window.Render()
 
-    def dicomTransparencyChanged(self):
-        print(">>dicomTransparencyChanged")
-        self.w_l_dicom_transparency.setText(str(self.w_hs_dicom_transparency.value()))
+    def dcmTransparencyChanged(self):
+        print(">>dcmTransparencyChanged")
+        self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
         if self.dcm_actor.property is not None:
-            self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass
