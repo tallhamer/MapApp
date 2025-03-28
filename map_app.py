@@ -13,7 +13,6 @@ import trimesh
 import open3d as o3d
 
 import vtk
-from sympy import cycle_length, false
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from MapApp.ui.test_window import Ui_MainWindow
@@ -138,6 +137,7 @@ def pcloud_to_mesh(pcd, voxel_size=3, iso_level_percentile=5):
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
+        print(">>Application __init__")
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("VTK Test Window")
@@ -170,10 +170,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_obj_color.setCurrentText('light_grey')
         self.w_hs_obj_transparency.valueChanged.connect(self.objTransparencyChanged)
 
-        self.w_rb_hfs.toggled.connect(self.setPatientOrientation)
-        self.w_rb_hfp.toggled.connect(self.setPatientOrientation)
-        self.w_rb_ffs.toggled.connect(self.setPatientOrientation)
-        self.w_rb_ffp.toggled.connect(self.setPatientOrientation)
+        self.w_rb_hfs.toggled.connect(self.orientationChanged)
+        self.w_rb_hfp.toggled.connect(self.orientationChanged)
+        self.w_rb_ffs.toggled.connect(self.orientationChanged)
+        self.w_rb_ffp.toggled.connect(self.orientationChanged)
 
         self.w_cb_background_color.addItems(color_names_list)
         self.w_cb_background_color.currentTextChanged.connect(self.backgroundColorNameChanged)
@@ -192,6 +192,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_widget.show()
 
     def openDicomPlanFile(self):
+        print(">>openDicomPlanFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -214,6 +215,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
                 if (self.patient_orientation is None) or \
                         (self.patient_orientation != setup.PatientPosition and not bypass):
+                    print("In Bypass loop")
                     if setup.PatientPosition == 'HFS':
                         self.w_rb_hfs.setChecked(True)
                     elif setup.PatientPosition == 'HFP':
@@ -227,22 +229,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     bypass = True
                 else:
                     pass
-                # elif self.patient_orientation == setup.PatientPosition:
-                #     pass
-                # elif self.patient_orientation != setup.PatientPosition and not bypass:
-                #     if setup.PatientPosition == 'HFS':
-                #         self.w_rb_hfs.setChecked(True)
-                #     elif setup.PatientPosition == 'HFP':
-                #         self.w_rb_hfp.setChecked(True)
-                #     elif setup.PatientPosition == 'FFS':
-                #         self.w_rb_ffs.setChecked(True)
-                #     elif setup.PatientPosition == 'FFP':
-                #         self.w_rb_ffp.setChecked(True)
-                #     else:
-                #         pass
-                #     bypass = True
 
     def openDicomStructFile(self):
+        print(">>openDicomStructFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -253,6 +242,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self._loadDicomMesh(filename)
 
     def _loadDicomMesh(self, dcm_filename):
+        print(">>_loadDicomMesh")
         # DICOM Point Cloud and Surface Mesh
         print('Reading in DICOM "Body" structure from DICOM file')
         dcm_pcloud = get_dcm_body_point_cloud(dcm_filename)
@@ -310,6 +300,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def openObjFile(self):
+        print(">>openObjFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -320,8 +311,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             obj_mesh = self._loadOBJMesh(filename)
 
     def _loadOBJMesh(self, obj_filename):
+        print(">>_loadOBJMesh")
         # OBJ  File Processing
-        print('Loading .obj surface')
         original_mesh = trimesh.load(obj_filename)
 
         self.w_le_obj_file.setText(obj_filename)
@@ -345,11 +336,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         obj_mesh.compute_vertex_normals()
         obj_mesh.compute_triangle_normals()
-        # obj_mesh.paint_uniform_color([0.5, 0, 0.5])
-
-        ###########################
-        # START: OBJ Surface Data #
-        ###########################
 
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
 
@@ -366,12 +352,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
         self.obj_polydata.polys = obj_cells
 
-        self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+        # self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+        self.obj_mapper = vtk.vtkPolyDataMapper()
         self.obj_polydata >> self.obj_mapper
 
         if self.obj_actor is None:
             self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
 
             self.vtk_renderer.AddActor(self.obj_actor)
@@ -388,6 +374,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def dicomColorNameChanged(self):
+        print(">>dicomColorNameChanged")
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_dicom_color.currentText())
         self.w_dicom_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
         self.w_dicom_color_frame.show()
@@ -397,6 +384,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def dicomTransparencyChanged(self):
+        print(">>dicomTransparencyChanged")
         self.w_l_dicom_transparency.setText(str(self.w_hs_dicom_transparency.value()))
         if self.dcm_actor.property is not None:
             self.dcm_actor.property.opacity = self.w_hs_dicom_transparency.value() / 100.0
@@ -405,6 +393,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def objColorNameChanged(self):
+        print(">>objColorNameChanged")
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
         self.w_obj_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
         self.w_obj_color_frame.show()
@@ -414,6 +403,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def objTransparencyChanged(self):
+        print(">>objTransparencyChanged")
         self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
         if self.obj_actor.property is not None:
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
@@ -422,6 +412,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def backgroundColorNameChanged(self):
+        print(">>backgroundColorNameChanged")
         R, G, B = self.named_colors.GetColor3ub(self.w_cb_background_color.currentText())
         self.w_background_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
         self.w_background_color_frame.show()
@@ -429,20 +420,34 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_renderer.SetBackground(R/255.0, G/255.0, B/255.0)
         self.vtk_render_window.Render()
 
-    def setPatientOrientation(self):
-        if self.w_rb_hfs.isChecked():
-            self.patient_orientation = 'HFS'
-        elif self.w_rb_hfp.isChecked():
-            self.patient_orientation = 'HFP'
-        elif self.w_rb_ffs.isChecked():
-            self.patient_orientation = 'FFS'
-        elif self.w_rb_ffp.isChecked():
-            self.patient_orientation = 'FFP'
-        else:
-            self.patient_orientation = None
+    def orientationChanged(self, checked):
+        print(">>orientationChanged")
+        print(f"{self.sender()} is checked: {checked}")
+        if checked:
+            if self.sender().objectName() == 'w_rb_hfs':
+                self.patient_orientation = 'HFS'
 
-        if self.obj_actor is not None:
-            self._loadOBJMesh(self.w_le_obj_file.text())
+                if self.obj_actor is not None:
+                    self._loadOBJMesh(self.w_le_obj_file.text())
+
+
+            elif self.sender().objectName() == 'w_rb_hfp':
+                self.patient_orientation = 'HFP'
+
+                if self.obj_actor is not None:
+                    self._loadOBJMesh(self.w_le_obj_file.text())
+
+            elif self.sender().objectName() == 'w_rb_ffs':
+                self.patient_orientation = 'FFS'
+
+                if self.obj_actor is not None:
+                    self._loadOBJMesh(self.w_le_obj_file.text())
+
+            elif self.sender().objectName() == 'w_rb_ffp':
+                self.patient_orientation = 'FFP'
+
+                if self.obj_actor is not None:
+                    self._loadOBJMesh(self.w_le_obj_file.text())
 
     def saveImage(self):
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
