@@ -15,7 +15,7 @@ import open3d as o3d
 import vtk
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-from MapApp.ui.test_window import Ui_MainWindow
+from ui.test_window import Ui_MainWindow
 
 obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                                          [0, 1, 0],
