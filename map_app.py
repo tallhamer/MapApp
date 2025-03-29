@@ -9,8 +9,6 @@ import numpy as np
 from skimage import measure
 from scipy.spatial import cKDTree
 
-
-
 import trimesh
 import open3d as o3d
 
