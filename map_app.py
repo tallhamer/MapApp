@@ -1,13 +1,15 @@
 import sys
 
+import PySide6.QtCore as qtc
+import PySide6.QtWidgets as qtw
+import PySide6.QtGui as qtg
+
 import pydicom
 import numpy as np
 from skimage import measure
 from scipy.spatial import cKDTree
 
-import PySide6.QtCore as qtc
-import PySide6.QtWidgets as qtw
-import PySide6.QtGui as qtg
+
 
 import trimesh
 import open3d as o3d
