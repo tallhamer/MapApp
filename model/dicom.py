@@ -14,7 +14,7 @@ class DicomFileSyncModel(qtc.QObject):
     plan_file_changed = qtc.Signal(str)
     patient_orientation_changed = qtc.Signal(str)
     structure_file_changed = qtc.Signal(str)
-    vtk_body_actor_updated = qtc.Signal()
+    vtk_actor_updated = qtc.Signal()
 
     def __init__(self):
         super().__init__()
@@ -47,16 +47,19 @@ class DicomFileSyncModel(qtc.QObject):
         self._plan_file = new_path
         ds = pydicom.dcmread(self.plan_file)
 
-        for i in range(len(ds.PatientSetupSequence)):
-            orientation = ds.PatientSetupSequence[i].PatientPosition
+        if hasattr(ds, "PatientSetupSequence"):
+            for i in range(len(ds.PatientSetupSequence)):
+                orientation = ds.PatientSetupSequence[i].PatientPosition
 
-            if (self.patient_orientation is None) or (i == 0):
-                self.patient_orientation = orientation
-                self.patient_orientation_changed.emit(orientation)
-            elif self.patient_orientation != orientation:
-                print("There are multiple patient orientations reported in the DICOM Plan")
-            else:
-                pass
+                if (self.patient_orientation is None) or (i == 0):
+                    self.patient_orientation = orientation
+                    self.patient_orientation_changed.emit(orientation)
+                elif self.patient_orientation != orientation:
+                    print("There are multiple patient orientations reported in the DICOM Plan")
+                else:
+                    pass
+        else:
+            print("Not a valid DICOM RT Plan file.")
 
     def _get_body_point_cloud(self):
         # Read DICOM Structure Set
@@ -172,8 +175,8 @@ class DicomFileSyncModel(qtc.QObject):
 
 
         # Create the scene actor that represents the point cloud
-        self.dcn_body_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+        self.dcm_body_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
         self.dcm_body_actor.GetProperty().SetColor(0, 1, 0)
         self.dcm_body_actor.property.opacity = 1
 
-        self.vtk_body_actor_updated.emit()
+        self.vtk_actor_updated.emit()

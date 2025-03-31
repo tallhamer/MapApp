@@ -1,24 +1,26 @@
 import sys
 
-import PySide6.QtCore as qtc
+# import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
 # import PySide6.QtGui as qtg
 
-import pydicom
+# import pydicom
 import numpy as np
-from skimage import measure
-from scipy.spatial import cKDTree
+# from skimage import measure
+# from scipy.spatial import cKDTree
 
 import trimesh
 import open3d as o3d
 
 import vtk
-from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+# from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 from ui.test_window import Ui_MainWindow
 from model.dicom import DicomFileSyncModel
+from model.obj import ObjFileModel
 
 DFS = DicomFileSyncModel()
+OFM = ObjFileModel()
 
 obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                                          [0, 1, 0],
@@ -113,7 +115,7 @@ def has_actor(renderer, actor_to_check):
 #     dcm_pcloud.estimate_normals()
 #
 #     return dcm_pcloud
-#
+
 # def pcloud_to_mesh(pcd, voxel_size=3, iso_level_percentile=5):
 #     # Convet Open3D point cloud to numpy array
 #     points = np.asarray(pcd.points)
@@ -188,7 +190,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_le_dcm_plan_file.textChanged.connect(DFS.update_plan_file)
         self.w_le_dcm_struct_file.textChanged.connect(DFS.update_structure_file)
 
-        DFS.vtk_body_actor_updated.connect(self.visualizeDicom)
+        DFS.vtk_actor_updated.connect(self.updateDcmVisualization)
 
         self.patient_orientation = None
 
@@ -197,6 +199,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_obj_color.currentTextChanged.connect(self.objColorNameChanged)
         self.w_cb_obj_color.setCurrentText('light_grey')
         self.w_hs_obj_transparency.valueChanged.connect(self.objTransparencyChanged)
+
+        self.w_le_obj_file.textChanged.connect(OFM.update_obj_file)
+
+        OFM.vtk_actor_updated.connect(self.updateObjVisualization)
 
         self.w_rb_hfs.toggled.connect(self.orientationChanged)
         self.w_rb_hfp.toggled.connect(self.orientationChanged)
@@ -227,6 +233,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
+            # This will trigger model update through connection to the DicomFileSyncModel.update_plan_file
+            # Slot made in the __init__ method.
             self.w_le_dcm_plan_file.setText(filename)
 
             # ds = pydicom.dcmread(filename)
@@ -267,12 +275,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
+            # This will trigger model update through connection to the DicomFileSyncModel.update_structure_file
+            # Slot made in the __init__ method.
             self.w_le_dcm_struct_file.setText(filename)
 
-            # Load the DICOM mesh
-            # self._loadDcmMesh(filename)
-
-    def visualizeDicom(self):
+    def updateDcmVisualization(self):
         if self.dcm_actor is None:
             self.dcm_actor = DFS.dcm_body_actor
 
@@ -362,69 +369,94 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "OBJ Files (*.obj)"
                                                       )
         if filename:
-            # Load the .obj mesh
-            obj_mesh = self._loadOBJMesh(filename)
+            self.w_le_obj_file.setText(filename)
 
-    def _loadOBJMesh(self, obj_filename):
-        print(">>_loadOBJMesh")
-        # OBJ  File Processing
-        original_mesh = trimesh.load(obj_filename)
+            # # Load the .obj mesh
+            # obj_mesh = self._loadOBJMesh(filename)
 
-        self.w_le_obj_file.setText(obj_filename)
-
-        #  Transpose the axes to match the DICOM orientation
-        points = np.asarray(original_mesh.vertices)
-
-        S = obj2dcm_transform_map[self.patient_orientation]
-        # S = obj2dcm_transform_map['FFS']
-
-        new_points = (S @ points.T).T
-
-        obj_pcloud = o3d.geometry.PointCloud()
-        obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
-
-        obj_mesh = o3d.geometry.TriangleMesh()
-        obj_mesh.vertices = o3d.utility.Vector3dVector(new_points)
-        obj_mesh.triangles = o3d.utility.Vector3iVector(np.array(original_mesh.faces))
-
-        obj_mesh.compute_vertex_normals()
-        obj_mesh.compute_triangle_normals()
-
-        R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
-
-        obj_points = vtk.vtkPoints()
-        obj_cells = vtk.vtkCellArray()
-
-        for point in obj_mesh.vertices:
-            obj_points.InsertNextPoint(*point)
-
-        self.obj_polydata = vtk.vtkPolyData()
-        self.obj_polydata.points = obj_points
-
-        for i in range(len(obj_mesh.triangles)):
-            obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-        self.obj_polydata.polys = obj_cells
-
-        # self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-        self.obj_mapper = vtk.vtkPolyDataMapper()
-        self.obj_polydata >> self.obj_mapper
-
+    def updateObjVisualization(self):
         if self.obj_actor is None:
-            self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+            self.obj_actor = OFM.obj_actor
+
+            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
             self.vtk_renderer.AddActor(self.obj_actor)
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.obj_actor)
+            self.obj_actor = OFM.obj_actor
 
-            self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
             self.vtk_renderer.AddActor(self.obj_actor)
             self.vtk_renderer.ResetCamera()
 
         self.vtk_render_window.Render()
+
+    # def _loadOBJMesh(self, obj_filename):
+    #     print(">>_loadOBJMesh")
+    #     # OBJ  File Processing
+    #     original_mesh = trimesh.load(obj_filename)
+    #
+    #     self.w_le_obj_file.setText(obj_filename)
+    #
+    #     #  Transpose the axes to match the DICOM orientation
+    #     points = np.asarray(original_mesh.vertices)
+    #
+    #     S = obj2dcm_transform_map[self.patient_orientation]
+    #     # S = obj2dcm_transform_map['FFS']
+    #
+    #     new_points = (S @ points.T).T
+    #
+    #     obj_pcloud = o3d.geometry.PointCloud()
+    #     obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
+    #
+    #     obj_mesh = o3d.geometry.TriangleMesh()
+    #     obj_mesh.vertices = o3d.utility.Vector3dVector(new_points)
+    #     obj_mesh.triangles = o3d.utility.Vector3iVector(np.array(original_mesh.faces))
+    #
+    #     obj_mesh.compute_vertex_normals()
+    #     obj_mesh.compute_triangle_normals()
+    #
+    #     R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+    #
+    #     obj_points = vtk.vtkPoints()
+    #     obj_cells = vtk.vtkCellArray()
+    #
+    #     for point in obj_mesh.vertices:
+    #         obj_points.InsertNextPoint(*point)
+    #
+    #     self.obj_polydata = vtk.vtkPolyData()
+    #     self.obj_polydata.points = obj_points
+    #
+    #     for i in range(len(obj_mesh.triangles)):
+    #         obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
+    #     self.obj_polydata.polys = obj_cells
+    #
+    #     # self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
+    #     self.obj_mapper = vtk.vtkPolyDataMapper()
+    #     self.obj_polydata >> self.obj_mapper
+    #
+    #     if self.obj_actor is None:
+    #         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+    #         self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+    #
+    #         self.vtk_renderer.AddActor(self.obj_actor)
+    #         self.vtk_renderer.ResetCamera()
+    #     else:
+    #         self.vtk_renderer.RemoveActor(self.obj_actor)
+    #
+    #         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
+    #         self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+    #
+    #         self.vtk_renderer.AddActor(self.obj_actor)
+    #         self.vtk_renderer.ResetCamera()
+    #
+    #     self.vtk_render_window.Render()
 
     def dcmColorNameChanged(self):
         print(">>dcmColorNameChanged")
@@ -479,28 +511,32 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if checked:
             if self.sender().objectName() == 'w_rb_hfs':
                 self.patient_orientation = 'HFS'
+                OFM.patient_orientation = 'HFS'
 
-                if self.obj_actor is not None:
-                    self._loadOBJMesh(self.w_le_obj_file.text())
+                # if self.obj_actor is not None:
+                #     self._loadOBJMesh(self.w_le_obj_file.text())
 
 
             elif self.sender().objectName() == 'w_rb_hfp':
                 self.patient_orientation = 'HFP'
+                OFM.patient_orientation = 'HFP'
 
-                if self.obj_actor is not None:
-                    self._loadOBJMesh(self.w_le_obj_file.text())
+                # if self.obj_actor is not None:
+                #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffs':
                 self.patient_orientation = 'FFS'
-
-                if self.obj_actor is not None:
-                    self._loadOBJMesh(self.w_le_obj_file.text())
+                OFM.patient_orientation = 'FFS'
+                #
+                # if self.obj_actor is not None:
+                #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffp':
                 self.patient_orientation = 'FFP'
+                OFM.patient_orientation = 'FFP'
 
-                if self.obj_actor is not None:
-                    self._loadOBJMesh(self.w_le_obj_file.text())
+                # if self.obj_actor is not None:
+                #     self._loadOBJMesh(self.w_le_obj_file.text())
 
     def saveImage(self):
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
@@ -526,46 +562,38 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.SetInputConnection(window_to_image_filter.GetOutputPort())
             writer.Write()
 
-    def _getViewingFlag(self):
-        if self.dcm_actor is None:
-            if self.obj_actor is None:
-                return None
-            else:
-                return 2
-        else:
-            if self.obj_actor is None:
-                return 1
-            else:
-                return 3
+    # def _getViewingFlag(self):
+    #     if self.dcm_actor is None:
+    #         if self.obj_actor is None:
+    #             return None
+    #         else:
+    #             return 2
+    #     else:
+    #         if self.obj_actor is None:
+    #             return 1
+    #         else:
+    #             return 3
 
     def _getViewingBounds(self):
-        flag = self._getViewingFlag()
-        if flag == 1:
-            print('Viewport contains DICOM only')
-            print(self.dcm_polydata.bounds)
+        _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
 
-            return self.dcm_polydata.bounds
-        elif flag == 2:
-            print('Viewport contains OBJ only')
-            print(self.obj_polydata.bounds)
+        actors = self.vtk_renderer.GetActors()
+        actors.InitTraversal()
+        current_actor = actors.GetNextActor()
+        while current_actor is not None:
+            poly = current_actor.GetMapper().GetInput()
 
-            return self.obj_polydata.bounds
-        elif flag == 3:
-            print('Viewport contains both DICOM and OBJ')
-            print(self.dcm_polydata.bounds)
-            print(self.obj_polydata.bounds)
+            x_min, x_max, y_min, y_max, z_min, z_max = poly.bounds
+            _x_min.append(x_min)
+            _x_max.append(x_max)
+            _y_min.append(y_min)
+            _y_max.append(y_max)
+            _z_min.append(z_min)
+            _z_max.append(z_max)
 
-            _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = self.dcm_polydata.bounds
-            __x_min, __x_max, __y_min, __y_max, __z_min, __z_max = self.obj_polydata.bounds
+            current_actor = actors.GetNextActor()
 
-            x_min = _x_min if _x_min <= __x_min else __x_min
-            x_max = _x_max if _x_max >= __x_max else __x_max
-            y_min = _y_min if _y_min <= __y_min else __y_min
-            y_max = _y_max if _y_max >= __y_max else __y_max
-            z_min = _z_min if _z_min <= __z_min else __z_min
-            z_max = _z_max if _z_max >= __z_max else __z_max
-
-            return (x_min, x_max, y_min, y_max, z_min, z_max)
+        return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def setCameraToPlusX(self):
         if self.w_rb_plusX.isChecked():
