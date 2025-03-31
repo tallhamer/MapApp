@@ -3,11 +3,12 @@ import vtk
 import PySide6.QtWidgets as qtw
 
 from ui.test_window import Ui_MainWindow
-from model.dicom import DicomFileSyncModel
-from model.obj import ObjFileModel
+from model.dicom import DicomRTPlanFile, DicomRTStructureSetFile
+from model.obj import ObjFile
 
-DFS = DicomFileSyncModel()
-OFM = ObjFileModel()
+RP = DicomRTPlanFile()
+RS = DicomRTStructureSetFile()
+OBJ = ObjFile()
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -36,10 +37,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_dcm_color.setCurrentText('green')
         self.w_hs_dcm_transparency.valueChanged.connect(self.dcmTransparencyChanged)
 
-        self.w_le_dcm_plan_file.textChanged.connect(DFS.update_plan_file)
-        self.w_le_dcm_struct_file.textChanged.connect(DFS.update_structure_file)
+        self.w_le_dcm_plan_file.textChanged.connect(RP.update_path)
+        self.w_le_dcm_struct_file.textChanged.connect(RS.update_path)
 
-        DFS.vtk_actor_updated.connect(self.updateDcmVisualization)
+        RS.vtkActorUpdated.connect(self.updateDcmVisualization)
 
         self.patient_orientation = None
 
@@ -49,9 +50,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_obj_color.setCurrentText('light_grey')
         self.w_hs_obj_transparency.valueChanged.connect(self.objTransparencyChanged)
 
-        self.w_le_obj_file.textChanged.connect(OFM.update_obj_file)
+        self.w_le_obj_file.textChanged.connect(OBJ.update_obj_file)
 
-        OFM.vtk_actor_updated.connect(self.updateObjVisualization)
+        OBJ.vtk_actor_updated.connect(self.updateObjVisualization)
 
         self.w_rb_hfs.toggled.connect(self.orientationChanged)
         self.w_rb_hfp.toggled.connect(self.orientationChanged)
@@ -130,7 +131,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def updateDcmVisualization(self):
         if self.dcm_actor is None:
-            self.dcm_actor = DFS.dcm_body_actor
+            self.dcm_actor = RS.dcm_body_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -140,7 +141,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.dcm_actor)
-            self.dcm_actor = DFS.dcm_body_actor
+            self.dcm_actor = RS.dcm_body_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -163,7 +164,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def updateObjVisualization(self):
         if self.obj_actor is None:
-            self.obj_actor = OFM.obj_actor
+            self.obj_actor = OBJ.obj_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -173,7 +174,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.obj_actor)
-            self.obj_actor = OFM.obj_actor
+            self.obj_actor = OBJ.obj_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -237,7 +238,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if checked:
             if self.sender().objectName() == 'w_rb_hfs':
                 self.patient_orientation = 'HFS'
-                OFM.patient_orientation = 'HFS'
+                OBJ.patient_orientation = 'HFS'
 
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())
@@ -245,21 +246,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             elif self.sender().objectName() == 'w_rb_hfp':
                 self.patient_orientation = 'HFP'
-                OFM.patient_orientation = 'HFP'
+                OBJ.patient_orientation = 'HFP'
 
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffs':
                 self.patient_orientation = 'FFS'
-                OFM.patient_orientation = 'FFS'
+                OBJ.patient_orientation = 'FFS'
                 #
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffp':
                 self.patient_orientation = 'FFP'
-                OFM.patient_orientation = 'FFP'
+                OBJ.patient_orientation = 'FFP'
 
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())

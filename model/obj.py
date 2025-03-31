@@ -36,7 +36,7 @@ obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                          }
 
 
-class ObjFileModel(qtc.QObject):
+class ObjFile(qtc.QObject):
 
     obj_file_changed = qtc.Signal(str)
     vtk_actor_updated = qtc.Signal()

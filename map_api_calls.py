@@ -91,8 +91,8 @@ headers = {
     "User-Agent": user_agent
 }
 
-# response = requests.get(get_url, headers=headers, verify=False)
-response = requests.post(put_url, json=beamDeliveryStatusBody, headers=headers, verify=False)
+response = requests.get(get_url, headers=headers, verify=False)
+# response = requests.post(put_url, json=beamDeliveryStatusBody, headers=headers, verify=False)
 
 if response.status_code == 200:
     print("Request successful!")
