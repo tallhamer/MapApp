@@ -1,19 +1,6 @@
 import sys
-
-# import PySide6.QtCore as qtc
-import PySide6.QtWidgets as qtw
-# import PySide6.QtGui as qtg
-
-# import pydicom
-import numpy as np
-# from skimage import measure
-# from scipy.spatial import cKDTree
-
-import trimesh
-import open3d as o3d
-
 import vtk
-# from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+import PySide6.QtWidgets as qtw
 
 from ui.test_window import Ui_MainWindow
 from model.dicom import DicomFileSyncModel
@@ -21,144 +8,6 @@ from model.obj import ObjFileModel
 
 DFS = DicomFileSyncModel()
 OFM = ObjFileModel()
-
-obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
-                                         [0, 1, 0],
-                                         [0, 0, 1]
-                                         ]
-                                        ),
-                         'HFS': np.array([[0, 1, 0],
-                                          [0, 0, 1],
-                                          [1, 0, 0]
-                                          ]
-                                         ),
-                         'HFP': np.array([[0, 1, 0],
-                                          [0, 0, -1],
-                                          [1, 0, 0]
-                                          ]
-                                         ),
-                         'FFS': np.array([[0, 1, 0],
-                                          [0, 0, 1],
-                                          [-1, 0, 0]
-                                          ]
-                                         ),
-                         'FFP': np.array([[0, 1, 0],
-                                          [0, 0, -1],
-                                          [-1, 0, 0]
-                                          ]
-                                         ),
-                         }
-
-def has_actor(renderer, actor_to_check):
-    """
-    Checks if a vtkRenderer contains a specific actor.
-
-    Args:
-        renderer: The vtkRenderer.
-        actor_to_check: The actor to check for.
-
-    Returns:
-        True if the renderer contains the actor, False otherwise.
-    """
-    actors = renderer.GetActors()
-    actors.InitTraversal()
-    current_actor = actors.GetNextActor()
-    while current_actor is not None:
-        if current_actor == actor_to_check:
-            return True
-        current_actor = actors.GetNextActor()
-    return False
-
-# Define helper functions
-# def get_dcm_body_point_cloud(dcm_filename):
-#     # Read DICOM Structure Set
-#     ds = pydicom.dcmread(dcm_filename)
-#
-#     # Generate ROI Look Up Table using the ROI Number as the key
-#     roi_lut = {}
-#     for structure in ds.StructureSetROISequence:
-#         # print(f'{structure.ROIName} ({structure.ROIName.lower()})',
-#         #       structure.ROINumber
-#         #       )
-#         roi_lut[structure.ROINumber] = structure.ROIName.lower()
-#
-#     # Grab the Body structure points
-#     body_contours = []
-#     for roi in ds.ROIContourSequence:
-#         if (roi.ReferencedROINumber in roi_lut) and \
-#                 roi_lut[roi.ReferencedROINumber] == 'body':
-#             # print('Found Body')
-#             for contour in roi.ContourSequence:
-#                 # print(contour.ContourData)
-#                 body_contours.append([[float(contour.ContourData[i]),
-#                                        float(contour.ContourData[i + 1]),
-#                                        float(contour.ContourData[i + 2])
-#                                        ] \
-#                                       for i in range(0,
-#                                                      len(contour.ContourData),
-#                                                      3
-#                                                      )
-#                                       ]
-#                                      )
-#
-#     dcm_points = np.array([point for contour in body_contours \
-#                            for point in contour
-#                            ]
-#                           )
-#
-#     dcm_colors = np.zeros(dcm_points.shape)
-#     dcm_colors[:, :] = [0.0, 0.5, 0.0]
-#
-#     dcm_pcloud = o3d.geometry.PointCloud()
-#     dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
-#     dcm_pcloud.colors = o3d.utility.Vector3dVector(dcm_colors)
-#     dcm_pcloud.estimate_normals()
-#
-#     return dcm_pcloud
-
-# def pcloud_to_mesh(pcd, voxel_size=3, iso_level_percentile=5):
-#     # Convet Open3D point cloud to numpy array
-#     points = np.asarray(pcd.points)
-#
-#     # Compute the bounds of the point cloud
-#     mins = pcd.get_min_bound()
-#     maxs = pcd.get_max_bound()
-#
-#     # print(mins)
-#     # print(maxs)
-#
-#     x = np.arange(mins[0], maxs[0], voxel_size)
-#     y = np.arange(mins[1], maxs[1], voxel_size)
-#     z = np.arange(mins[2], maxs[2], voxel_size)
-#     x, y, z = np.meshgrid(x, y, z, indexing='ij')
-#
-#     # Create a KD-tree for efficient nearest neighbor search
-#     tree = cKDTree(points)
-#
-#     # Compute the scalar field (distance to nearest point)
-#     grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
-#     print(f'Using {len(x.ravel())} grid_points for marching cubes')
-#     distances, _ = tree.query(grid_points, workers=-1)
-#     scalar_field = distances.reshape(x.shape)
-#
-#     # Determine the iso_level based on the percentile of distance
-#     iso_level = np.percentile(distances, iso_level_percentile)
-#
-#     # Apply Marching Cubes
-#     verts, faces, _, _ = measure.marching_cubes(scalar_field, level=iso_level)
-#
-#     # Scale and translate vertices back to original coordinate system
-#     verts = verts * voxel_size + mins
-#
-#     # Create the mesh
-#     mesh = o3d.geometry.TriangleMesh()
-#     mesh.vertices = o3d.utility.Vector3dVector(verts)
-#     mesh.triangles = o3d.utility.Vector3iVector(faces)
-#
-#     mesh.compute_vertex_normals()
-#     mesh.compute_triangle_normals()
-#
-#     return mesh
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -302,65 +151,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-
-    # def _loadDcmMesh(self, dcm_filename):
-    #     print(">>_loadDcmMesh")
-    #     # DICOM Point Cloud and Surface Mesh
-    #     print('Reading in DICOM "Body" structure from DICOM file')
-    #     dcm_pcloud = get_dcm_body_point_cloud(dcm_filename)
-    #
-    #     print("Generating DICOM surface using marchine cubes.")
-    #     dcm_mesh = pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
-    #     print('DICOM Surface complete')
-    #
-    #     self.w_le_dcm_struct_file.setText(dcm_filename)
-    #
-    #     #############################
-    #     # START: DICOM Surface Data #
-    #     #############################
-    #
-    #     colors = vtk.vtkNamedColors()
-    #
-    #     dcm_verts = vtk.vtkPoints()
-    #     for vert in dcm_mesh.vertices:
-    #         dcm_verts.InsertNextPoint(*vert)
-    #
-    #     # Create a polydata object and add the points
-    #     self.dcm_polydata = vtk.vtkPolyData()
-    #     self.dcm_polydata.points = dcm_verts
-    #
-    #     # Create a vertex cell array to hold the triagles
-    #     dcm_triangles = vtk.vtkCellArray()
-    #     for i in range(len(dcm_mesh.triangles)):
-    #         dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-    #     self.dcm_polydata.polys = dcm_triangles
-    #
-    #     # Create a mapper and actor
-    #     dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-    #     self.dcm_polydata >> dcm_mesh_mapper
-    #
-    #     if self.dcm_actor is None:
-    #         # Create the scene actor that represents the point cloud
-    #         self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-    #         R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
-    #         self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-    #         self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
-    #
-    #         self.vtk_renderer.AddActor(self.dcm_actor)
-    #         self.vtk_renderer.ResetCamera()
-    #     else:
-    #         self.vtk_renderer.RemoveActor(self.dcm_actor)
-    #
-    #         # Create the scene actor that represents the point cloud
-    #         self.dcm_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-    #         self.dcm_actor.property.color = colors.GetColor3d('Green')
-    #         self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
-    #
-    #         self.vtk_renderer.AddActor(self.dcm_actor)
-    #         self.vtk_renderer.ResetCamera()
-    #
-    #     self.vtk_render_window.Render()
-
     def openObjFile(self):
         print(">>openObjFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -370,9 +160,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       )
         if filename:
             self.w_le_obj_file.setText(filename)
-
-            # # Load the .obj mesh
-            # obj_mesh = self._loadOBJMesh(filename)
 
     def updateObjVisualization(self):
         if self.obj_actor is None:
@@ -396,67 +183,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
 
         self.vtk_render_window.Render()
-
-    # def _loadOBJMesh(self, obj_filename):
-    #     print(">>_loadOBJMesh")
-    #     # OBJ  File Processing
-    #     original_mesh = trimesh.load(obj_filename)
-    #
-    #     self.w_le_obj_file.setText(obj_filename)
-    #
-    #     #  Transpose the axes to match the DICOM orientation
-    #     points = np.asarray(original_mesh.vertices)
-    #
-    #     S = obj2dcm_transform_map[self.patient_orientation]
-    #     # S = obj2dcm_transform_map['FFS']
-    #
-    #     new_points = (S @ points.T).T
-    #
-    #     obj_pcloud = o3d.geometry.PointCloud()
-    #     obj_pcloud.points = o3d.utility.Vector3dVector(new_points)
-    #
-    #     obj_mesh = o3d.geometry.TriangleMesh()
-    #     obj_mesh.vertices = o3d.utility.Vector3dVector(new_points)
-    #     obj_mesh.triangles = o3d.utility.Vector3iVector(np.array(original_mesh.faces))
-    #
-    #     obj_mesh.compute_vertex_normals()
-    #     obj_mesh.compute_triangle_normals()
-    #
-    #     R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
-    #
-    #     obj_points = vtk.vtkPoints()
-    #     obj_cells = vtk.vtkCellArray()
-    #
-    #     for point in obj_mesh.vertices:
-    #         obj_points.InsertNextPoint(*point)
-    #
-    #     self.obj_polydata = vtk.vtkPolyData()
-    #     self.obj_polydata.points = obj_points
-    #
-    #     for i in range(len(obj_mesh.triangles)):
-    #         obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-    #     self.obj_polydata.polys = obj_cells
-    #
-    #     # self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-    #     self.obj_mapper = vtk.vtkPolyDataMapper()
-    #     self.obj_polydata >> self.obj_mapper
-    #
-    #     if self.obj_actor is None:
-    #         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-    #         self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-    #
-    #         self.vtk_renderer.AddActor(self.obj_actor)
-    #         self.vtk_renderer.ResetCamera()
-    #     else:
-    #         self.vtk_renderer.RemoveActor(self.obj_actor)
-    #
-    #         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-    #         self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-    #
-    #         self.vtk_renderer.AddActor(self.obj_actor)
-    #         self.vtk_renderer.ResetCamera()
-    #
-    #     self.vtk_render_window.Render()
 
     def dcmColorNameChanged(self):
         print(">>dcmColorNameChanged")
@@ -561,18 +287,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.SetFileName(filename)
             writer.SetInputConnection(window_to_image_filter.GetOutputPort())
             writer.Write()
-
-    # def _getViewingFlag(self):
-    #     if self.dcm_actor is None:
-    #         if self.obj_actor is None:
-    #             return None
-    #         else:
-    #             return 2
-    #     else:
-    #         if self.obj_actor is None:
-    #             return 1
-    #         else:
-    #             return 3
 
     def _getViewingBounds(self):
         _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
