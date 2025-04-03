@@ -1,13 +1,16 @@
 import sys
 import vtk
-import PySide6.QtWidgets as qtw
 
-from ui.test_window import Ui_MainWindow
-from model.dicom import DicomRTPlanFile, DicomRTStructureSetFile
+# import PySide6.QtCore as qtc
+import PySide6.QtWidgets as qtw
+import PySide6.QtGui as qtg
+
+
+# from ui.test_window import Ui_MainWindow
+from ui.main_window import Ui_MainWindow
+from model.dicom import DicomRTPlan, DicomRTStructureSet, DicomFileValidationError
 from model.obj import ObjFile
 
-RP = DicomRTPlanFile()
-RS = DicomRTStructureSetFile()
 OBJ = ObjFile()
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
@@ -15,20 +18,32 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print(">>Application __init__")
         super().__init__()
         self.setupUi(self)
-        self.setWindowTitle("VTK Test Window")
+        self.setWindowTitle("Map App")
 
         # VTK rendering setup
         self.dcm_actor = None
         self.obj_actor = None
 
+        # 3D Scene Widget Setup
         self.vtk_renderer = vtk.vtkRenderer()
         self.vtk_render_window = self.vtk_widget.GetRenderWindow()
         self.vtk_render_window.AddRenderer(self.vtk_renderer)
         self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
+        self.vtk_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
 
         self.named_colors = vtk.vtkNamedColors()
         color_names_string = self.named_colors.GetColorNames()
         color_names_list = color_names_string.split('\n')
+
+        # Patient Context Widget Setup
+
+
+        ## DICOM RT File Widget Setup
+        self.dicomrt_plan_model = None
+
+        self.w_gb_dicomrt_files.setVisible(False)
+        self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
+        self.w_ch_use_dicomrt.checkStateChanged.connect(self._clear_patient_context)
 
         self.w_pb_dcm_plan_file.clicked.connect(self.openDcmPlanFile)
         self.w_pb_dcm_struct_file.clicked.connect(self.openDcmStructFile)
@@ -36,13 +51,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_dcm_color.currentTextChanged.connect(self.dcmColorNameChanged)
         self.w_cb_dcm_color.setCurrentText('green')
         self.w_hs_dcm_transparency.valueChanged.connect(self.dcmTransparencyChanged)
-
-        self.w_le_dcm_plan_file.textChanged.connect(RP.update_path)
-        self.w_le_dcm_struct_file.textChanged.connect(RS.update_path)
-
-        RS.vtkActorUpdated.connect(self.updateDcmVisualization)
-
-        self.patient_orientation = None
 
         self.w_pb_obj_file.clicked.connect(self.openObjFile)
         self.w_cb_obj_color.addItems(color_names_list)
@@ -75,6 +83,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
 
+    def show_info_message(self, message):
+        res = qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
+
+    def show_dicomrt_file_input_widgets(self):
+        self.w_le_dcm_plan_file.clear()
+        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+
+        if self.dcm_actor is not None:
+            self.vtk_renderer.RemoveActor(self.dcm_actor)
+            self.vtk_render_window.Render()
+            self.dcm_actor = None
+
     def openDcmPlanFile(self):
         print(">>openDcmPlanFile")
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -83,39 +105,56 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
-            # This will trigger model update through connection to the DicomFileSyncModel.update_plan_file
-            # Slot made in the __init__ method.
-            self.w_le_dcm_plan_file.setText(filename)
+            try:
+                self.dicomrt_plan_model = DicomRTPlan()
+                self.dicomrt_plan_model.invalid_file_loaded.connect(self.show_info_message)
+                self.dicomrt_plan_model.file_path_changed.connect(self.w_le_dcm_plan_file.setText)
+                self.dicomrt_plan_model.plan_model_updated.connect(self.update_patient_context)
 
-            # ds = pydicom.dcmread(filename)
-            #
-            # current_orientation = None
-            # bypass = False
-            #
-            # for setup in ds.PatientSetupSequence:
-            #     if current_orientation is None:
-            #         current_orientation = setup.PatientPosition
-            #     elif current_orientation != setup.PatientPosition:
-            #         print("There are multiple patient orientations reported in the DICOM Plan")
-            #     else:
-            #         pass
-            #
-            #     if (self.patient_orientation is None) or \
-            #             (self.patient_orientation != setup.PatientPosition and not bypass):
-            #         print("In Bypass loop")
-            #         if setup.PatientPosition == 'HFS':
-            #             self.w_rb_hfs.setChecked(True)
-            #         elif setup.PatientPosition == 'HFP':
-            #             self.w_rb_hfp.setChecked(True)
-            #         elif setup.PatientPosition == 'FFS':
-            #             self.w_rb_ffs.setChecked(True)
-            #         elif setup.PatientPosition == 'FFP':
-            #             self.w_rb_ffp.setChecked(True)
-            #         else:
-            #             pass
-            #         bypass = True
-            #     else:
-            #         pass
+                self.dicomrt_plan_model.structure_set.invalid_file_loaded.connect(self.show_info_message)
+                self.dicomrt_plan_model.structure_set.file_path_changed.connect(self.w_le_dcm_struct_file.setText)
+                self.dicomrt_plan_model.structure_set.vtkActorUpdated.connect(self.updateDcmVisualization)
+
+                self.dicomrt_plan_model.filepath = filename
+            except DicomFileValidationError as e:
+                self.dicomrt_plan_model = None
+                print(e)
+
+    def _clear_patient_context(self):
+        self.w_le_patinet_id.clear()
+        self.w_l_patient_first_name.setText('')
+        self.w_l_patient_last_name.setText('')
+        self.w_cb_plan_id.clear()
+        self.w_cb_plan_id.setEnabled(False)
+        self.w_cb_body_structure.clear()
+        self.w_cb_body_structure.setEnabled(False)
+        self.w_tw_beams.clear()
+
+    def update_patient_context(self):
+        self.w_le_patinet_id.setText(self.dicomrt_plan_model.patient_id)
+
+        self.w_l_patient_first_name.setText(self.dicomrt_plan_model.patient_first_name)
+        self.w_l_patient_last_name.setText(self.dicomrt_plan_model.patient_last_name)
+        self.w_cb_plan_id.setEnabled(False)
+        self.w_cb_plan_id.addItem(self.dicomrt_plan_model.plan_id)
+        self.w_cb_plan_id.setCurrentIndex(0)
+
+        self.w_tw_beams.setRowCount(len(self.dicomrt_plan_model.beams))
+        self.w_tw_beams.setColumnCount(len(self.dicomrt_plan_model.beams[0]))
+        self.w_tw_beams.setHorizontalHeaderLabels(["Status",
+                                                   "Num",
+                                                   "ID",
+                                                   "Name",
+                                                   "Type",
+                                                   "Gantry Start",
+                                                   "Gantry Stop",
+                                                   "Rotation",
+                                                   "Couch"])
+
+        for row_index, row_data in enumerate(self.dicomrt_plan_model.beams):
+            for col_index, cell_data in enumerate(row_data):
+                item = qtw.QTableWidgetItem(cell_data)
+                self.w_tw_beams.setItem(row_index, col_index, item)
 
     def openDcmStructFile(self):
         print(">>openDcmStructFile")
@@ -125,13 +164,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "DICOM Files (*.dcm)"
                                                       )
         if filename:
-            # This will trigger model update through connection to the DicomFileSyncModel.update_structure_file
-            # Slot made in the __init__ method.
-            self.w_le_dcm_struct_file.setText(filename)
+            self.dicomrt_plan_model.structure_set.update_filepath(filename)
+
 
     def updateDcmVisualization(self):
         if self.dcm_actor is None:
-            self.dcm_actor = RS.dcm_body_actor
+            self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -141,7 +179,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.dcm_actor)
-            self.dcm_actor = RS.dcm_body_actor
+            # self.dcm_actor = RS.dcm_body_actor
+            self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
 
             R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
@@ -237,7 +276,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print(f"{self.sender()} is checked: {checked}")
         if checked:
             if self.sender().objectName() == 'w_rb_hfs':
-                self.patient_orientation = 'HFS'
+                # self.patient_orientation = 'HFS'
                 OBJ.patient_orientation = 'HFS'
 
                 # if self.obj_actor is not None:
@@ -245,21 +284,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
 
             elif self.sender().objectName() == 'w_rb_hfp':
-                self.patient_orientation = 'HFP'
+                # self.patient_orientation = 'HFP'
                 OBJ.patient_orientation = 'HFP'
 
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffs':
-                self.patient_orientation = 'FFS'
+                # self.patient_orientation = 'FFS'
                 OBJ.patient_orientation = 'FFS'
                 #
                 # if self.obj_actor is not None:
                 #     self._loadOBJMesh(self.w_le_obj_file.text())
 
             elif self.sender().objectName() == 'w_rb_ffp':
-                self.patient_orientation = 'FFP'
+                # self.patient_orientation = 'FFP'
                 OBJ.patient_orientation = 'FFP'
 
                 # if self.obj_actor is not None:
@@ -423,6 +462,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
+
+
+        pass
 
 
 if __name__ == '__main__':

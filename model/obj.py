@@ -57,7 +57,7 @@ class ObjFile(qtc.QObject):
 
     @obj_file.setter
     def obj_file(self, new_path):
-        self.obj_file_changed.emit(new_path)
+        self.update_obj_file(new_path)
 
     @property
     def patient_orientation(self):
@@ -73,8 +73,9 @@ class ObjFile(qtc.QObject):
         print("In ObjFileModel update_obj_file Slot")
 
         if self.obj_file != new_path:
-            self._obj_file = new_path
             self.original_mesh = trimesh.load(new_path)
+            self._obj_file = new_path
+            self.obj_file_changed.emit(new_path)
 
             #  Axes should match the DICOM orientation
             points = self.original_mesh.vertices
