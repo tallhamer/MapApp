@@ -33,6 +33,7 @@ class DicomRTPlan(qtc.QObject):
         self._patient_last_name = None
         self._patient_orientation = None
         self._plan_id = None
+        self._isocenter = None
         self._frame_of_reference_uid = None
         self._beams = []
 
@@ -67,6 +68,10 @@ class DicomRTPlan(qtc.QObject):
     @property
     def plan_id(self):
         return self._plan_id
+
+    @property
+    def isocenter(self):
+        return self._isocenter
 
     @property
     def frame_of_reference_uid(self):
@@ -126,26 +131,26 @@ class DicomRTPlan(qtc.QObject):
                 _type = beam.TreatmentDeliveryType
 
                 first_cp = beam.ControlPointSequence[0]
-                last_cp = beam.ControlPointSequence[-1]
 
+                self._isocenter = np.array(first_cp.IsocenterPosition, dtype=float).round(2)
                 _gantry_start = _gantry_stop = str(first_cp.GantryAngle)
+                _gantry_rot_direction = str(first_cp.GantryRotationDirection)
+                _couch = str(first_cp.PatientSupportAngle)
 
+                last_cp = beam.ControlPointSequence[-1]
                 if hasattr(last_cp, 'GantryAngle'):
                     _gantry_stop = str(last_cp.GantryAngle)
-
-                _gantry_rot_direction = str(first_cp.GantryRotationDirection)
-
-                _couch = str(first_cp.PatientSupportAngle)
 
                 self.beams.append([_status,
                                    _num,
                                    _id,
                                    _name,
-                                   _type,
+                                   _couch,
                                    _gantry_start,
                                    _gantry_stop,
                                    _gantry_rot_direction,
-                                   _couch]
+                                   _type
+                                   ]
                                   )
 
                 # print(f'Beam Number: {_num}')

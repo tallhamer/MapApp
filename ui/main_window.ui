@@ -58,40 +58,17 @@
            <string>Patient Information</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="4" column="1">
-            <widget class="QComboBox" name="w_cb_body_structure"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_13">
-             <property name="text">
-              <string>Last Name:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0" colspan="2">
-            <widget class="QTableWidget" name="w_tw_beams"/>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>Body Structure:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLabel" name="w_l_patient_first_name">
+           <item row="2" column="2">
+            <widget class="QLabel" name="w_l_patient_last_name">
              <property name="text">
               <string/>
              </property>
             </widget>
            </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="w_le_patinet_id"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_9">
+           <item row="6" column="0" colspan="3">
+            <widget class="QLabel" name="label_15">
              <property name="text">
-              <string>Patient ID:</string>
+              <string>Beams</string>
              </property>
             </widget>
            </item>
@@ -102,8 +79,28 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
-            <widget class="QLabel" name="w_l_patient_last_name">
+           <item row="8" column="0" colspan="3">
+            <widget class="QCheckBox" name="w_ch_use_dicomrt">
+             <property name="text">
+              <string>Use Dicom RT Files</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="2">
+            <widget class="QComboBox" name="w_cb_plan_id"/>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Last Name:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="3">
+            <widget class="QTableWidget" name="w_tw_beams"/>
+           </item>
+           <item row="1" column="2">
+            <widget class="QLabel" name="w_l_patient_first_name">
              <property name="text">
               <string/>
              </property>
@@ -116,10 +113,14 @@
              </property>
             </widget>
            </item>
-           <item row="3" column="1">
-            <widget class="QComboBox" name="w_cb_plan_id"/>
+           <item row="4" column="0">
+            <widget class="QLabel" name="label_17">
+             <property name="text">
+              <string>Isocenter:</string>
+             </property>
+            </widget>
            </item>
-           <item row="8" column="0" colspan="2">
+           <item row="9" column="0" colspan="3">
             <widget class="QGroupBox" name="w_gb_dicomrt_files">
              <property name="title">
               <string>DICOM Files</string>
@@ -212,17 +213,30 @@
              </layout>
             </widget>
            </item>
-           <item row="7" column="0" colspan="2">
-            <widget class="QCheckBox" name="w_ch_use_dicomrt">
+           <item row="5" column="2">
+            <widget class="QComboBox" name="w_cb_body_structure"/>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_9">
              <property name="text">
-              <string>Use Dicom RT Files</string>
+              <string>Patient ID:</string>
              </property>
             </widget>
            </item>
-           <item row="5" column="0" colspan="2">
-            <widget class="QLabel" name="label_15">
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="w_le_patinet_id"/>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_14">
              <property name="text">
-              <string>Beams</string>
+              <string>Body Structure:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="4" column="1" colspan="2">
+            <widget class="QLabel" name="w_l_plan_isocenter">
+             <property name="text">
+              <string/>
              </property>
             </widget>
            </item>
@@ -316,13 +330,19 @@
            <string>DICOM</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_7">
-           <item row="0" column="2">
-            <widget class="QFrame" name="w_dcm_color_frame">
+           <item row="0" column="3">
+            <widget class="QFrame" name="w_fr_dcm_color">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
              </property>
              <property name="maximumSize">
               <size>
@@ -338,23 +358,6 @@
              </property>
             </widget>
            </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Color:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="w_cb_dcm_color">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_8">
              <property name="text">
@@ -362,7 +365,14 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="1">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Color:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
             <widget class="QSlider" name="w_hs_dcm_transparency">
              <property name="maximum">
               <number>100</number>
@@ -375,10 +385,17 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="2">
+           <item row="2" column="3">
             <widget class="QLabel" name="w_l_dcm_transparency">
              <property name="text">
               <string>100</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1" colspan="2">
+            <widget class="QPushButton" name="w_pb_dcm_color">
+             <property name="text">
+              <string>Select Color</string>
              </property>
             </widget>
            </item>
@@ -405,18 +422,8 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="1">
-            <widget class="QComboBox" name="w_cb_obj_color">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-            </widget>
-           </item>
            <item row="1" column="2">
-            <widget class="QFrame" name="w_obj_color_frame">
+            <widget class="QFrame" name="w_fr_obj_color">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
                <horstretch>0</horstretch>
@@ -425,8 +432,8 @@
              </property>
              <property name="minimumSize">
               <size>
-               <width>0</width>
-               <height>0</height>
+               <width>25</width>
+               <height>25</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -504,6 +511,13 @@
              </layout>
             </widget>
            </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="w_pb_obj_color">
+             <property name="text">
+              <string>Select Color</string>
+             </property>
+            </widget>
+           </item>
           </layout>
          </widget>
         </item>
@@ -513,6 +527,55 @@
            <string>Scene</string>
           </property>
           <layout class="QGridLayout" name="gridLayout" columnstretch="0,0,0">
+           <item row="0" column="2">
+            <widget class="QFrame" name="w_fr_background_color">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::Shape::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Shadow::Raised</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Color:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QPushButton" name="w_pb_background_color">
+             <property name="text">
+              <string>Select Color</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QLabel" name="label_16">
+             <property name="text">
+              <string>View From</string>
+             </property>
+            </widget>
+           </item>
            <item row="1" column="1">
             <widget class="QWidget" name="widget_2" native="true">
              <property name="sizePolicy">
@@ -565,95 +628,6 @@
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="label_16">
-             <property name="text">
-              <string>View From</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QFrame" name="w_background_color_frame">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>0</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>25</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::Shape::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
-             </property>
-             <widget class="QFrame" name="w_background_color_frame_2">
-              <property name="geometry">
-               <rect>
-                <x>0</x>
-                <y>0</y>
-                <width>25</width>
-                <height>24</height>
-               </rect>
-              </property>
-              <property name="sizePolicy">
-               <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-                <horstretch>0</horstretch>
-                <verstretch>0</verstretch>
-               </sizepolicy>
-              </property>
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>25</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="frameShape">
-               <enum>QFrame::Shape::StyledPanel</enum>
-              </property>
-              <property name="frameShadow">
-               <enum>QFrame::Shadow::Raised</enum>
-              </property>
-             </widget>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QComboBox" name="w_cb_background_color">
-             <property name="minimumSize">
-              <size>
-               <width>100</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="layoutDirection">
-              <enum>Qt::LayoutDirection::LeftToRight</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_5">
-             <property name="text">
-              <string>Color:</string>
-             </property>
             </widget>
            </item>
           </layout>

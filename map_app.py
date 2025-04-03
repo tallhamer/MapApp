@@ -1,7 +1,7 @@
 import sys
 import vtk
 
-# import PySide6.QtCore as qtc
+import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
 import PySide6.QtGui as qtg
 
@@ -45,31 +45,32 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
         self.w_ch_use_dicomrt.checkStateChanged.connect(self._clear_patient_context)
 
-        self.w_pb_dcm_plan_file.clicked.connect(self.openDcmPlanFile)
-        self.w_pb_dcm_struct_file.clicked.connect(self.openDcmStructFile)
-        self.w_cb_dcm_color.addItems(color_names_list)
-        self.w_cb_dcm_color.currentTextChanged.connect(self.dcmColorNameChanged)
-        self.w_cb_dcm_color.setCurrentText('green')
-        self.w_hs_dcm_transparency.valueChanged.connect(self.dcmTransparencyChanged)
+        self.w_pb_dcm_plan_file.clicked.connect(self.open_dcm_plan_file)
+        self.w_pb_dcm_struct_file.clicked.connect(self.open_dcm_struct_file)
 
-        self.w_pb_obj_file.clicked.connect(self.openObjFile)
-        self.w_cb_obj_color.addItems(color_names_list)
-        self.w_cb_obj_color.currentTextChanged.connect(self.objColorNameChanged)
-        self.w_cb_obj_color.setCurrentText('light_grey')
-        self.w_hs_obj_transparency.valueChanged.connect(self.objTransparencyChanged)
+        self.w_pb_dcm_color.clicked.connect(self.dcm_color_changed)
+        self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({0}, {127}, {0});")
+        self.w_fr_dcm_color.show()
+        self.w_hs_dcm_transparency.valueChanged.connect(self.dcm_transparency_changed)
+
+        self.w_pb_obj_file.clicked.connect(self.open_obj_file)
+
+        self.w_pb_obj_color.clicked.connect(self.obj_color_changed)
+        self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
+        self.w_fr_obj_color.show()
+        self.w_hs_obj_transparency.valueChanged.connect(self.obj_transparency_changed)
 
         self.w_le_obj_file.textChanged.connect(OBJ.update_obj_file)
-
-        OBJ.vtk_actor_updated.connect(self.updateObjVisualization)
+        OBJ.vtk_actor_updated.connect(self.update_obj_visualization)
 
         self.w_rb_hfs.toggled.connect(self.orientationChanged)
         self.w_rb_hfp.toggled.connect(self.orientationChanged)
         self.w_rb_ffs.toggled.connect(self.orientationChanged)
         self.w_rb_ffp.toggled.connect(self.orientationChanged)
 
-        self.w_cb_background_color.addItems(color_names_list)
-        self.w_cb_background_color.currentTextChanged.connect(self.backgroundColorNameChanged)
-        self.w_cb_background_color.setCurrentText('black')
+        self.w_pb_background_color.clicked.connect(self.background_color_changed)
+        self.w_fr_background_color.setStyleSheet(f"background-color: rgb({0}, {0}, {0});")
+        self.w_fr_background_color.show()
 
         self.w_pb_save_image.clicked.connect(self.saveImage)
 
@@ -97,8 +98,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
             self.dcm_actor = None
 
-    def openDcmPlanFile(self):
-        print(">>openDcmPlanFile")
+    def open_dcm_plan_file(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -113,7 +113,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
                 self.dicomrt_plan_model.structure_set.invalid_file_loaded.connect(self.show_info_message)
                 self.dicomrt_plan_model.structure_set.file_path_changed.connect(self.w_le_dcm_struct_file.setText)
-                self.dicomrt_plan_model.structure_set.vtkActorUpdated.connect(self.updateDcmVisualization)
+                self.dicomrt_plan_model.structure_set.vtkActorUpdated.connect(self.update_dcm_visualization)
 
                 self.dicomrt_plan_model.filepath = filename
             except DicomFileValidationError as e:
@@ -126,6 +126,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_l_patient_last_name.setText('')
         self.w_cb_plan_id.clear()
         self.w_cb_plan_id.setEnabled(False)
+        self.w_l_plan_isocenter.setText('')
         self.w_cb_body_structure.clear()
         self.w_cb_body_structure.setEnabled(False)
         self.w_tw_beams.clear()
@@ -138,6 +139,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_plan_id.setEnabled(False)
         self.w_cb_plan_id.addItem(self.dicomrt_plan_model.plan_id)
         self.w_cb_plan_id.setCurrentIndex(0)
+        X, Y, Z = self.dicomrt_plan_model.isocenter
+        self.w_l_plan_isocenter.setText(f'< {X}, {Y}, {Z} >')
 
         self.w_tw_beams.setRowCount(len(self.dicomrt_plan_model.beams))
         self.w_tw_beams.setColumnCount(len(self.dicomrt_plan_model.beams[0]))
@@ -145,19 +148,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                    "Num",
                                                    "ID",
                                                    "Name",
-                                                   "Type",
+                                                   "Couch",
                                                    "Gantry Start",
                                                    "Gantry Stop",
                                                    "Rotation",
-                                                   "Couch"])
+                                                   "Type"
+                                                   ]
+                                                  )
 
         for row_index, row_data in enumerate(self.dicomrt_plan_model.beams):
             for col_index, cell_data in enumerate(row_data):
                 item = qtw.QTableWidgetItem(cell_data)
+                item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
                 self.w_tw_beams.setItem(row_index, col_index, item)
 
-    def openDcmStructFile(self):
-        print(">>openDcmStructFile")
+        self.w_tw_beams.resizeColumnsToContents()
+        self.w_tw_beams.setSortingEnabled(True)
+
+    def open_dcm_struct_file(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -166,12 +174,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if filename:
             self.dicomrt_plan_model.structure_set.update_filepath(filename)
 
-
-    def updateDcmVisualization(self):
+    def update_dcm_visualization(self):
         if self.dcm_actor is None:
             self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
+            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
+            R, G, B, A = self._get_current_dcm_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
@@ -182,7 +190,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # self.dcm_actor = RS.dcm_body_actor
             self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
+            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
+            R, G, B, A = self._get_current_dcm_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
@@ -191,8 +200,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def openObjFile(self):
-        print(">>openObjFile")
+    def open_obj_file(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       ".",
@@ -201,11 +209,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if filename:
             self.w_le_obj_file.setText(filename)
 
-    def updateObjVisualization(self):
+    def update_obj_visualization(self):
         if self.obj_actor is None:
             self.obj_actor = OBJ.obj_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+            R, G, B = self.named_colors.GetColor3ub(self.w_fr_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
@@ -215,7 +223,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.RemoveActor(self.obj_actor)
             self.obj_actor = OBJ.obj_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
+            R, G, B = self.named_colors.GetColor3ub(self.w_fr_obj_color.currentText())
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
@@ -224,18 +232,50 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def dcmColorNameChanged(self):
-        print(">>dcmColorNameChanged")
-        R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
-        self.w_dcm_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
-        self.w_dcm_color_frame.show()
+    def _get_current_dcm_color(self, frame):
+        palette = frame.palette()
+        background_color = palette.color(qtg.QPalette.ColorRole.Window)
+        return background_color.getRgb()
 
-        if self.dcm_actor is not None:
-            self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+    def dcm_color_changed(self):
+        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_dcm_color)
+        color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
+
+        if color is not None:
+            R, G, B, A = color.getRgb()
+            self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
+            self.w_fr_dcm_color.show()
+
+            if self.dcm_actor is not None:
+                self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+                self.vtk_render_window.Render()
+
+    def obj_color_changed(self):
+        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_obj_color)
+        color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
+
+        if color is not None:
+            R, G, B, A = color.getRgb()
+            self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
+            self.w_fr_obj_color.show()
+
+            if self.obj_actor is not None:
+                self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+                self.vtk_render_window.Render()
+
+    def background_color_changed(self):
+        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_background_color)
+        color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
+
+        if color is not None:
+            R, G, B, A = color.getRgb()
+            self.w_fr_background_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
+            self.w_fr_background_color.show()
+
+            self.vtk_renderer.SetBackground(R/255.0, G/255.0, B/255.0)
             self.vtk_render_window.Render()
 
-    def dcmTransparencyChanged(self):
-        print(">>dcmTransparencyChanged")
+    def dcm_transparency_changed(self):
         self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
         if self.dcm_actor.property is not None:
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
@@ -243,18 +283,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             pass
 
-    def objColorNameChanged(self):
-        print(">>objColorNameChanged")
-        R, G, B = self.named_colors.GetColor3ub(self.w_cb_obj_color.currentText())
-        self.w_obj_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
-        self.w_obj_color_frame.show()
-
-        if self.obj_actor is not None:
-            self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.vtk_render_window.Render()
-
-    def objTransparencyChanged(self):
-        print(">>objTransparencyChanged")
+    def obj_transparency_changed(self):
         self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
         if self.obj_actor.property is not None:
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
@@ -262,14 +291,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             pass
 
-    def backgroundColorNameChanged(self):
-        print(">>backgroundColorNameChanged")
-        R, G, B = self.named_colors.GetColor3ub(self.w_cb_background_color.currentText())
-        self.w_background_color_frame.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
-        self.w_background_color_frame.show()
 
-        self.vtk_renderer.SetBackground(R/255.0, G/255.0, B/255.0)
-        self.vtk_render_window.Render()
 
     def orientationChanged(self, checked):
         print(">>orientationChanged")
