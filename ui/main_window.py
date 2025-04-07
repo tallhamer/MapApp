@@ -28,7 +28,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1165, 845)
+        MainWindow.resize(1268, 956)
         MainWindow.setMinimumSize(QSize(0, 0))
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
@@ -194,20 +194,59 @@ class Ui_MainWindow(object):
         self.groupBox.setObjectName(u"groupBox")
         self.gridLayout_6 = QGridLayout(self.groupBox)
         self.gridLayout_6.setObjectName(u"gridLayout_6")
+        self.label_21 = QLabel(self.groupBox)
+        self.label_21.setObjectName(u"label_21")
+
+        self.gridLayout_6.addWidget(self.label_21, 2, 0, 1, 1)
+
+        self.w_pb_get_map = QPushButton(self.groupBox)
+        self.w_pb_get_map.setObjectName(u"w_pb_get_map")
+
+        self.gridLayout_6.addWidget(self.w_pb_get_map, 7, 3, 1, 1)
+
+        self.w_pb_api_ping = QPushButton(self.groupBox)
+        self.w_pb_api_ping.setObjectName(u"w_pb_api_ping")
+
+        self.gridLayout_6.addWidget(self.w_pb_api_ping, 0, 3, 1, 1)
+
         self.w_dsb_api_couch_buffer = QDoubleSpinBox(self.groupBox)
         self.w_dsb_api_couch_buffer.setObjectName(u"w_dsb_api_couch_buffer")
+        self.w_dsb_api_couch_buffer.setDecimals(1)
+        self.w_dsb_api_couch_buffer.setValue(2.000000000000000)
 
         self.gridLayout_6.addWidget(self.w_dsb_api_couch_buffer, 2, 1, 1, 2)
 
-        self.label_23 = QLabel(self.groupBox)
-        self.label_23.setObjectName(u"label_23")
+        self.w_ch_high_res = QCheckBox(self.groupBox)
+        self.w_ch_high_res.setObjectName(u"w_ch_high_res")
 
-        self.gridLayout_6.addWidget(self.label_23, 2, 3, 1, 1)
+        self.gridLayout_6.addWidget(self.w_ch_high_res, 4, 1, 1, 1)
+
+        self.w_dsb_api_patient_buffer = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_api_patient_buffer.setObjectName(u"w_dsb_api_patient_buffer")
+        self.w_dsb_api_patient_buffer.setDecimals(1)
+        self.w_dsb_api_patient_buffer.setValue(2.000000000000000)
+
+        self.gridLayout_6.addWidget(self.w_dsb_api_patient_buffer, 3, 1, 1, 2)
 
         self.w_cb_surface_for_map = QComboBox(self.groupBox)
         self.w_cb_surface_for_map.setObjectName(u"w_cb_surface_for_map")
 
         self.gridLayout_6.addWidget(self.w_cb_surface_for_map, 5, 1, 1, 2)
+
+        self.label_22 = QLabel(self.groupBox)
+        self.label_22.setObjectName(u"label_22")
+
+        self.gridLayout_6.addWidget(self.label_22, 3, 0, 1, 1)
+
+        self.label_20 = QLabel(self.groupBox)
+        self.label_20.setObjectName(u"label_20")
+
+        self.gridLayout_6.addWidget(self.label_20, 6, 0, 1, 1)
+
+        self.label_23 = QLabel(self.groupBox)
+        self.label_23.setObjectName(u"label_23")
+
+        self.gridLayout_6.addWidget(self.label_23, 2, 3, 1, 1)
 
         self.label_18 = QLabel(self.groupBox)
         self.label_18.setObjectName(u"label_18")
@@ -219,55 +258,20 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.label_24, 3, 3, 1, 1)
 
-        self.w_pb_api_ping = QPushButton(self.groupBox)
-        self.w_pb_api_ping.setObjectName(u"w_pb_api_ping")
-
-        self.gridLayout_6.addWidget(self.w_pb_api_ping, 0, 3, 1, 1)
-
-        self.w_ch_high_res = QCheckBox(self.groupBox)
-        self.w_ch_high_res.setObjectName(u"w_ch_high_res")
-
-        self.gridLayout_6.addWidget(self.w_ch_high_res, 4, 1, 1, 1)
-
-        self.label_21 = QLabel(self.groupBox)
-        self.label_21.setObjectName(u"label_21")
-
-        self.gridLayout_6.addWidget(self.label_21, 2, 0, 1, 1)
-
-        self.w_pb_get_map = QPushButton(self.groupBox)
-        self.w_pb_get_map.setObjectName(u"w_pb_get_map")
-
-        self.gridLayout_6.addWidget(self.w_pb_get_map, 8, 3, 1, 1)
-
-        self.label_20 = QLabel(self.groupBox)
-        self.label_20.setObjectName(u"label_20")
-
-        self.gridLayout_6.addWidget(self.label_20, 6, 0, 1, 1)
-
         self.w_l_api_status = QLabel(self.groupBox)
         self.w_l_api_status.setObjectName(u"w_l_api_status")
 
         self.gridLayout_6.addWidget(self.w_l_api_status, 0, 1, 1, 2)
-
-        self.label_22 = QLabel(self.groupBox)
-        self.label_22.setObjectName(u"label_22")
-
-        self.gridLayout_6.addWidget(self.label_22, 3, 0, 1, 1)
 
         self.label_19 = QLabel(self.groupBox)
         self.label_19.setObjectName(u"label_19")
 
         self.gridLayout_6.addWidget(self.label_19, 5, 0, 1, 1)
 
-        self.w_dsb_api_patient_buffer = QDoubleSpinBox(self.groupBox)
-        self.w_dsb_api_patient_buffer.setObjectName(u"w_dsb_api_patient_buffer")
+        self.w_cb_treatment_room = QComboBox(self.groupBox)
+        self.w_cb_treatment_room.setObjectName(u"w_cb_treatment_room")
 
-        self.gridLayout_6.addWidget(self.w_dsb_api_patient_buffer, 3, 1, 1, 2)
-
-        self.w_tw_treatment_rooms = QTableWidget(self.groupBox)
-        self.w_tw_treatment_rooms.setObjectName(u"w_tw_treatment_rooms")
-
-        self.gridLayout_6.addWidget(self.w_tw_treatment_rooms, 7, 0, 1, 4)
+        self.gridLayout_6.addWidget(self.w_cb_treatment_room, 6, 1, 1, 2)
 
 
         self.verticalLayout.addWidget(self.groupBox)
@@ -566,7 +570,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1165, 33))
+        self.menubar.setGeometry(QRect(0, 0, 1268, 33))
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
@@ -601,16 +605,16 @@ class Ui_MainWindow(object):
         self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
         self.w_l_plan_isocenter.setText("")
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
+        self.label_21.setText(QCoreApplication.translate("MainWindow", u"Couch Buffer:", None))
+        self.w_pb_get_map.setText(QCoreApplication.translate("MainWindow", u"Get Map", None))
+        self.w_pb_api_ping.setText(QCoreApplication.translate("MainWindow", u"Ping API", None))
+        self.w_ch_high_res.setText(QCoreApplication.translate("MainWindow", u"High Resolution Map", None))
+        self.label_22.setText(QCoreApplication.translate("MainWindow", u"Patient Buffer:", None))
+        self.label_20.setText(QCoreApplication.translate("MainWindow", u"Treatment Room", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"API Status:", None))
         self.label_24.setText(QCoreApplication.translate("MainWindow", u"cm", None))
-        self.w_pb_api_ping.setText(QCoreApplication.translate("MainWindow", u"Ping API", None))
-        self.w_ch_high_res.setText(QCoreApplication.translate("MainWindow", u"High Resolution Map", None))
-        self.label_21.setText(QCoreApplication.translate("MainWindow", u"Couch Buffer:", None))
-        self.w_pb_get_map.setText(QCoreApplication.translate("MainWindow", u"Get Map", None))
-        self.label_20.setText(QCoreApplication.translate("MainWindow", u"Treatment Room", None))
         self.w_l_api_status.setText("")
-        self.label_22.setText(QCoreApplication.translate("MainWindow", u"Patient Buffer:", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Surface:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Patient Context", None))
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"DICOM", None))

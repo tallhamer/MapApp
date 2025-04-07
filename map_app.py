@@ -104,33 +104,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_surface_for_map.addItems(surface_map.keys())
 
     def _update_maprt_treatment_rooms(self, room_map):
-        print('updating rooms')
-        self.w_tw_treatment_rooms.clear()
-        self.w_tw_treatment_rooms.setRowCount(0)
-        self.w_tw_treatment_rooms.setColumnCount(0)
-
-        lst = []
-        for name, info in room_map.items():
-            id, scale = info
-            lst.append([name, scale, id])
-
-        self.w_tw_treatment_rooms.setRowCount(len(lst))
-        self.w_tw_treatment_rooms.setColumnCount(len(lst[0]))
-        self.w_tw_treatment_rooms.setHorizontalHeaderLabels(["Name",
-                                                   "Machine Scale",
-                                                   "ID"
-                                                   ]
-                                                  )
-
-        for row_index, row_data in enumerate(lst):
-            for col_index, cell_data in enumerate(row_data):
-                print(row_index, col_index, cell_data)
-                item = qtw.QTableWidgetItem(cell_data)
-                item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignLeft)
-                self.w_tw_treatment_rooms.setItem(row_index, col_index, item)
-
-        self.w_tw_treatment_rooms.resizeColumnsToContents()
-        self.w_tw_treatment_rooms.setSortingEnabled(True)
+        self.w_cb_treatment_room.clear()
+        self.w_cb_treatment_room.addItems(room_map.keys())
 
     def show_info_message(self, message):
         res = qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
@@ -318,7 +293,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         _R, _G, _B, _A = self._get_current_color(self.w_fr_dcm_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
 
-        if color is not None:
+        if color.isValid():
             R, G, B, A = color.getRgb()
             self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
             self.w_fr_dcm_color.show()
@@ -331,7 +306,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
-        if color is not None:
+        if color.isValid():
             R, G, B, A = color.getRgb()
             self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
             self.w_fr_obj_color.show()
@@ -344,7 +319,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
-        if color is not None:
+        if color.isValid():
             R, G, B, A = color.getRgb()
             self.w_fr_background_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
             self.w_fr_background_color.show()
