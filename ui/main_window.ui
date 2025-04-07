@@ -58,58 +58,10 @@
            <string>Patient Information</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="2">
-            <widget class="QLabel" name="w_l_patient_last_name">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_9">
              <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0" colspan="3">
-            <widget class="QLabel" name="label_15">
-             <property name="text">
-              <string>Beams</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="label_12">
-             <property name="text">
-              <string>Plan ID:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0" colspan="3">
-            <widget class="QCheckBox" name="w_ch_use_dicomrt">
-             <property name="text">
-              <string>Use Dicom RT Files</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="2">
-            <widget class="QComboBox" name="w_cb_plan_id"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_13">
-             <property name="text">
-              <string>Last Name:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0" colspan="3">
-            <widget class="QTableWidget" name="w_tw_beams">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLabel" name="w_l_patient_first_name">
-             <property name="text">
-              <string/>
+              <string>Patient ID:</string>
              </property>
             </widget>
            </item>
@@ -120,6 +72,30 @@
              </property>
             </widget>
            </item>
+           <item row="4" column="1" colspan="2">
+            <widget class="QLabel" name="w_l_plan_isocenter">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="0">
+            <widget class="QLabel" name="label_14">
+             <property name="text">
+              <string>Body Structure:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_13">
+             <property name="text">
+              <string>Last Name:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QLineEdit" name="w_le_patinet_id"/>
+           </item>
            <item row="4" column="0">
             <widget class="QLabel" name="label_17">
              <property name="text">
@@ -127,7 +103,65 @@
              </property>
             </widget>
            </item>
-           <item row="9" column="0" colspan="3">
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_12">
+             <property name="text">
+              <string>Plan ID:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <widget class="QPushButton" name="w_pb_esapi_search">
+             <property name="text">
+              <string>Search</string>
+             </property>
+            </widget>
+           </item>
+           <item row="7" column="0" colspan="4">
+            <widget class="QTableWidget" name="w_tw_beams">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+            </widget>
+           </item>
+           <item row="5" column="2" colspan="2">
+            <widget class="QComboBox" name="w_cb_body_structure"/>
+           </item>
+           <item row="3" column="2" colspan="2">
+            <widget class="QComboBox" name="w_cb_plan_id"/>
+           </item>
+           <item row="1" column="2" colspan="2">
+            <widget class="QLabel" name="w_l_patient_first_name">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2" colspan="2">
+            <widget class="QLabel" name="w_l_patient_last_name">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
+           </item>
+           <item row="6" column="0" colspan="4">
+            <widget class="QLabel" name="label_15">
+             <property name="text">
+              <string>Beams</string>
+             </property>
+            </widget>
+           </item>
+           <item row="8" column="0" colspan="4">
+            <widget class="QCheckBox" name="w_ch_use_dicomrt">
+             <property name="text">
+              <string>Use Dicom RT Files</string>
+             </property>
+            </widget>
+           </item>
+           <item row="9" column="0" colspan="4">
             <widget class="QGroupBox" name="w_gb_dicomrt_files">
              <property name="minimumSize">
               <size>
@@ -230,33 +264,6 @@
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item row="5" column="2">
-            <widget class="QComboBox" name="w_cb_body_structure"/>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="text">
-              <string>Patient ID:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="w_le_patinet_id"/>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="label_14">
-             <property name="text">
-              <string>Body Structure:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1" colspan="2">
-            <widget class="QLabel" name="w_l_plan_isocenter">
-             <property name="text">
-              <string/>
-             </property>
             </widget>
            </item>
           </layout>
@@ -478,13 +485,6 @@
            <string>OBJ</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
-           <item row="1" column="1">
-            <widget class="QPushButton" name="w_pb_obj_color">
-             <property name="text">
-              <string>Select Color</string>
-             </property>
-            </widget>
-           </item>
            <item row="2" column="1">
             <widget class="QSlider" name="w_hs_obj_transparency">
              <property name="maximum">
@@ -498,31 +498,10 @@
              </property>
             </widget>
            </item>
-           <item row="1" column="2">
-            <widget class="QFrame" name="w_fr_obj_color">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>25</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="maximumSize">
-              <size>
-               <width>25</width>
-               <height>25</height>
-              </size>
-             </property>
-             <property name="frameShape">
-              <enum>QFrame::Shape::StyledPanel</enum>
-             </property>
-             <property name="frameShadow">
-              <enum>QFrame::Shadow::Raised</enum>
+           <item row="4" column="0">
+            <widget class="QCheckBox" name="w_ch_use_obj">
+             <property name="text">
+              <string>Use .obj File</string>
              </property>
             </widget>
            </item>
@@ -533,28 +512,7 @@
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="label_10">
-             <property name="text">
-              <string>Transparency:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="2">
-            <widget class="QLabel" name="w_l_obj_transparency">
-             <property name="text">
-              <string>100</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QCheckBox" name="w_ch_use_obj">
-             <property name="text">
-              <string>Use .obj File</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="3">
+           <item row="5" column="0" colspan="3">
             <widget class="QGroupBox" name="w_gb_obj_file">
              <property name="title">
               <string>OBJ File</string>
@@ -596,44 +554,93 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="1">
-               <widget class="QWidget" name="widget" native="true">
-                <layout class="QHBoxLayout" name="horizontalLayout_3">
-                 <item>
-                  <widget class="QRadioButton" name="w_rb_hfs">
-                   <property name="text">
-                    <string>HFS</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="w_rb_hfp">
-                   <property name="text">
-                    <string>HFP</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="w_rb_ffs">
-                   <property name="text">
-                    <string>FFS</string>
-                   </property>
-                  </widget>
-                 </item>
-                 <item>
-                  <widget class="QRadioButton" name="w_rb_ffp">
-                   <property name="text">
-                    <string>FFP</string>
-                   </property>
-                  </widget>
-                 </item>
-                </layout>
+             </layout>
+            </widget>
+           </item>
+           <item row="1" column="1">
+            <widget class="QPushButton" name="w_pb_obj_color">
+             <property name="text">
+              <string>Select Color</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QLabel" name="label_10">
+             <property name="text">
+              <string>Transparency:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="2">
+            <widget class="QLabel" name="w_l_obj_transparency">
+             <property name="text">
+              <string>100</string>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="2">
+            <widget class="QFrame" name="w_fr_obj_color">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>25</width>
+               <height>25</height>
+              </size>
+             </property>
+             <property name="frameShape">
+              <enum>QFrame::Shape::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Shadow::Raised</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QLabel" name="label_7">
+             <property name="text">
+              <string>Orientation:</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="1">
+            <widget class="QWidget" name="widget" native="true">
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QRadioButton" name="w_rb_hfs">
+                <property name="text">
+                 <string>HFS</string>
+                </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QLabel" name="label_7">
+              <item>
+               <widget class="QRadioButton" name="w_rb_hfp">
                 <property name="text">
-                 <string>Orientation:</string>
+                 <string>HFP</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="w_rb_ffs">
+                <property name="text">
+                 <string>FFS</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="w_rb_ffp">
+                <property name="text">
+                 <string>FFP</string>
                 </property>
                </widget>
               </item>

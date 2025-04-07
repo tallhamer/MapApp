@@ -1,3 +1,5 @@
+import inspect
+import base64
 import numpy as np
 import trimesh
 import open3d as o3d
@@ -36,24 +38,23 @@ obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                          }
 
 
-class ObjFileModel(qtc.QObject):
+class Surface(qtc.QObject):
 
     file_path_changed = qtc.Signal(str)
+    url_changed = qtc.Signal(str)
     vtk_actor_updated = qtc.Signal(qtc.QObject)
 
     def __init__(self):
+        print(inspect.stack()[0][3])
+        print(inspect.stack()[1][3])
+
         super().__init__()
 
-        self.original_mesh = None
+        # self.original_mesh = None
         self._filepath = None
+        self._url = None
         self._patient_orientation = None
         self.orientation_coordinates = {}
-        self.faces = None
-        self.file_path_changed.connect(self.test)
-
-    def test(self, text):
-        print(text)
-
 
     @property
     def filepath(self):
@@ -75,10 +76,14 @@ class ObjFileModel(qtc.QObject):
 
     # qtc.Slot(str)
     def update_filepath(self, new_path):
+        print(inspect.stack()[0][3])
+        print(inspect.stack()[1][3])
+
         print("In ObjFileModel update_filepath Slot")
 
         if self._filepath != new_path:
             self.original_mesh = trimesh.load(new_path)
+
             self._filepath = new_path
             self.file_path_changed.emit(new_path)
             print('file_path_changed signal emitted')
@@ -93,7 +98,34 @@ class ObjFileModel(qtc.QObject):
 
         self.update_vtk_actor()
 
+    def update_from_api(self, api_data):
+        print(inspect.stack()[0][3])
+        print(inspect.stack()[1][3])
+
+        # Extract the base64 encoded file.
+        # Splitting the data on a ',' gets rid of the leading information attached to the base64 encoded file by the
+        # MapRT API.
+        base64_data = api_data["data"].split(',')[-1]
+
+        # Decode the base64 data
+        decoded_data = base64.b64decode(base64_data)
+
+        # # You can now read what was in the obj file sent back from the MapRT API
+        # print(decoded_data.decode('utf-8'))
+        self.original_mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(decoded_data), file_type='obj')
+
+        #  Axes should match the DICOM orientation
+        points = self.original_mesh.vertices
+
+        for k, m in obj2dcm_transform_map.items():
+            self.orientation_coordinates[k] = (obj2dcm_transform_map[k] @ points.T).T
+
+        self.update_vtk_actor()
+
     def update_vtk_actor(self):
+        print(inspect.stack()[0][3])
+        print(inspect.stack()[1][3])
+
         print("In ObjFileModel update_actor")
         new_points = self.orientation_coordinates[self.patient_orientation]
 
@@ -124,4 +156,3 @@ class ObjFileModel(qtc.QObject):
         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
 
         self.vtk_actor_updated.emit(self)
-        print('signal emitted')
