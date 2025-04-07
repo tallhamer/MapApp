@@ -36,28 +36,32 @@ obj2dcm_transform_map = {None: np.array([[1, 0, 0], # Identity
                          }
 
 
-class ObjFile(qtc.QObject):
+class ObjFileModel(qtc.QObject):
 
-    obj_file_changed = qtc.Signal(str)
-    vtk_actor_updated = qtc.Signal()
+    file_path_changed = qtc.Signal(str)
+    vtk_actor_updated = qtc.Signal(qtc.QObject)
 
     def __init__(self):
         super().__init__()
 
-        self._obj_file = None
+        self.original_mesh = None
+        self._filepath = None
         self._patient_orientation = None
         self.orientation_coordinates = {}
         self.faces = None
-        self.obj_file_changed.connect(self.update_obj_file)
+        self.file_path_changed.connect(self.test)
+
+    def test(self, text):
+        print(text)
 
 
     @property
-    def obj_file(self):
-        return self._obj_file
+    def filepath(self):
+        return self._filepath
 
-    @obj_file.setter
-    def obj_file(self, new_path):
-        self.update_obj_file(new_path)
+    @filepath.setter
+    def filepath(self, new_path):
+        self.update_filepath(new_path)
 
     @property
     def patient_orientation(self):
@@ -66,16 +70,18 @@ class ObjFile(qtc.QObject):
     @patient_orientation.setter
     def patient_orientation(self, value):
         self._patient_orientation = value
-        self.update_actor()
+        if hasattr(self, 'obj_actor'):
+            self.update_vtk_actor()
 
-    qtc.Slot(str)
-    def update_obj_file(self, new_path):
-        print("In ObjFileModel update_obj_file Slot")
+    # qtc.Slot(str)
+    def update_filepath(self, new_path):
+        print("In ObjFileModel update_filepath Slot")
 
-        if self.obj_file != new_path:
+        if self._filepath != new_path:
             self.original_mesh = trimesh.load(new_path)
-            self._obj_file = new_path
-            self.obj_file_changed.emit(new_path)
+            self._filepath = new_path
+            self.file_path_changed.emit(new_path)
+            print('file_path_changed signal emitted')
 
             #  Axes should match the DICOM orientation
             points = self.original_mesh.vertices
@@ -85,9 +91,10 @@ class ObjFile(qtc.QObject):
 
             # S = obj2dcm_transform_map[self.patient_orientation]
 
-        self.update_actor()
+        self.update_vtk_actor()
 
-    def update_actor(self):
+    def update_vtk_actor(self):
+        print("In ObjFileModel update_actor")
         new_points = self.orientation_coordinates[self.patient_orientation]
 
         obj_pcloud = o3d.geometry.PointCloud()
@@ -103,6 +110,7 @@ class ObjFile(qtc.QObject):
         self.obj_polydata = vtk.vtkPolyData()
         self.obj_polydata.points = numpy_support.numpy_to_vtk(new_points)
 
+
         obj_cells = vtk.vtkCellArray()
 
         for i in range(len(obj_mesh.triangles)):
@@ -114,6 +122,6 @@ class ObjFile(qtc.QObject):
         self.obj_polydata >> self.obj_mapper
 
         self.obj_actor = vtk.vtkActor(mapper=self.obj_mapper)
-        self.obj_actor.GetProperty().SetColor(0.5, 0.5, 0.5)
 
-        self.vtk_actor_updated.emit()
+        self.vtk_actor_updated.emit(self)
+        print('signal emitted')

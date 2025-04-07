@@ -8,10 +8,9 @@ import PySide6.QtGui as qtg
 
 # from ui.test_window import Ui_MainWindow
 from ui.main_window import Ui_MainWindow
-from model.dicom import DicomRTPlan, DicomRTStructureSet, DicomFileValidationError
-from model.obj import ObjFile
-
-OBJ = ObjFile()
+from model.dicom import DicomRTPlan, DicomFileValidationError
+from model.obj import ObjFileModel
+from model.maprt_api import MapRTCaller
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -19,6 +18,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Map App")
+
+        self.maprt_caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
+                                        "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
+                                        "VisionRT.Integration.Saturn/1.2.8"
+                                        )
+        self.maprt_caller.maprt_surfaces_updated.connect(self._update_maprt_surfaces)
+        self.maprt_caller.maprt_treatment_rooms_updated.connect(self._update_maprt_treatment_rooms)
+        self.w_pb_api_ping.clicked.connect(self._update_api_status)
+        self._update_api_status()
 
         # VTK rendering setup
         self.dcm_actor = None
@@ -53,15 +61,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_fr_dcm_color.show()
         self.w_hs_dcm_transparency.valueChanged.connect(self.dcm_transparency_changed)
 
+        # OBJ File Widget Setup
+        self.obj_model = None
+
         self.w_pb_obj_file.clicked.connect(self.open_obj_file)
 
-        self.w_pb_obj_color.clicked.connect(self.obj_color_changed)
         self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
         self.w_fr_obj_color.show()
+        self.w_pb_obj_color.clicked.connect(self.obj_color_changed)
         self.w_hs_obj_transparency.valueChanged.connect(self.obj_transparency_changed)
-
-        self.w_le_obj_file.textChanged.connect(OBJ.update_obj_file)
-        OBJ.vtk_actor_updated.connect(self.update_obj_visualization)
 
         self.w_rb_hfs.toggled.connect(self.orientationChanged)
         self.w_rb_hfp.toggled.connect(self.orientationChanged)
@@ -84,11 +92,53 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
 
+    def _update_api_status(self):
+        status = self.maprt_caller.get_status()
+        self.w_l_api_status.setText(f'{status}')
+
+        if status == 200:
+            self.maprt_caller.get_alll_treatment_rooms()
+
+    def _update_maprt_surfaces(self, surface_map):
+        self.w_cb_surface_for_map.clear()
+        self.w_cb_surface_for_map.addItems(surface_map.keys())
+
+    def _update_maprt_treatment_rooms(self, room_map):
+        print('updating rooms')
+        self.w_tw_treatment_rooms.clear()
+        self.w_tw_treatment_rooms.setRowCount(0)
+        self.w_tw_treatment_rooms.setColumnCount(0)
+
+        lst = []
+        for name, info in room_map.items():
+            id, scale = info
+            lst.append([name, scale, id])
+
+        self.w_tw_treatment_rooms.setRowCount(len(lst))
+        self.w_tw_treatment_rooms.setColumnCount(len(lst[0]))
+        self.w_tw_treatment_rooms.setHorizontalHeaderLabels(["Name",
+                                                   "Machine Scale",
+                                                   "ID"
+                                                   ]
+                                                  )
+
+        for row_index, row_data in enumerate(lst):
+            for col_index, cell_data in enumerate(row_data):
+                print(row_index, col_index, cell_data)
+                item = qtw.QTableWidgetItem(cell_data)
+                item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignLeft)
+                self.w_tw_treatment_rooms.setItem(row_index, col_index, item)
+
+        self.w_tw_treatment_rooms.resizeColumnsToContents()
+        self.w_tw_treatment_rooms.setSortingEnabled(True)
+
     def show_info_message(self, message):
         res = qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
     def show_dicomrt_file_input_widgets(self):
         self.w_le_dcm_plan_file.clear()
+        self.w_le_dcm_struct_file.clear()
+        self.w_pb_dcm_struct_file.setEnabled(False)
         self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
         self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
         self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
@@ -106,14 +156,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       )
         if filename:
             try:
+                self._clear_patient_context()
                 self.dicomrt_plan_model = DicomRTPlan()
                 self.dicomrt_plan_model.invalid_file_loaded.connect(self.show_info_message)
                 self.dicomrt_plan_model.file_path_changed.connect(self.w_le_dcm_plan_file.setText)
-                self.dicomrt_plan_model.plan_model_updated.connect(self.update_patient_context)
+                self.dicomrt_plan_model.plan_model_updated.connect(self.update_patient_context_from_dicom)
 
                 self.dicomrt_plan_model.structure_set.invalid_file_loaded.connect(self.show_info_message)
                 self.dicomrt_plan_model.structure_set.file_path_changed.connect(self.w_le_dcm_struct_file.setText)
-                self.dicomrt_plan_model.structure_set.vtkActorUpdated.connect(self.update_dcm_visualization)
+                self.dicomrt_plan_model.structure_set.vtk_actor_updated.connect(self.update_dcm_visualization)
+                self.dicomrt_plan_model.structure_set.structures_loaded.connect(self.update_structure_selections)
+                self.w_cb_body_structure.currentTextChanged.connect(self.update_dcm_body_structure)
 
                 self.dicomrt_plan_model.filepath = filename
             except DicomFileValidationError as e:
@@ -130,20 +183,29 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_body_structure.clear()
         self.w_cb_body_structure.setEnabled(False)
         self.w_tw_beams.clear()
+        self.w_tw_beams.setRowCount(0)
+        self.w_tw_beams.setColumnCount(0)
+        self.w_le_dcm_struct_file.clear()
+        self.w_pb_dcm_struct_file.setEnabled(False)
 
-    def update_patient_context(self):
-        self.w_le_patinet_id.setText(self.dicomrt_plan_model.patient_id)
+        if self.dcm_actor is not None:
+            self.vtk_renderer.RemoveActor(self.dcm_actor)
+            self.vtk_render_window.Render()
+            self.dcm_actor = None
 
-        self.w_l_patient_first_name.setText(self.dicomrt_plan_model.patient_first_name)
-        self.w_l_patient_last_name.setText(self.dicomrt_plan_model.patient_last_name)
+    def update_patient_context_from_dicom(self, model):
+        self.w_le_patinet_id.setText(model.patient_id)
+
+        self.w_l_patient_first_name.setText(model.patient_first_name)
+        self.w_l_patient_last_name.setText(model.patient_last_name)
         self.w_cb_plan_id.setEnabled(False)
-        self.w_cb_plan_id.addItem(self.dicomrt_plan_model.plan_id)
+        self.w_cb_plan_id.addItem(model.plan_id)
         self.w_cb_plan_id.setCurrentIndex(0)
-        X, Y, Z = self.dicomrt_plan_model.isocenter
+        X, Y, Z = model.isocenter
         self.w_l_plan_isocenter.setText(f'< {X}, {Y}, {Z} >')
 
-        self.w_tw_beams.setRowCount(len(self.dicomrt_plan_model.beams))
-        self.w_tw_beams.setColumnCount(len(self.dicomrt_plan_model.beams[0]))
+        self.w_tw_beams.setRowCount(len(model.beams))
+        self.w_tw_beams.setColumnCount(len(model.beams[0]))
         self.w_tw_beams.setHorizontalHeaderLabels(["Status",
                                                    "Num",
                                                    "ID",
@@ -156,7 +218,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                    ]
                                                   )
 
-        for row_index, row_data in enumerate(self.dicomrt_plan_model.beams):
+        for row_index, row_data in enumerate(model.beams):
             for col_index, cell_data in enumerate(row_data):
                 item = qtw.QTableWidgetItem(cell_data)
                 item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
@@ -164,6 +226,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.w_tw_beams.resizeColumnsToContents()
         self.w_tw_beams.setSortingEnabled(True)
+        self.w_pb_dcm_struct_file.setEnabled(True)
+
+        self.maprt_caller.patient_id = model.patient_id
 
     def open_dcm_struct_file(self):
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -174,12 +239,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if filename:
             self.dicomrt_plan_model.structure_set.update_filepath(filename)
 
-    def update_dcm_visualization(self):
-        if self.dcm_actor is None:
-            self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
+    def update_structure_selections(self, model):
+        self.w_cb_body_structure.addItems(model.structures)
+        self.w_cb_body_structure.setEnabled(True)
 
-            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
-            R, G, B, A = self._get_current_dcm_color(self.w_fr_dcm_color)
+    def update_dcm_body_structure(self):
+        if self.w_cb_body_structure.currentText() in self.dicomrt_plan_model.structure_set.structures:
+            self.dicomrt_plan_model.structure_set.get_body_mesh(self.w_cb_body_structure.currentText())
+
+    def update_dcm_visualization(self, model):
+        if self.dcm_actor is None:
+            self.dcm_actor = model.dcm_body_actor
+
+            R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
@@ -187,11 +259,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.dcm_actor)
-            # self.dcm_actor = RS.dcm_body_actor
-            self.dcm_actor = self.dicomrt_plan_model.structure_set.dcm_body_actor
+            self.dcm_actor = model.dcm_body_actor
 
-            # R, G, B = self.named_colors.GetColor3ub(self.w_cb_dcm_color.currentText())
-            R, G, B, A = self._get_current_dcm_color(self.w_fr_dcm_color)
+            R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
 
@@ -207,13 +277,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "OBJ Files (*.obj)"
                                                       )
         if filename:
-            self.w_le_obj_file.setText(filename)
+            self.obj_model = ObjFileModel()
+            if self.dicomrt_plan_model is not None:
+                self.obj_model.patient_orientation = self.dicomrt_plan_model.patient_orientation
+            self.obj_model.file_path_changed.connect(self.w_le_obj_file.setText)
+            self.obj_model.vtk_actor_updated.connect(self.update_obj_visualization)
 
-    def update_obj_visualization(self):
+            self.obj_model.filepath = filename
+
+    def update_obj_visualization(self, model):
+        print("in update_obj_visualization")
         if self.obj_actor is None:
-            self.obj_actor = OBJ.obj_actor
+            self.obj_actor = model.obj_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_fr_obj_color.currentText())
+            R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
@@ -221,9 +298,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.obj_actor)
-            self.obj_actor = OBJ.obj_actor
+            self.obj_actor = model.obj_actor
 
-            R, G, B = self.named_colors.GetColor3ub(self.w_fr_obj_color.currentText())
+            R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
 
@@ -232,13 +309,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def _get_current_dcm_color(self, frame):
+    def _get_current_color(self, frame):
         palette = frame.palette()
         background_color = palette.color(qtg.QPalette.ColorRole.Window)
         return background_color.getRgb()
 
     def dcm_color_changed(self):
-        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_dcm_color)
+        _R, _G, _B, _A = self._get_current_color(self.w_fr_dcm_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
 
         if color is not None:
@@ -251,7 +328,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def obj_color_changed(self):
-        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_obj_color)
+        _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
         if color is not None:
@@ -264,7 +341,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def background_color_changed(self):
-        _R, _G, _B, _A = self._get_current_dcm_color(self.w_fr_background_color)
+        _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
         if color is not None:
@@ -277,7 +354,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def dcm_transparency_changed(self):
         self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
-        if self.dcm_actor.property is not None:
+        if self.dcm_actor is not None:
             self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
             self.vtk_render_window.Render()
         else:
@@ -285,46 +362,31 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def obj_transparency_changed(self):
         self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
-        if self.obj_actor.property is not None:
+        if self.obj_actor is not None:
             self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass
-
-
 
     def orientationChanged(self, checked):
         print(">>orientationChanged")
         print(f"{self.sender()} is checked: {checked}")
         if checked:
             if self.sender().objectName() == 'w_rb_hfs':
-                # self.patient_orientation = 'HFS'
-                OBJ.patient_orientation = 'HFS'
-
-                # if self.obj_actor is not None:
-                #     self._loadOBJMesh(self.w_le_obj_file.text())
-
+                if self.obj_model is not None:
+                    self.obj_model.patient_orientation = 'HFS'
 
             elif self.sender().objectName() == 'w_rb_hfp':
-                # self.patient_orientation = 'HFP'
-                OBJ.patient_orientation = 'HFP'
-
-                # if self.obj_actor is not None:
-                #     self._loadOBJMesh(self.w_le_obj_file.text())
+                if self.obj_model is not None:
+                    self.obj_model.patient_orientation = 'HFP'
 
             elif self.sender().objectName() == 'w_rb_ffs':
-                # self.patient_orientation = 'FFS'
-                OBJ.patient_orientation = 'FFS'
-                #
-                # if self.obj_actor is not None:
-                #     self._loadOBJMesh(self.w_le_obj_file.text())
+                if self.obj_model is not None:
+                    self.obj_model.patient_orientation = 'FFS'
 
             elif self.sender().objectName() == 'w_rb_ffp':
-                # self.patient_orientation = 'FFP'
-                OBJ.patient_orientation = 'FFP'
-
-                # if self.obj_actor is not None:
-                #     self._loadOBJMesh(self.w_le_obj_file.text())
+                if self.obj_model is not None:
+                    self.obj_model.patient_orientation = 'FFP'
 
     def saveImage(self):
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
@@ -332,9 +394,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       ".",
                                                       "PNG Image (*.png);;BitMap Image (*.bmp)"
                                                       )
-
-        print(filename)
-
         if filename:
             # Create a window-to-image filter
             window_to_image_filter = vtk.vtkWindowToImageFilter()

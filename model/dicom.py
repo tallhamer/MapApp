@@ -21,11 +21,10 @@ class DicomRTPlan(qtc.QObject):
 
     file_path_changed = qtc.Signal(str)
     invalid_file_loaded = qtc.Signal(str)
-    plan_model_updated = qtc.Signal()
+    plan_model_updated = qtc.Signal(qtc.QObject)
 
     def __init__(self):
         super().__init__()
-        self._parent = None
         self._filepath = None
 
         self._patient_id = None
@@ -37,7 +36,8 @@ class DicomRTPlan(qtc.QObject):
         self._frame_of_reference_uid = None
         self._beams = []
 
-        self._structure_set = DicomRTStructureSet()
+        self._structure_set = DicomRTStructureSet(self)
+
         self._body = None
 
     @property
@@ -153,17 +153,7 @@ class DicomRTPlan(qtc.QObject):
                                    ]
                                   )
 
-                # print(f'Beam Number: {_num}')
-                # print(f'Beam ID: {_id}')
-                # print(f'Beam Name: {_name}')
-                # print(f'Beam Type: {_type}')
-                # print(f'\tNumber of Control Points: {len(beam.ControlPointSequence)}')
-                # print(f'\tGantry Start Angle: {_gantry_start}')
-                # print(f'\tGantry Stop Angle: {_gantry_stop}')
-                # print(f'\tGantry Rotation Direction: {_gantry_rot_direction}')
-                # print(f'\tCouch: {_couch}')
-
-            self.plan_model_updated.emit()
+            self.plan_model_updated.emit(self)
         else:
             self.invalid_file_loaded.emit(f"{new_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError("Not a valid DICOM RT Plan file.")
@@ -172,14 +162,20 @@ class DicomRTStructureSet(qtc.QObject):
 
     file_path_changed = qtc.Signal(str)
     invalid_file_loaded = qtc.Signal(str)
-    vtkActorUpdated = qtc.Signal()
+    structures_loaded = qtc.Signal(qtc.QObject)
+    # structure_model_updated = qtc.Signal()
+    vtk_actor_updated = qtc.Signal(qtc.QObject)
 
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self._parent = parent
         self._filepath = None
         self._dataset = None
 
         self._patinet_id = None
+        self._structure_points = {}
+        self._structure_meshes = {}
+        self._frame_of_reference_uid = None
 
     @property
     def filepath(self):
@@ -191,50 +187,51 @@ class DicomRTStructureSet(qtc.QObject):
             self.update_filepath(new_path)
 
     @property
-    def dataset(self):
-        return self._dataset
+    def structures(self):
+        return self._structure_points.keys()
 
-    def _get_body_point_cloud(self):
+    def _get_structure_point_clouds(self):
         # Read DICOM Structure Set
-        self._dataset = pydicom.dcmread(self.filepath)
+        self.ds = dataset = pydicom.dcmread(self.filepath)
 
         # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}
-        for structure in self._dataset.StructureSetROISequence:
+        for structure in dataset.StructureSetROISequence:
             # print(f'{structure.ROIName} ({structure.ROIName.lower()})',
             #       structure.ROINumber
             #       )
             roi_lut[structure.ROINumber] = structure.ROIName.lower()
 
         # Grab the Body structure points
-        body_contours = []
-        for roi in self._dataset.ROIContourSequence:
-            if (roi.ReferencedROINumber in roi_lut) and \
-                    roi_lut[roi.ReferencedROINumber] == 'body':
-                # print('Found Body')
+        contours = []
+        for roi in dataset.ROIContourSequence:
+            # if (roi.ReferencedROINumber in roi_lut) and \
+            #         roi_lut[roi.ReferencedROINumber] == 'body':
+            #     # print('Found Body')
+            contours = []
+            if hasattr(roi, "ContourSequence"):
+                print(roi_lut[roi.ReferencedROINumber])
                 for contour in roi.ContourSequence:
-                    # print(contour.ContourData)
-                    body_contours.append([[float(contour.ContourData[i]),
-                                           float(contour.ContourData[i + 1]),
-                                           float(contour.ContourData[i + 2])
-                                           ] \
-                                          for i in range(0,
-                                                         len(contour.ContourData),
-                                                         3
-                                                         )
-                                          ]
-                                         )
+                    contours.append([[float(contour.ContourData[i]),
+                                      float(contour.ContourData[i + 1]),
+                                      float(contour.ContourData[i + 2])
+                                      ] for i in range(0,
+                                                       len(contour.ContourData),
+                                                       3
+                                                       )
+                                     ]
+                                    )
 
-        dcm_points = np.array([point for contour in body_contours \
-                               for point in contour
-                               ]
-                              )
+                dcm_points = np.array([point for contour in contours for point in contour])
 
-        dcm_pcloud = o3d.geometry.PointCloud()
-        dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
-        dcm_pcloud.estimate_normals()
+                dcm_pcloud = o3d.geometry.PointCloud()
+                dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
+                dcm_pcloud.estimate_normals()
 
-        return dcm_pcloud
+                self._structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
+
+        print(self.structures)
+        self.structures_loaded.emit(self)
 
     def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
         # Convet Open3D point cloud to numpy array
@@ -243,9 +240,6 @@ class DicomRTStructureSet(qtc.QObject):
         # Compute the bounds of the point cloud
         mins = pcd.get_min_bound()
         maxs = pcd.get_max_bound()
-
-        # print(mins)
-        # print(maxs)
 
         x = np.arange(mins[0], maxs[0], voxel_size)
         y = np.arange(mins[1], maxs[1], voxel_size)
@@ -280,48 +274,51 @@ class DicomRTStructureSet(qtc.QObject):
 
         return mesh
 
-    qtc.Slot(str)
-    def update_filepath(self, new_path):
-        self._dataset = dcmread(new_path)
-
-        if self._dataset.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
-            self._filepath = new_path
-            self.file_path_changed.emit(self.filepath)
-
-            print('Reading in DICOM "Body" structure from DICOM file')
-            dcm_pcloud = self._get_body_point_cloud()
-
-            print("Generating DICOM surface using marchine cubes.")
-            dcm_mesh = self._pcloud_to_mesh(dcm_pcloud, voxel_size=3, iso_level_percentile=3)
+    def get_body_mesh(self, structure):
+        if structure in self._structure_meshes:
+            print("Using cashed mesh")
+            self._generate_visual_mesh(self._structure_meshes[structure])
+        else:
+            print("Generating DICOM surface using marching cubes.")
+            mesh = self._pcloud_to_mesh(self._structure_points[structure], voxel_size=3, iso_level_percentile=3)
             print('DICOM Surface complete')
+            self._structure_meshes[structure] = mesh
+            self._generate_visual_mesh(mesh)
 
-            # Create a polydata object and add the points
-            self.dcm_polydata = vtk.vtkPolyData()
-            self.dcm_polydata.points = numpy_support.numpy_to_vtk(dcm_mesh.vertices)
+    def _generate_visual_mesh(self, dcm_mesh):
+        # Create a polydata object and add the points
+        self.dcm_polydata = vtk.vtkPolyData()
+        self.dcm_polydata.points = numpy_support.numpy_to_vtk(dcm_mesh.vertices)
 
-            # Create a vertex cell array to hold the triagles
-            dcm_triangles = vtk.vtkCellArray()
-            for i in range(len(dcm_mesh.triangles)):
-                dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-            self.dcm_polydata.polys = dcm_triangles
+        # Create a vertex cell array to hold the triagles
+        dcm_triangles = vtk.vtkCellArray()
+        for i in range(len(dcm_mesh.triangles)):
+            dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
+        self.dcm_polydata.polys = dcm_triangles
 
-            # Create a mapper and actor
-            dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-            self.dcm_polydata >> dcm_mesh_mapper
+        # Create a mapper and actor
+        dcm_mesh_mapper = vtk.vtkPolyDataMapper()
+        self.dcm_polydata >> dcm_mesh_mapper
 
+        # Create the scene actor that represents the point cloud
+        self.dcm_body_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
+        self.dcm_body_actor.GetProperty().SetColor(0, 1, 0)
+        self.dcm_body_actor.property.opacity = 1
 
-            # Create the scene actor that represents the point cloud
-            self.dcm_body_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-            self.dcm_body_actor.GetProperty().SetColor(0, 1, 0)
-            self.dcm_body_actor.property.opacity = 1
+        self.vtk_actor_updated.emit(self)
 
-            self.vtkActorUpdated.emit()
+    # qtc.Slot(str)
+    def update_filepath(self, new_path):
+        dataset = dcmread(new_path)
+
+        if dataset.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
+            if dataset.FrameOfReferenceUID == self._parent.frame_of_reference_uid:
+                self._filepath = new_path
+                self.file_path_changed.emit(self.filepath)
+
+                print('Reading in DICOM structures from DICOM file')
+                self._get_structure_point_clouds()
+            else:
+                self.invalid_file_loaded.emit(f"{new_path} dose not match the loaded DICOM RT Plan.")
         else:
             self.invalid_file_loaded.emit(f"{new_path} is not a valid DICOM RT Structure Set file.")
-
-class DicomRTBroker(qtc.QObject):
-
-    def __init__(self):
-        super().__init__()
-        self.dicom_plan = DicomRTPlan()
-        self.dicom_structures = DicomRTStructureSet()
