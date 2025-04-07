@@ -16,8 +16,8 @@ from model.maprt_api import MapRTCaller
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         super().__init__()
         self.setupUi(self)
@@ -28,15 +28,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.obj_model.file_path_changed.connect(self.w_le_obj_file.setText)
         self.obj_model.vtk_actor_updated.connect(self.update_obj_visualization)
 
-        self.maprt_caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
+        self.maprt_caller = self.maprt_caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
                                         "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
                                         "VisionRT.Integration.Saturn/1.2.8"
                                         )
         self.w_pb_api_ping.clicked.connect(self._update_api_status)
         self.maprt_caller.maprt_treatment_rooms_updated.connect(self._update_maprt_treatment_rooms)
         self.maprt_caller.maprt_surfaces_updated.connect(self._update_maprt_surfaces)
-        self._update_api_status()
         self.w_cb_surface_for_map.currentTextChanged.connect(self.get_surface_from_api)
+        self._update_api_status()
+        if self.maprt_caller.get_status() == 200:
+            self.maprt_caller.get_all_treatment_rooms()
 
         # VTK rendering setup
         self.dcm_actor = None
@@ -49,13 +51,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
         self.vtk_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
 
-        self.named_colors = vtk.vtkNamedColors()
-        color_names_string = self.named_colors.GetColorNames()
-        color_names_list = color_names_string.split('\n')
-
         # Patient Context Widget Setup
-
-
         ## DICOM RT File Widget Setup
         self.dicomrt_plan_model = None
 
@@ -70,7 +66,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({0}, {127}, {0});")
         self.w_fr_dcm_color.show()
         self.w_hs_dcm_transparency.valueChanged.connect(self.dcm_transparency_changed)
-
 
         #OBJ Code
 
@@ -105,44 +100,46 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_widget.show()
 
     def _update_api_status(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         status = self.maprt_caller.get_status()
         self.w_l_api_status.setText(f'{status}')
 
-        if status == 200:
-            self.maprt_caller.get_all_treatment_rooms()
+        # if status == 200:
+        #     self.maprt_caller.get_all_treatment_rooms()
 
     def _update_maprt_surfaces(self, surface_map):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_cb_surface_for_map.clear()
         self.w_cb_surface_for_map.addItems(surface_map.keys())
 
     def get_surface_from_api(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
-        self.obj_model.update_from_api(self.maprt_caller.get_surface(self.w_cb_surface_for_map.currentText()))
+        surface_label = self.w_cb_surface_for_map.currentText()
+        if surface_label in self.maprt_caller._surface_map:
+            self.obj_model.update_from_api(self.maprt_caller.get_surface(surface_label))
 
     def _update_maprt_treatment_rooms(self, room_map):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_cb_treatment_room.clear()
         self.w_cb_treatment_room.addItems(room_map.keys())
 
     def show_info_message(self, message):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
         
         res = qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
     def show_dicomrt_file_input_widgets(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_le_dcm_plan_file.clear()
         self.w_le_dcm_struct_file.clear()
@@ -158,15 +155,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dcm_actor = None
 
     def show_obj_file_input_widgets(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_le_obj_file.clear()
         self.w_gb_obj_file.setVisible(self.w_ch_use_obj.isChecked())
 
     def open_dcm_plan_file(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
@@ -193,20 +190,27 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 print(e)
 
     def _clear_patient_context(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
+
+        self.maprt_caller.clear()
 
         self.w_le_patinet_id.clear()
         self.w_l_patient_first_name.setText('')
         self.w_l_patient_last_name.setText('')
+
         self.w_cb_plan_id.clear()
         self.w_cb_plan_id.setEnabled(False)
         self.w_l_plan_isocenter.setText('')
+
+        self.w_cb_body_structure.currentTextChanged.disconnect()
         self.w_cb_body_structure.clear()
         self.w_cb_body_structure.setEnabled(False)
+
         self.w_tw_beams.clear()
         self.w_tw_beams.setRowCount(0)
         self.w_tw_beams.setColumnCount(0)
+
         self.w_le_dcm_struct_file.clear()
         self.w_pb_dcm_struct_file.setEnabled(False)
 
@@ -216,8 +220,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dcm_actor = None
 
     def update_patient_context_from_dicom(self, model):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_le_patinet_id.setText(model.patient_id)
 
@@ -253,13 +257,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_beams.setSortingEnabled(True)
         self.w_pb_dcm_struct_file.setEnabled(True)
 
-        # self.maprt_caller.patient_id = model.patient_id
         self.obj_model.patient_orientation = self.dicomrt_plan_model.patient_orientation
         self.maprt_caller.get_surfaces_for_patient(model.patient_id)
 
     def open_dcm_struct_file(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
@@ -270,22 +273,22 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dicomrt_plan_model.structure_set.update_filepath(filename)
 
     def update_structure_selections(self, model):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_cb_body_structure.addItems(model.structures)
         self.w_cb_body_structure.setEnabled(True)
 
     def update_dcm_body_structure(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_cb_body_structure.currentText() in self.dicomrt_plan_model.structure_set.structures:
             self.dicomrt_plan_model.structure_set.get_body_mesh(self.w_cb_body_structure.currentText())
 
     def update_dcm_visualization(self, model):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.dcm_actor is None:
             self.dcm_actor = model.dcm_body_actor
@@ -310,8 +313,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def open_obj_file(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         filename, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
@@ -328,8 +331,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.obj_model.filepath = filename
 
     def update_obj_visualization(self, model):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         print("in update_obj_visualization")
         if self.obj_actor is None:
@@ -355,16 +358,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def _get_current_color(self, frame):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         palette = frame.palette()
         background_color = palette.color(qtg.QPalette.ColorRole.Window)
         return background_color.getRgb()
 
     def dcm_color_changed(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         _R, _G, _B, _A = self._get_current_color(self.w_fr_dcm_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
@@ -379,8 +382,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def obj_color_changed(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
@@ -395,8 +398,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def background_color_changed(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
@@ -410,8 +413,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def dcm_transparency_changed(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
         if self.dcm_actor is not None:
@@ -421,8 +424,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def obj_transparency_changed(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
         if self.obj_actor is not None:
@@ -432,8 +435,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def orientation_changed(self, checked):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         print(">>orientationChanged")
         print(f"{self.sender()} is checked: {checked}")
@@ -455,8 +458,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     self.obj_model.patient_orientation = 'FFP'
 
     def save_image(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
                                                       "Save Render Window as Image",
@@ -479,8 +482,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.Write()
 
     def __get_viewing_bounds(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
 
@@ -503,8 +506,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def set_camera_to_plus_x(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_plusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -530,8 +533,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_x(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_minusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -551,8 +554,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def sset_camera_to_plus_y(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_plusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -572,8 +575,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_y(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_minusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -593,8 +596,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_z(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_plusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -614,8 +617,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_z(self):
-        print('MainWindow Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MainWindow Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if self.w_rb_minusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
@@ -636,7 +639,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
 
         pass
-
 
 if __name__ == '__main__':
     app = qtw.QApplication(sys.argv)

@@ -1,4 +1,3 @@
-import inspect
 import requests
 
 import PySide6.QtCore as qtc
@@ -10,9 +9,9 @@ class MapRTCaller(qtc.QObject):
     maprt_surfaces_updated = qtc.Signal(dict)
 
     def __init__(self, url, token, aget):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
-
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
+        
         super().__init__()
         self._api_url = url     # "https://maprtpkr.adventhealth.com:5000"
         self._token = token     # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
@@ -33,6 +32,12 @@ class MapRTCaller(qtc.QObject):
         # Endpoints to code
         self._get_beam_delivery_status = f"/integration/GetBeamDeliveryStatus"
 
+    def clear(self):
+        self._treatment_room_map = {}
+        self._surface_map = {}
+        self.surface_cache = {}
+        self._map_cache = {}
+
     @property
     def patient_id(self):
         return self._patient_id
@@ -43,8 +48,8 @@ class MapRTCaller(qtc.QObject):
         self.maprt_patient_id_updated.emit()
 
     def get_status(self):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         url = self._api_url + "/integration/ping"
 
@@ -62,8 +67,8 @@ class MapRTCaller(qtc.QObject):
         return (response.status_code)
 
     def get_all_treatment_rooms(self):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         url = self._api_url + "/integration/rooms"
 
@@ -86,8 +91,8 @@ class MapRTCaller(qtc.QObject):
             print(response.text)
 
     def get_single_treatment_room(self, room_name):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         url = self._api_url + f"/integration/rooms/{room_name}"
 
@@ -102,8 +107,8 @@ class MapRTCaller(qtc.QObject):
             print(response.text)
 
     def get_surfaces_for_patient(self, patient_id):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         url = self._api_url + f"/integration/patients/{patient_id}/surfaces"
 
@@ -127,8 +132,8 @@ class MapRTCaller(qtc.QObject):
             print(response.text)
 
     def get_surface(self, surface_label):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         if surface_label in self.surface_cache:
             print("Using Cached Surface")
@@ -152,8 +157,8 @@ class MapRTCaller(qtc.QObject):
             return None
 
     def get_map(self, isocenter, couch_buffer, patient_buffer, surface_label, room_name, high_res=True):
-        print('MapRTCaller Function: ', inspect.stack()[0][3])
-        print('\tCaller: ', inspect.stack()[1][3])
+        # print('MapRTCaller Function: ', inspect.stack()[0][3])
+        # print('\tCaller: ', inspect.stack()[1][3])
 
         surface_id, surface_timestamp = self._surface_map[surface_label]
         treatment_room_id, coordinate_system = self._treatment_room_map[room_name]

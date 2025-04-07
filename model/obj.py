@@ -1,4 +1,3 @@
-import inspect
 import base64
 import numpy as np
 import trimesh
@@ -45,9 +44,6 @@ class Surface(qtc.QObject):
     vtk_actor_updated = qtc.Signal(qtc.QObject)
 
     def __init__(self):
-        print(inspect.stack()[0][3])
-        print(inspect.stack()[1][3])
-
         super().__init__()
 
         # self.original_mesh = None
@@ -76,11 +72,6 @@ class Surface(qtc.QObject):
 
     # qtc.Slot(str)
     def update_filepath(self, new_path):
-        print(inspect.stack()[0][3])
-        print(inspect.stack()[1][3])
-
-        print("In ObjFileModel update_filepath Slot")
-
         if self._filepath != new_path:
             self.original_mesh = trimesh.load(new_path)
 
@@ -99,9 +90,6 @@ class Surface(qtc.QObject):
         self.update_vtk_actor()
 
     def update_from_api(self, api_data):
-        print(inspect.stack()[0][3])
-        print(inspect.stack()[1][3])
-
         # Extract the base64 encoded file.
         # Splitting the data on a ',' gets rid of the leading information attached to the base64 encoded file by the
         # MapRT API.
@@ -123,10 +111,6 @@ class Surface(qtc.QObject):
         self.update_vtk_actor()
 
     def update_vtk_actor(self):
-        print(inspect.stack()[0][3])
-        print(inspect.stack()[1][3])
-
-        print("In ObjFileModel update_actor")
         new_points = self.orientation_coordinates[self.patient_orientation]
 
         obj_pcloud = o3d.geometry.PointCloud()
