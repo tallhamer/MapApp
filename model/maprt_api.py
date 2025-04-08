@@ -1,4 +1,5 @@
 import requests
+import threading
 
 import PySide6.QtCore as qtc
 
@@ -195,33 +196,16 @@ class MapRTCaller(qtc.QObject):
         if response.status_code == 200:
             print("Get Map Request Successful!")
             # print(response.headers)
-            print(response.text)
+            # print(response.text)
             return response.text
         else:
             print(f"Request failed with status code: {response.status_code}")
             print(response.text)
 
-
-async def get_status(session):
-    url = "https://maprtpkr.adventhealth.com:5000" + "/integration/ping"
-    token = "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
-    agent = "VisionRT.Integration.Saturn/1.2.8"
-
-    header = {
-        "Authorization": f"Bearer {token}",
-        "User-Agent": agent
-    }
-
-    try:
-            async with session.get(url) as response:
-                # response.raise_for_status()
-                print(await response.json())
-                return await response.json()
-    except Exception as e:
-        print('Exception')
-        print(e)
-
 if __name__ == '__main__':
+    import time
+
+    start = time.time()
     caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
                          "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
                          "VisionRT.Integration.Saturn/1.2.8"
@@ -231,10 +215,19 @@ if __name__ == '__main__':
     caller.get_single_treatment_room('Truebeam e15')
     caller.get_surfaces_for_patient('PHY0019')
     caller.get_surface('20250404 222044')
-    caller.get_map([0,0,0],
+    caller.get_surface('20250120 230214')
+    # caller.get_map([0,0,0],
+    #                20,
+    #                20,
+    #                '20250404 222044',
+    #                'Truebeam',
+    #                high_res=True
+    #                )
+    caller.get_map([0, 0, 0],
                    20,
                    20,
                    '20250404 222044',
                    'Truebeam',
                    high_res=False
                    )
+    print(time.time() - start)
