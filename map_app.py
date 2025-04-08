@@ -14,7 +14,6 @@ from ui.main_window import Ui_MainWindow
 from model.dicom import DicomRTPlan, DicomFileValidationError
 from model.obj import Surface
 from model.maprt_api import MapRTCaller
-from model.scratch import export_image, I, J, GANTRY, COUCH
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -58,7 +57,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         layout.addWidget(self.plot_widget)
 
-        # self.map_view.setImage(export_image)
+        # TEST Code for Collision Map
+
 
         # OBJ File Widget Setup
         self.obj_model = Surface()

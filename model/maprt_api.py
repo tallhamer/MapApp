@@ -1,4 +1,3 @@
-import numpy as np
 import requests
 
 import PySide6.QtCore as qtc
@@ -203,6 +202,24 @@ class MapRTCaller(qtc.QObject):
             print(response.text)
 
 
+async def get_status(session):
+    url = "https://maprtpkr.adventhealth.com:5000" + "/integration/ping"
+    token = "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
+    agent = "VisionRT.Integration.Saturn/1.2.8"
+
+    header = {
+        "Authorization": f"Bearer {token}",
+        "User-Agent": agent
+    }
+
+    try:
+            async with session.get(url) as response:
+                # response.raise_for_status()
+                print(await response.json())
+                return await response.json()
+    except Exception as e:
+        print('Exception')
+        print(e)
 
 if __name__ == '__main__':
     caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
