@@ -39,11 +39,11 @@ class Ui_MainWindow(object):
         self.centralwidget.setSizePolicy(sizePolicy)
         self.horizontalLayout = QHBoxLayout(self.centralwidget)
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.tabWidget = QTabWidget(self.centralwidget)
-        self.tabWidget.setObjectName(u"tabWidget")
-        self.tabWidget.setMinimumSize(QSize(400, 600))
-        self.tabWidget.setMaximumSize(QSize(600, 16777215))
-        self.tabWidget.setTabPosition(QTabWidget.TabPosition.North)
+        self.w_tw_patient_settings = QTabWidget(self.centralwidget)
+        self.w_tw_patient_settings.setObjectName(u"w_tw_patient_settings")
+        self.w_tw_patient_settings.setMinimumSize(QSize(400, 600))
+        self.w_tw_patient_settings.setMaximumSize(QSize(600, 16777215))
+        self.w_tw_patient_settings.setTabPosition(QTabWidget.TabPosition.North)
         self.tab = QWidget()
         self.tab.setObjectName(u"tab")
         self.verticalLayout = QVBoxLayout(self.tab)
@@ -285,7 +285,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addItem(self.verticalSpacer_2)
 
-        self.tabWidget.addTab(self.tab, "")
+        self.w_tw_patient_settings.addTab(self.tab, "")
         self.tab_2 = QWidget()
         self.tab_2.setObjectName(u"tab_2")
         self.verticalLayout_3 = QVBoxLayout(self.tab_2)
@@ -532,22 +532,22 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addWidget(self.w_pb_save_image)
 
-        self.tabWidget.addTab(self.tab_2, "")
+        self.w_tw_patient_settings.addTab(self.tab_2, "")
 
-        self.horizontalLayout.addWidget(self.tabWidget)
+        self.horizontalLayout.addWidget(self.w_tw_patient_settings)
 
-        self.tabWidget_2 = QTabWidget(self.centralwidget)
-        self.tabWidget_2.setObjectName(u"tabWidget_2")
+        self.w_tw_visualizations = QTabWidget(self.centralwidget)
+        self.w_tw_visualizations.setObjectName(u"w_tw_visualizations")
         self.tab_3 = QWidget()
         self.tab_3.setObjectName(u"tab_3")
         self.verticalLayout_4 = QVBoxLayout(self.tab_3)
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
-        self.groupBox_3 = QGroupBox(self.tab_3)
-        self.groupBox_3.setObjectName(u"groupBox_3")
+        self.w_gb_collision_map = QGroupBox(self.tab_3)
+        self.w_gb_collision_map.setObjectName(u"w_gb_collision_map")
 
-        self.verticalLayout_4.addWidget(self.groupBox_3)
+        self.verticalLayout_4.addWidget(self.w_gb_collision_map)
 
-        self.tabWidget_2.addTab(self.tab_3, "")
+        self.w_tw_visualizations.addTab(self.tab_3, "")
         self.tab_4 = QWidget()
         self.tab_4.setObjectName(u"tab_4")
         self.horizontalLayout_4 = QHBoxLayout(self.tab_4)
@@ -568,9 +568,9 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_4.addWidget(self.groupBox_2)
 
-        self.tabWidget_2.addTab(self.tab_4, "")
+        self.w_tw_visualizations.addTab(self.tab_4, "")
 
-        self.horizontalLayout.addWidget(self.tabWidget_2)
+        self.horizontalLayout.addWidget(self.w_tw_visualizations)
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
@@ -583,8 +583,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.tabWidget.setCurrentIndex(0)
-        self.tabWidget_2.setCurrentIndex(1)
+        self.w_tw_patient_settings.setCurrentIndex(0)
+        self.w_tw_visualizations.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -622,7 +622,7 @@ class Ui_MainWindow(object):
         self.label_24.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.w_l_api_status.setText("")
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Surface:", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Patient Context", None))
+        self.w_tw_patient_settings.setTabText(self.w_tw_patient_settings.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Patient Context", None))
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"DICOM", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
@@ -653,10 +653,10 @@ class Ui_MainWindow(object):
         self.w_rb_plusZ.setText(QCoreApplication.translate("MainWindow", u"+Z", None))
         self.w_rb_minusZ.setText(QCoreApplication.translate("MainWindow", u"-Z", None))
         self.w_pb_save_image.setText(QCoreApplication.translate("MainWindow", u"Save Render Window Image", None))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"3D View Settings", None))
-        self.groupBox_3.setTitle(QCoreApplication.translate("MainWindow", u"MapRT Collision Map", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Map View", None))
+        self.w_tw_patient_settings.setTabText(self.w_tw_patient_settings.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"3D View Settings", None))
+        self.w_gb_collision_map.setTitle(QCoreApplication.translate("MainWindow", u"MapRT Collision Map", None))
+        self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Map View", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Render Window", None))
-        self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"3D View", None))
+        self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"3D View", None))
     # retranslateUi
 

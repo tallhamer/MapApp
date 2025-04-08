@@ -16,12 +16,12 @@ i1 = np.arange(len(c1)) + len(c0)
 i = np.hstack((i0, i1))
 # print(i)
 
-g0 = np.arange(181,360,1)
+g0 = np.arange(180,360,1)
 # print(g0)
 j0 = np.arange(len(g0))
 # print(j0)
 
-g1 = np.arange(0,181,1)
+g1 = np.arange(0,180,1)
 gantry = np.hstack((g0, g1))
 # print(gantry)
 j1 = np.arange(len(g1)) + len(g0)
@@ -35,7 +35,7 @@ print(y_map)
 
 api_image = np.zeros((len(j), len(i)))
 export_image = np.zeros((len(j), len(i)))
-bs_image = np.zeros((len(j), len(i)))
+# bs_image = np.zeros((len(j), len(i)))
 
 api_url = "https://maprtpkr.adventhealth.com:5000"
 token = "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
@@ -75,63 +75,63 @@ mapBody = \
         }
     }
 
-beamDeliveryStatusBody = \
-            {
-                "CouchBuffer": 20,
-                "PatientBuffer": 20,
-                "PatientSurfaceId": f"{surfaceId}",
-                "TreatmentRoomId": f"{treatmentRoomId}",
-                "Isocenter": {
-                    "x": 141.3,
-                    "y": 74.9,
-                    "z": 670.3,
-                    "CoordinateSystem": "IEC_61217",
-                },
-                "BeamList": [
-                ]
-            }
+# beamDeliveryStatusBody = \
+#             {
+#                 "CouchBuffer": 20,
+#                 "PatientBuffer": 20,
+#                 "PatientSurfaceId": f"{surfaceId}",
+#                 "TreatmentRoomId": f"{treatmentRoomId}",
+#                 "Isocenter": {
+#                     "x": 141.3,
+#                     "y": 74.9,
+#                     "z": 670.3,
+#                     "CoordinateSystem": "IEC_61217",
+#                 },
+#                 "BeamList": [
+#                 ]
+#             }
 
-count = 0
-res_map = {}
-for couch_val in couch:
-    for gantry_val in gantry:
-        count+=1
-        beam = {
-            "beamNumber": count,
-            "controlPoints": [
-                {
-                    "gantryAngle": int(gantry_val),
-                    "couchAngle": int(couch_val),
-                    "coordinateSystem": "Native"
-                }
-            ]
-        }
-        res_map[count] = {'gantry':str(gantry_val), 'couch':str(couch_val)}
-        beamDeliveryStatusBody["BeamList"].append(beam)
-print(beamDeliveryStatusBody)
-
-put_url = api_url + getBeamDeliveryStatus
-response = requests.post(put_url, json=beamDeliveryStatusBody, headers=headers, verify=False)
-if response.status_code == 200:
-    print("Request successful!")
-    print(response.json())
-    data = response.json()
-    for status in data['data']['statuses']:
-        g = res_map[status["beamNumber"]]['gantry']
-        c = res_map[status["beamNumber"]]['couch']
-        isSafe = status['isSafe']
-
-        val = 1 if isSafe else 0
-        print('>>', g, c, isSafe)
-        print(y_map[g], x_map[c], val)
-
-        bs_image[y_map[g], x_map[c]] = val
-        print(bs_image[y_map[g], x_map[c]])
-else:
-    print(f"Request failed with status code: {response.status_code}")
-    print(response.text)
-
-print(bs_image)
+# count = 0
+# res_map = {}
+# for couch_val in couch:
+#     for gantry_val in gantry:
+#         count+=1
+#         beam = {
+#             "beamNumber": count,
+#             "controlPoints": [
+#                 {
+#                     "gantryAngle": int(gantry_val),
+#                     "couchAngle": int(couch_val),
+#                     "coordinateSystem": "Native"
+#                 }
+#             ]
+#         }
+#         res_map[count] = {'gantry':str(gantry_val), 'couch':str(couch_val)}
+#         beamDeliveryStatusBody["BeamList"].append(beam)
+# print(beamDeliveryStatusBody)
+#
+# put_url = api_url + getBeamDeliveryStatus
+# response = requests.post(put_url, json=beamDeliveryStatusBody, headers=headers, verify=False)
+# if response.status_code == 200:
+#     print("Request successful!")
+#     print(response.json())
+#     data = response.json()
+#     for status in data['data']['statuses']:
+#         g = res_map[status["beamNumber"]]['gantry']
+#         c = res_map[status["beamNumber"]]['couch']
+#         isSafe = status['isSafe']
+#
+#         val = 1 if isSafe else 0
+#         print('>>', g, c, isSafe)
+#         print(y_map[g], x_map[c], val)
+#
+#         bs_image[y_map[g], x_map[c]] = val
+#         print(bs_image[y_map[g], x_map[c]])
+# else:
+#     print(f"Request failed with status code: {response.status_code}")
+#     print(response.text)
+#
+# print(bs_image)
 
 
 put_url = api_url + getMap
@@ -164,11 +164,11 @@ with open(export_path, 'r') as f:
 
 
 # Create the plot
-fig, axes = plt.subplots(1,3)
+fig, axes = plt.subplots(1,2)
 
 ex_plot = axes[0].imshow(export_image, cmap='jet', extent=[0, 180, 0, 180])
 api_plot = axes[1].imshow(api_image, cmap='jet', extent=[0, 180, 0, 180])
-bs_plot = axes[1].imshow(bs_image, cmap='jet', extent=[0, 180, 0, 180])
+# bs_plot = axes[1].imshow(bs_image, cmap='jet', extent=[0, 180, 0, 180])
 # Adjust layout to prevent overlap
 plt.tight_layout()
 

@@ -28,7 +28,7 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="w_tw_patient_settings">
       <property name="minimumSize">
        <size>
         <width>400</width>
@@ -787,9 +787,9 @@
      </widget>
     </item>
     <item>
-     <widget class="QTabWidget" name="tabWidget_2">
+     <widget class="QTabWidget" name="w_tw_visualizations">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_3">
        <attribute name="title">
@@ -797,7 +797,7 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
-         <widget class="QGroupBox" name="groupBox_3">
+         <widget class="QGroupBox" name="w_gb_collision_map">
           <property name="title">
            <string>MapRT Collision Map</string>
           </property>

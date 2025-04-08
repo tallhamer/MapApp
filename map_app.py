@@ -1,18 +1,20 @@
 import sys
 import inspect
+import numpy as np
 
 import vtk
 
 import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
 import PySide6.QtGui as qtg
-
+import pyqtgraph as pg
 
 # from ui.test_window import Ui_MainWindow
 from ui.main_window import Ui_MainWindow
 from model.dicom import DicomRTPlan, DicomFileValidationError
 from model.obj import Surface
 from model.maprt_api import MapRTCaller
+from model.scratch import export_image, I, J, GANTRY, COUCH
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -22,6 +24,41 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("Map App")
+        self.w_tw_patient_settings.setCurrentIndex(0)
+        self.w_tw_visualizations.setCurrentIndex(1)
+
+        # TEST Code for Collision Map
+
+        self.collision_map = None
+        layout = qtw.QHBoxLayout(self.w_gb_collision_map)
+
+        self.map_lut = np.array([[175, 15, 15], [41,48, 66]], dtype=np.uint8)
+        # self.map_view = pg.ImageItem(axisOrder='row-major')
+        # self.map_view.setZValue(0)
+        # self.map_view.setLookupTable(self.map_lut)
+
+        self.plot_widget = pg.PlotWidget()
+        self.view_box = self.plot_widget.getViewBox()
+        self.view_box.setMouseEnabled(x=False, y=False)
+
+        # Create crosshair lines
+        self.v_line = pg.InfiniteLine(angle=90, movable=False)
+        self.v_line.setZValue(10)
+        self.h_line = pg.InfiniteLine(angle=0, movable=False)
+        self.v_line.setZValue(11)
+        self.view_box.addItem(self.v_line, ignoreBounds=True)
+        self.view_box.addItem(self.h_line, ignoreBounds=True)
+
+        # self.plot_widget.addItem(self.map_view)
+        self.plot_widget.showAxes(True)
+        self.plot_widget.invertY(True)
+
+        # proxy = pg.SignalProxy(app.desktop().eventFilter, rateLimit=60, slot=mouse_moved)
+        self.view_box.scene().sigMouseMoved.connect(self.mouse_moved)
+
+        layout.addWidget(self.plot_widget)
+
+        # self.map_view.setImage(export_image)
 
         # OBJ File Widget Setup
         self.obj_model = Surface()
@@ -39,6 +76,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._update_api_status()
         if self.maprt_caller.get_status() == 200:
             self.maprt_caller.get_all_treatment_rooms()
+
+        self.active_map = None
+        self.w_pb_get_map.clicked.connect(self.display_map)
 
         # VTK rendering setup
         self.dcm_actor = None
@@ -98,6 +138,82 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
+
+    # Function to update crosshair and text position
+    def mouse_moved(self, event):
+        # print(evt)
+        pos = event  # using signal proxy turns original event into tuple
+        if self.view_box.sceneBoundingRect().contains(pos):
+            mouse_point = self.view_box.mapSceneToView(pos)
+            self.v_line.setPos(mouse_point.x())
+            self.v_line.setZValue(10)
+            self.h_line.setPos(mouse_point.y())
+            self.h_line.setZValue(11)
+            # self.text_item.setText(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
+            print(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
+
+    def display_map(self):
+        map = self.maprt_caller.get_map(self.dicomrt_plan_model.isocenter,
+                                        self.w_dsb_api_couch_buffer.value()*10,
+                                        self.w_dsb_api_patient_buffer.value()*10,
+                                        self.w_cb_surface_for_map.currentText(),
+                                        self.w_cb_treatment_room.currentText(),
+                                        self.w_ch_high_res.isChecked()
+                                        )
+        lst = map.split()
+        new_str = ','.join(lst[1:-1])
+        a = np.fromstring(new_str, dtype=int, sep=',')
+        a = a.reshape((int(len(a)/3), 3))
+        couch, gantry, isOK = a.T
+        unique_couch = np.unique(couch)
+        unique_gantry = np.unique(gantry)
+
+        # print(unique_couch)
+        # print(len(unique_couch))
+        # print(unique_gantry)
+        # print(len(unique_gantry))
+
+        gantry_idx = np.hstack((unique_gantry[np.where(unique_gantry >= 180)],
+                                unique_gantry[np.where(unique_gantry < 180)]
+                                )
+                               )
+
+        couch_idx = np.hstack((unique_couch[np.where(unique_couch >= 180)],
+                               unique_couch[np.where(unique_couch <= 90)]
+                               )
+                              )
+
+        # print(couch_idx)
+        # print(len(couch_idx))
+        # print(gantry_idx)
+        # print(len(gantry_idx))
+
+
+        x_map = dict([(str(couch_idx[i]), i) for i in range(len(couch_idx))])
+        y_map = dict([(str(gantry_idx[i]), i) for i in range(len(gantry_idx))])
+
+        x_labels = [(i, str(couch_idx[i])) for i in np.arange(0, len(couch_idx), 10)]
+        x_ticks = [x_labels]
+        bottom_axis = self.plot_widget.getAxis('bottom')
+        bottom_axis.setTicks(x_ticks)
+
+        y_labels = [(j, str(gantry_idx[j])) for j in np.arange(0, len(gantry_idx), 10)]
+        y_ticks = [y_labels]
+        left_axis = self.plot_widget.getAxis('left')
+        left_axis.setTicks(y_ticks)
+
+        self.map_view = pg.ImageItem(axisOrder='row-major')
+        self.map_view.setZValue(0)
+        self.map_view.setLookupTable(self.map_lut)
+
+        self.collision_map = np.zeros((len(gantry_idx), len(couch_idx)), dtype=int)
+        for j in range(len(couch)):
+            self.collision_map[y_map[str(gantry[j])], x_map[str(couch[j])]] = isOK[j]
+
+        self.map_view.setImage(self.collision_map)
+        self.plot_widget.addItem(self.map_view)
+
+
 
     def _update_api_status(self):
         # print('MainWindow Function: ', inspect.stack()[0][3])
@@ -258,6 +374,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_dcm_struct_file.setEnabled(True)
 
         self.obj_model.patient_orientation = self.dicomrt_plan_model.patient_orientation
+        self.maprt_caller.get_all_treatment_rooms()
         self.maprt_caller.get_surfaces_for_patient(model.patient_id)
 
     def open_dcm_struct_file(self):
@@ -323,6 +440,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       )
         if filename:
             # self.obj_model = Surface()
+            self.view_box.removeItem(self.map_view)
             if self.dicomrt_plan_model is not None:
                 self.obj_model.patient_orientation = self.dicomrt_plan_model.patient_orientation
             # self.obj_model.file_path_changed.connect(self.w_le_obj_file.setText)

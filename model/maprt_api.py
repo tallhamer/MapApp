@@ -1,3 +1,4 @@
+import numpy as np
 import requests
 
 import PySide6.QtCore as qtc
@@ -124,8 +125,8 @@ class MapRTCaller(qtc.QObject):
 
             self.maprt_surfaces_updated.emit(self._surface_map)
 
-            for k, v in self._surface_map.items():
-                print(k, v)
+            # for k, v in self._surface_map.items():
+            #     print(k, v)
 
         else:
             print(f"Request failed with status code: {response.status_code}")
@@ -160,6 +161,16 @@ class MapRTCaller(qtc.QObject):
         # print('MapRTCaller Function: ', inspect.stack()[0][3])
         # print('\tCaller: ', inspect.stack()[1][3])
 
+        print(isocenter)
+        print(couch_buffer)
+        print(patient_buffer)
+        print(surface_label)
+        print(room_name)
+        print(high_res)
+
+        # for k, v in self._treatment_room_map.items():
+        #     print(k,v)
+
         surface_id, surface_timestamp = self._surface_map[surface_label]
         treatment_room_id, coordinate_system = self._treatment_room_map[room_name]
         X, Y, Z = isocenter
@@ -185,7 +196,8 @@ class MapRTCaller(qtc.QObject):
         if response.status_code == 200:
             print("Get Map Request Successful!")
             # print(response.headers)
-            # print(response.text)
+            print(response.text)
+            return response.text
         else:
             print(f"Request failed with status code: {response.status_code}")
             print(response.text)
@@ -202,9 +214,10 @@ if __name__ == '__main__':
     caller.get_single_treatment_room('Truebeam e15')
     caller.get_surfaces_for_patient('PHY0019')
     caller.get_surface('20250404 222044')
-    # caller.get_map([0,0,0],
-    #                20,
-    #                20,
-    #                '20250404 222044',
-    #                'Truebeam',
-    #                high_res=False)
+    caller.get_map([0,0,0],
+                   20,
+                   20,
+                   '20250404 222044',
+                   'Truebeam',
+                   high_res=False
+                   )
