@@ -1,5 +1,4 @@
 import requests
-import threading
 
 import PySide6.QtCore as qtc
 

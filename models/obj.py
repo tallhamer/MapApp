@@ -98,7 +98,7 @@ class Surface(qtc.QObject):
         # Decode the base64 data
         decoded_data = base64.b64decode(base64_data)
 
-        # # You can now read what was in the obj file sent back from the MapRT API
+        # You can now read what was in the obj file sent back from the MapRT API
         # print(decoded_data.decode('utf-8'))
         self.original_mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(decoded_data), file_type='obj')
 

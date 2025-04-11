@@ -11,9 +11,9 @@ import pyqtgraph as pg
 
 # from ui.test_window import Ui_MainWindow
 from ui.main_window import Ui_MainWindow
-from model.dicom import DicomRTPlan, DicomFileValidationError
-from model.obj import Surface
-from model.maprt_api import MapRTCaller
+from models.dicom import DicomRTPlan, DicomFileValidationError
+from models.obj import Surface
+from models.maprt_api import MapRTCaller
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -65,7 +65,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.obj_model.file_path_changed.connect(self.w_le_obj_file.setText)
         self.obj_model.vtk_actor_updated.connect(self.update_obj_visualization)
 
-        self.maprt_caller = self.maprt_caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
+        self.maprt_caller = MapRTCaller("https://maprtpkr.adventhealth.com:5000",
                                         "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
                                         "VisionRT.Integration.Saturn/1.2.8"
                                         )
