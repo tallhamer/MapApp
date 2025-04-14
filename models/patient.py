@@ -2,7 +2,7 @@ import json
 import PySide6.QtCore as qtc
 import PySide6.QtNetwork as qtn
 
-from network import MapRTAPIManager, MapRTCallType
+from maprt import MapRTContext
 
 class PlanContext(qtc.QObject):
     def __init__(self):
@@ -13,24 +13,7 @@ class PlanContext(qtc.QObject):
         self._structures = {}               # structure name: vtk_actor
         self._current_structure = None      # vtk_actor
         self._beams = []                    # list of lists for beam table
-        self._maprt = None                  # MapRTContext
-
-class PatientContext(qtc.QObject):
-    patient_id_changed = qtc.Signal(str, str) # (old new)
-    patient_first_name_changed = qtc.Signal(str, str)  # (old, new)
-    patient_last_name_changed = qtc.Signal(str, str)  # (old, new)
-    plans_updated = qtc.Signal(dict)
-    current_plan_changed = qtc.Signal(PlanContext)
-
-    def __init__(self):
-        super().__init__()
-
-        self._patient_id = None         # str
-        self._fisrt_name = None         # str
-        self._last_name = None          # str
-        self._plans = {}                # PlanContext.plan_id: PlanContext
-        self._current_plan = None       # PlanContext
-
+        self._maprt_context = None          # MapRTContext
 
 if __name__ == '__main__':
     import sys
@@ -46,17 +29,17 @@ if __name__ == '__main__':
                        )
 
     print('Calling Ping')
-    ctx.api_caller.get_status()
+    ctx.api_manager.get_status()
     print('Calling Rooms')
-    ctx.api_caller.get_treatment_rooms()
+    ctx.api_manager.get_treatment_rooms()
     print('Calling Room')
-    ctx.api_caller.get_treatment_room('TrueBeam')
+    ctx.api_manager.get_treatment_room('TrueBeam')
     print('Calling Surfaces')
-    ctx.api_caller.get_patient_surfaces('PHY0019')
+    ctx.api_manager.get_patient_surfaces('PHY0019')
     print('Calling Surface')
-    ctx.api_caller.get_surface("2e36321f-19de-49cd-899d-c772da051316")
+    ctx.api_manager.get_surface("2e36321f-19de-49cd-899d-c772da051316")
     print('Calling Map')
-    ctx.api_caller.get_map()
+    ctx.api_manager.get_map()
     print("Elapsed Time:", time.time() - start)
 
     sys.exit(app.exec())
