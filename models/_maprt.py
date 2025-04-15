@@ -227,7 +227,7 @@ class MapRTSurface(qtc.QObject):
         self._id = _id
         self._label = label
         self._orientation = orientation
-        self._vtk_actor = self._process_data(data)
+        self._vtk_polydata = self._process_data(data)
 
     @property
     def id(self):
@@ -242,8 +242,8 @@ class MapRTSurface(qtc.QObject):
         return self._orientation
 
     @property
-    def vtk_actor(self):
-        return self._vtk_actor
+    def vtk_polydata(self):
+        return self._vtk_polydata
 
     def _process_data(self, data):
         _mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(data), file_type='obj')
@@ -252,30 +252,26 @@ class MapRTSurface(qtc.QObject):
         points = _mesh.vertices
         oriented_points = (transformer[self._orientation] @ points.T).T
 
-        obj_pcloud = o3d.geometry.PointCloud()
-        obj_pcloud.points = o3d.utility.Vector3dVector(oriented_points)
+        pcloud = o3d.geometry.PointCloud()
+        pcloud.points = o3d.utility.Vector3dVector(oriented_points)
 
-        obj_mesh = o3d.geometry.TriangleMesh()
-        obj_mesh.vertices = o3d.utility.Vector3dVector(oriented_points)
-        obj_mesh.triangles = o3d.utility.Vector3iVector(_mesh.faces)
+        mesh = o3d.geometry.TriangleMesh()
+        mesh.vertices = o3d.utility.Vector3dVector(oriented_points)
+        mesh.triangles = o3d.utility.Vector3iVector(_mesh.faces)
 
-        obj_mesh.compute_vertex_normals()
-        obj_mesh.compute_triangle_normals()
+        mesh.compute_vertex_normals()
+        mesh.compute_triangle_normals()
 
-        obj_polydata = vtk.vtkPolyData()
-        obj_polydata.points = numpy_support.numpy_to_vtk(oriented_points)
+        polydata = vtk.vtkPolyData()
+        polydata.points = numpy_support.numpy_to_vtk(oriented_points)
 
-        obj_cells = vtk.vtkCellArray()
+        cells = vtk.vtkCellArray()
 
-        for i in range(len(obj_mesh.triangles)):
-            obj_cells.InsertNextCell(3, obj_mesh.triangles[i])
-        obj_polydata.polys = obj_cells
+        for i in range(len(mesh.triangles)):
+            cells.InsertNextCell(3, mesh.triangles[i])
+        polydata.polys = cells
 
-        # self.obj_mapper = vtk.vtkOpenGLPolyDataMapper()
-        obj_mapper = vtk.vtkPolyDataMapper()
-        obj_polydata >> obj_mapper
-
-        return vtk.vtkActor(mapper=obj_mapper)
+        return polydata
 
 class MapRTContext(qtc.QObject):
     api_status_changed = qtc.Signal(str)
@@ -300,8 +296,8 @@ class MapRTContext(qtc.QObject):
         self._couch_buffer = 2.0            # float
         self._patient_buffer = 2.0          # float
         self.__surface_id_map = {}          # surface_id: surface_label
-        self._patient_surfaces = {}         # surface_id: vtk_actor
-        self._current_surface = None        # vtk_actor
+        self._patient_surfaces = {}         # surface_id: vtk_polydata
+        self._current_surface = None        # vtk_polydata
         self._treatment_room_names = {}     # room_name: (room_id, room_scale)
         self._treatment_room_ids = {}       # room_id: (room_name, room_scale)
         self._current_room = None           # str
@@ -472,7 +468,7 @@ class MapRTContext(qtc.QObject):
                     self.__surface_id_map[surface['id']] = surface['label']
 
                 for _id, label in self.__surface_id_map.items():
-                    self.api_manager.get_surface(self, _id)
+                    self.api_manager.get_surface(_id)
 
             elif call_type == 'Surface':
                 if self._plan_context is not None:

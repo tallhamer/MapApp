@@ -18,10 +18,16 @@ class DicomFileValidationError(Exception):
         super().__init__(message)
 
 class DicomPlanContext(qtc.QObject):
-    structures_loaded = qtc.Signal(list)
+    plan_id_changed = qtc.Signal(str)
+    frame_of_reference_uid_changed = qtc.Signal(str)
+    isocenter_changed = qtc.Signal(list)
+    patient_orientation_changed = qtc.Signal(str)
+    beams_changed = qtc.Signal(str)
+    structures_updated = qtc.Signal(list)
     current_structure_changed = qtc.Signal(vtk.vtkActor)
+    invalid_file_loaded = qtc.Signal(str)
 
-    def __init__(self, plan_id, isocenter, orientation, beams, ref_frame=None):
+    def __init__(self, plan_id='', ref_frame='', isocenter=[], orientation='', beams=[]):
         super().__init__()
         self._plan_id = plan_id
         self._frame_of_reference_uid = ref_frame
@@ -37,21 +43,46 @@ class DicomPlanContext(qtc.QObject):
     def plan_id(self):
         return self._plan_id
 
+    @plan_id.setter
+    def plan_id(self, value):
+        self._plan_id = str(value)
+        self.plan_id_changed.emit(self._plan_id)
+
     @property
     def frame_of_reference_uid(self):
         return self._frame_of_reference_uid
+
+    @frame_of_reference_uid.setter
+    def frame_of_reference_uid(self, value):
+        self._frame_of_reference_uid = str(value)
+        self.frame_of_reference_uid_changed.emit(self._frame_of_reference_uid)
 
     @property
     def isocenter(self):
         return self._isocenter
 
+    @isocenter.setter
+    def isocenter(self, iter):
+        self._isocenter = [i for i in iter]
+        self.isocenter_changed.emit(self._isocenter)
+
     @property
     def patient_orientation(self):
         return self._patient_orientation
 
+    @patient_orientation.setter
+    def patient_orientation(self, value):
+        self._patient_orientation = str(value)
+        self.patient_orientation_changed.emit(self._patient_orientation)
+
     @property
     def beams(self):
         return self._beams
+
+    @beams.setter
+    def beams(self, iter):
+        self._beams = iter
+        self.beams_changed.emit(self._beams)
 
     @property
     def structures(self):
@@ -60,6 +91,19 @@ class DicomPlanContext(qtc.QObject):
     @property
     def current_structure(self):
         return self._current_structure
+
+    def update_values(self, plan_ctx):
+        if isinstance(plan_ctx, DicomPlanContext):
+            self.plan_id = plan_ctx.plan_id
+            self.frame_of_reference_uid = plan_ctx.frame_of_reference_uid
+            self.isocenter = plan_ctx.isocenter
+            self.patient_orientation = plan_ctx.patient_orientation
+            self.beams = plan_ctx.beams
+
+            self._raw_structure_points = plan_ctx._raw_structure_points
+            self._structures = plan_ctx._structures
+            self.structures_updated.emit(self.structures)
+            self._current_structure = None
 
     def update_current_structure(self, structure_id):
         if self._structures[structure_id] is not None:
@@ -81,8 +125,10 @@ class DicomPlanContext(qtc.QObject):
                 print('Reading in DICOM structures from DICOM file')
                 self._get_structure_point_clouds(ds)
             else:
+                self.invalid_file_loaded.emit(f"{file_path} dose not match the loaded DICOM RT Plan.")
                 raise DicomFileValidationError(f"{file_path} dose not match the loaded DICOM RT Plan.")
         else:
+            self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Structure Set file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
     def _get_structure_point_clouds(self, ds):
@@ -123,7 +169,7 @@ class DicomPlanContext(qtc.QObject):
                 self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
                 self._structures[roi_lut[roi.ReferencedROINumber]] = None
 
-        self.structures_loaded.emit(self.structures)
+        self.structures_updated.emit(self.structures)
 
     def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
         # Convet Open3D point cloud to numpy array
@@ -192,17 +238,31 @@ class PatientContext(qtc.QObject):
     patient_id_changed = qtc.Signal(str)
     patient_first_name_changed = qtc.Signal(str)
     patient_last_name_changed = qtc.Signal(str)
-    plans_updated = qtc.Signal(dict)
+    courses_updated = qtc.Signal(list)
+    plans_updated = qtc.Signal(list)
     current_plan_changed = qtc.Signal(DicomPlanContext)
+    invalid_file_loaded = qtc.Signal(str)
+
+    # PlanContext Signals
+    # plan_context_plan_id_changed = qtc.Signal(str)
+    # plan_context_frame_of_reference_uid_changed = qtc.Signal(str)
+    # plan_context_isocenter_changed = qtc.Signal(list)
+    # plan_context_patient_orientation_changed = qtc.Signal(str)
+    # plan_context_beams_changed = qtc.Signal(str)
+    # plan_context_structures_updated = qtc.Signal(list)
+    # plan_context_current_structure_changed = qtc.Signal(vtk.vtkActor)
 
     def __init__(self):
         super().__init__()
 
-        self._patient_id = None         # str
-        self._first_name = None         # str
-        self._last_name = None          # str
-        self._plans = {}                # PlanContext.plan_id: PlanContext
-        self._current_plan = None       # PlanContext
+        self._patient_id = ''                    # str
+        self._first_name = ''                    # str
+        self._last_name = ''                      # str
+        self._courses = {}                          # {str: {str: PlanContext}}
+        self._current_course = ''                 # str
+        self._plans = {}                            # PlanContext.plan_id: PlanContext
+        self._current_plan = DicomPlanContext()     # PlanContext
+        print(self.current_plan)
 
     @property
     def patient_id(self):
@@ -232,45 +292,75 @@ class PatientContext(qtc.QObject):
         self.patient_last_name_changed.emit(self._last_name)
 
     @property
+    def courses(self):
+        return [key for key in self._courses.keys()]
+
+    @property
+    def current_course(self):
+        return self._current_course
+
+    @property
     def plans(self):
-        return self._plans
+        return [key for key in self._plans.keys()]
 
     @property
     def current_plan(self):
         return self._current_plan
 
+    def clear(self):
+        print("clear patient context")
+        self.patient_id = ''
+        self.first_name = ''
+        self.last_name = ''
+        self._courses = {}
+        self.courses_updated.emit(self.courses)
+        self._current_course = ''  # str
+        self._plans = {}
+        self.plans_updated.emit(self.plans)
+        self._current_plan.update_values(DicomPlanContext())
+
+    def update_current_course(self, course_id):
+        print(f"Update current course to {course_id}")
+        if course_id in self._courses:
+            self._current_course = course_id
+            self._plans = self._courses[course_id]
+            self.plans_updated.emit(self.plans)
+        else:
+            pass
+
     def update_current_plan(self, plan_id):
+        print(f"Update current plan to {plan_id}")
         if plan_id in self._plans:
-            self._current_plan = self._plans[plan_id]
+            self._current_plan.update_values(self._plans[plan_id])
             self.current_plan_changed.emit(self._current_plan)
         else:
             pass
 
     def load_context_from_dicom_rt_file(self, file_path):
+        print(f"Load context data from file {file_path}")
+        print(self.current_plan)
         ds = pydicom.dcmread(file_path)
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
-            self._patient_id = ds.PatientID
+            self.patient_id = ds.PatientID
 
             name = str(ds.PatientName).split('^')
             if len(name) == 1:
-                self._first_name, = name
+                self.first_name, = name
             elif len(name) == 2:
-                self._last_name, self._first_name = name
+                self.last_name, self._first_name = name
             elif len(name) == 3:
-                self._last_name = name[0]
-                self._first_name = name[1]
+                self.last_name = name[0]
+                self.first_name = name[1]
             else:
-                self._first_name = ds.PatientID
+                self.first_name = ds.PatientID
 
             # Plan Data
-            _plan_id = ds.SeriesDescription
-            _frame_of_reference_uid = ds.FrameOfReferenceUID
-            _isocenter = None
-            _orientation = None
-            _beams = []
+            self.current_plan.plan_id = ds.SeriesDescription
+            self.current_plan.frame_of_reference_uid = ds.FrameOfReferenceUID
 
             # Get Orientation from PatientSetupSequence
+            _orientation = None
             for i in range(len(ds.PatientSetupSequence)):
                 orientation = ds.PatientSetupSequence[i].PatientPosition
 
@@ -280,8 +370,11 @@ class PatientContext(qtc.QObject):
                     print("There are multiple patient orientations reported in the DICOM Plan")
                 else:
                     pass
+            self.current_plan.patient_orientation = _orientation
 
             # Get beams and isocenter
+            _isocenter = None
+            _beams = []
             for beam in ds.BeamSequence:
                 _status = ''
                 _num = str(beam.BeamNumber)
@@ -314,324 +407,19 @@ class PatientContext(qtc.QObject):
                                _type
                                ]
                               )
-            plan = DicomPlanContext(_plan_id,
-                                    _isocenter.tolist(),
-                                    _orientation,
-                                    _beams,
-                                    ref_frame=_frame_of_reference_uid
-                                    )
 
-            self._plans[plan.plan_id] = plan
+            self.current_plan.isocenter = _isocenter
+            self.current_plan.beams = _beams
+
+            plans = {self.current_plan.plan_id: self.current_plan}
+            self._courses['F1'] = plans
+            print(f"courses_updated.emit")
+            self.courses_updated.emit(self.courses)
+            print("call method to update the current course")
+            self.update_current_course('F1')
         else:
+            self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
-
-
-class DicomRTPlan(qtc.QObject):
-
-    file_path_changed = qtc.Signal(str)
-    invalid_file_loaded = qtc.Signal(str)
-    plan_model_updated = qtc.Signal(qtc.QObject)
-
-    def __init__(self):
-        super().__init__()
-        self._filepath = None
-
-        self._patient_id = None
-        self._patient_first_name = None
-        self._patient_last_name = None
-        self._patient_orientation = None
-        self._plan_id = None
-        self._isocenter = None
-        self._frame_of_reference_uid = None
-        self._beams = []
-
-        self._structure_set = DicomRTStructureSet(self)
-
-        self._body = None
-
-    @property
-    def filepath(self):
-        return self._filepath
-
-    @filepath.setter
-    def filepath(self, new_path):
-        if new_path != self._filepath:
-            self.update_filepath(new_path)
-
-    @property
-    def patient_id(self):
-        return self._patient_id
-
-    @property
-    def patient_first_name(self):
-        return self._patient_first_name
-
-    @property
-    def patient_last_name(self):
-        return self._patient_last_name
-
-    @property
-    def patient_orientation(self):
-        return self._patient_orientation
-
-    @property
-    def plan_id(self):
-        return self._plan_id
-
-    @property
-    def isocenter(self):
-        return self._isocenter
-
-    @property
-    def frame_of_reference_uid(self):
-        return self._frame_of_reference_uid
-
-    @property
-    def structure_set(self):
-        return self._structure_set
-
-    @property
-    def beams(self):
-        return self._beams
-
-    qtc.Slot(str)
-    def update_filepath(self, new_path):
-        print("In DicomRTPlan model update_path Slot")
-        self.ds = dataset = pydicom.dcmread(new_path)
-
-        if dataset.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
-            self._filepath = new_path
-            self.file_path_changed.emit(self.filepath)
-
-            self._patient_id = dataset.PatientID
-
-            name = str(dataset.PatientName).split('^')
-            if len(name) == 1:
-                self._patient_first_name, = name
-            elif len(name) == 2:
-                self._patient_last_name, self._patient_first_name = name
-            elif len(name) == 3:
-                self._patient_last_name = name[0]
-                self._patient_first_name = name[1]
-            else:
-                self._patient_first_name = dataset.PatientID
-
-            for i in range(len(dataset.PatientSetupSequence)):
-                orientation = dataset.PatientSetupSequence[i].PatientPosition
-
-                if (self._patient_orientation is None) or (i == 0):
-                    self._patient_orientation = orientation
-                elif self._patient_orientation != orientation:
-                    print("There are multiple patient orientations reported in the DICOM Plan")
-                else:
-                    pass
-
-            self._plan_id = dataset.SeriesDescription
-            self._frame_of_reference_uid = dataset.FrameOfReferenceUID
-
-            for beam in dataset.BeamSequence:
-                _status = ''
-                _num = str(beam.BeamNumber)
-                _id = str(beam.BeamName)
-
-                vms_name = beam.get((0x3243, 0x1009), None)
-                _name = '' if vms_name is None else vms_name.value.decode('utf-8')
-
-                _type = beam.TreatmentDeliveryType
-
-                first_cp = beam.ControlPointSequence[0]
-
-                self._isocenter = np.array(first_cp.IsocenterPosition, dtype=float).round(2)
-                _gantry_start = _gantry_stop = str(first_cp.GantryAngle)
-                _gantry_rot_direction = str(first_cp.GantryRotationDirection)
-                _couch = str(first_cp.PatientSupportAngle)
-
-                last_cp = beam.ControlPointSequence[-1]
-                if hasattr(last_cp, 'GantryAngle'):
-                    _gantry_stop = str(last_cp.GantryAngle)
-
-                self.beams.append([_status,
-                                   _num,
-                                   _id,
-                                   _name,
-                                   _couch,
-                                   _gantry_start,
-                                   _gantry_stop,
-                                   _gantry_rot_direction,
-                                   _type
-                                   ]
-                                  )
-
-            self.plan_model_updated.emit(self)
-        else:
-            self.invalid_file_loaded.emit(f"{new_path} is not a valid DICOM RT Plan file.")
-            raise DicomFileValidationError("Not a valid DICOM RT Plan file.")
-
-class DicomRTStructureSet(qtc.QObject):
-
-    file_path_changed = qtc.Signal(str)
-    invalid_file_loaded = qtc.Signal(str)
-    structures_loaded = qtc.Signal(qtc.QObject)
-    # structure_model_updated = qtc.Signal()
-    vtk_actor_updated = qtc.Signal(qtc.QObject)
-
-    def __init__(self, parent):
-        super().__init__()
-        self._parent = parent
-        self._filepath = None
-        self._dataset = None
-
-        self._patinet_id = None
-        self._structure_points = {}
-        self._structure_meshes = {}
-        self._frame_of_reference_uid = None
-
-    @property
-    def filepath(self):
-        return self._filepath
-
-    @filepath.setter
-    def filepath(self, new_path):
-        if new_path != self._filepath:
-            self.update_filepath(new_path)
-
-    @property
-    def structures(self):
-        return self._structure_points.keys()
-
-    def _get_structure_point_clouds(self):
-        # Read DICOM Structure Set
-        self.ds = dataset = pydicom.dcmread(self.filepath)
-
-        # Generate ROI Look Up Table using the ROI Number as the key
-        roi_lut = {}
-        for structure in dataset.StructureSetROISequence:
-            # print(f'{structure.ROIName} ({structure.ROIName.lower()})',
-            #       structure.ROINumber
-            #       )
-            roi_lut[structure.ROINumber] = structure.ROIName.lower()
-
-        # Grab the Body structure points
-        contours = []
-        for roi in dataset.ROIContourSequence:
-            # if (roi.ReferencedROINumber in roi_lut) and \
-            #         roi_lut[roi.ReferencedROINumber] == 'body':
-            #     # print('Found Body')
-            contours = []
-            if hasattr(roi, "ContourSequence"):
-                print(roi_lut[roi.ReferencedROINumber])
-                for contour in roi.ContourSequence:
-                    contours.append([[float(contour.ContourData[i]),
-                                      float(contour.ContourData[i + 1]),
-                                      float(contour.ContourData[i + 2])
-                                      ] for i in range(0,
-                                                       len(contour.ContourData),
-                                                       3
-                                                       )
-                                     ]
-                                    )
-
-                dcm_points = np.array([point for contour in contours for point in contour])
-
-                dcm_pcloud = o3d.geometry.PointCloud()
-                dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
-                dcm_pcloud.estimate_normals()
-
-                self._structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
-
-        print(self.structures)
-        self.structures_loaded.emit(self)
-
-    def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
-        # Convet Open3D point cloud to numpy array
-        points = np.asarray(pcd.points)
-
-        # Compute the bounds of the point cloud
-        mins = pcd.get_min_bound()
-        maxs = pcd.get_max_bound()
-
-        x = np.arange(mins[0], maxs[0], voxel_size)
-        y = np.arange(mins[1], maxs[1], voxel_size)
-        z = np.arange(mins[2], maxs[2], voxel_size)
-        x, y, z = np.meshgrid(x, y, z, indexing='ij')
-
-        # Create a KD-tree for efficient nearest neighbor search
-        tree = cKDTree(points)
-
-        # Compute the scalar field (distance to nearest point)
-        grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
-        print(f'Using {len(x.ravel())} grid_points for marching cubes')
-        distances, _ = tree.query(grid_points, workers=-1)
-        scalar_field = distances.reshape(x.shape)
-
-        # Determine the iso_level based on the percentile of distance
-        iso_level = np.percentile(distances, iso_level_percentile)
-
-        # Apply Marching Cubes
-        verts, faces, _, _ = measure.marching_cubes(scalar_field, level=iso_level)
-
-        # Scale and translate vertices back to original coordinate system
-        verts = verts * voxel_size + mins
-
-        # Create the mesh
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.vertices = o3d.utility.Vector3dVector(verts)
-        mesh.triangles = o3d.utility.Vector3iVector(faces)
-
-        mesh.compute_vertex_normals()
-        mesh.compute_triangle_normals()
-
-        return mesh
-
-    def get_body_mesh(self, structure):
-        if structure in self._structure_meshes:
-            print("Using cashed mesh")
-            self._generate_visual_mesh(self._structure_meshes[structure])
-        else:
-            print("Generating DICOM surface using marching cubes.")
-            mesh = self._pcloud_to_mesh(self._structure_points[structure], voxel_size=3, iso_level_percentile=3)
-            print('DICOM Surface complete')
-            self._structure_meshes[structure] = mesh
-            self._generate_visual_mesh(mesh)
-
-    def _generate_visual_mesh(self, dcm_mesh):
-        # Create a polydata object and add the points
-        self.dcm_polydata = vtk.vtkPolyData()
-        self.dcm_polydata.points = numpy_support.numpy_to_vtk(dcm_mesh.vertices)
-
-        # Create a vertex cell array to hold the triagles
-        dcm_triangles = vtk.vtkCellArray()
-        for i in range(len(dcm_mesh.triangles)):
-            dcm_triangles.InsertNextCell(3, dcm_mesh.triangles[i])
-        self.dcm_polydata.polys = dcm_triangles
-
-        # Create a mapper and actor
-        dcm_mesh_mapper = vtk.vtkPolyDataMapper()
-        self.dcm_polydata >> dcm_mesh_mapper
-
-        # Create the scene actor that represents the point cloud
-        self.dcm_body_actor = vtk.vtkActor(mapper=dcm_mesh_mapper)
-        self.dcm_body_actor.GetProperty().SetColor(0, 1, 0)
-        self.dcm_body_actor.property.opacity = 1
-
-        self.vtk_actor_updated.emit(self)
-
-    # qtc.Slot(str)
-    def update_filepath(self, new_path):
-        dataset = dcmread(new_path)
-
-        if dataset.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
-            if dataset.FrameOfReferenceUID == self._parent.frame_of_reference_uid:
-                self._filepath = new_path
-                self.file_path_changed.emit(self.filepath)
-
-                print('Reading in DICOM structures from DICOM file')
-                self._get_structure_point_clouds()
-            else:
-                self.invalid_file_loaded.emit(f"{new_path} dose not match the loaded DICOM RT Plan.")
-        else:
-            self.invalid_file_loaded.emit(f"{new_path} is not a valid DICOM RT Structure Set file.")
-
 
 if __name__ == '__main__':
 
@@ -647,18 +435,23 @@ if __name__ == '__main__':
     print(pt.patient_id)
     print(pt.first_name)
     print(pt.last_name)
+    print(pt.courses)
     print(pt.plans)
-    for plan_id, plan in pt.plans.items():
-        plan.current_structure_changed.connect(print_struct)
-        print(plan.plan_id)
-        print(plan.frame_of_reference_uid)
-        print(plan.isocenter)
-        print(plan.patient_orientation)
-        for beam in plan.beams:
-            print(beam)
-        plan.load_structures_from_dicom_rt_file(ss_file)
-        print(plan.structures)
-        plan.update_current_structure('body')
-        plan.update_current_structure('ptv')
-        plan.update_current_structure('body')
+    pt.update_current_course('F1')
+    print(pt.plans)
+    pt.update_current_plan('FieldTypes')
+    print(pt.current_plan)
+    plan = pt.current_plan
+    plan.current_structure_changed.connect(print_struct)
+    print(plan.plan_id)
+    print(plan.frame_of_reference_uid)
+    print(plan.isocenter)
+    print(plan.patient_orientation)
+    for beam in plan.beams:
+        print(beam)
+    plan.load_structures_from_dicom_rt_file(ss_file)
+    print(plan.structures)
+    plan.update_current_structure('body')
+    plan.update_current_structure('ptv')
+    plan.update_current_structure('body')
     print(pt.current_plan)

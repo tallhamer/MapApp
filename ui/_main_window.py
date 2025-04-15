@@ -53,91 +53,6 @@ class Ui_MainWindow(object):
         self.groupBox_6.setObjectName(u"groupBox_6")
         self.gridLayout_4 = QGridLayout(self.groupBox_6)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.label_9 = QLabel(self.groupBox_6)
-        self.label_9.setObjectName(u"label_9")
-
-        self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
-
-        self.label_11 = QLabel(self.groupBox_6)
-        self.label_11.setObjectName(u"label_11")
-
-        self.gridLayout_4.addWidget(self.label_11, 1, 0, 1, 1)
-
-        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
-        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
-
-        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 4, 1, 1, 2)
-
-        self.label_14 = QLabel(self.groupBox_6)
-        self.label_14.setObjectName(u"label_14")
-
-        self.gridLayout_4.addWidget(self.label_14, 5, 0, 1, 1)
-
-        self.label_13 = QLabel(self.groupBox_6)
-        self.label_13.setObjectName(u"label_13")
-
-        self.gridLayout_4.addWidget(self.label_13, 2, 0, 1, 1)
-
-        self.w_le_patinet_id = QLineEdit(self.groupBox_6)
-        self.w_le_patinet_id.setObjectName(u"w_le_patinet_id")
-
-        self.gridLayout_4.addWidget(self.w_le_patinet_id, 0, 2, 1, 1)
-
-        self.label_17 = QLabel(self.groupBox_6)
-        self.label_17.setObjectName(u"label_17")
-
-        self.gridLayout_4.addWidget(self.label_17, 4, 0, 1, 1)
-
-        self.label_12 = QLabel(self.groupBox_6)
-        self.label_12.setObjectName(u"label_12")
-
-        self.gridLayout_4.addWidget(self.label_12, 3, 0, 1, 1)
-
-        self.w_pb_esapi_search = QPushButton(self.groupBox_6)
-        self.w_pb_esapi_search.setObjectName(u"w_pb_esapi_search")
-
-        self.gridLayout_4.addWidget(self.w_pb_esapi_search, 0, 3, 1, 1)
-
-        self.w_tw_beams = QTableWidget(self.groupBox_6)
-        self.w_tw_beams.setObjectName(u"w_tw_beams")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.w_tw_beams.sizePolicy().hasHeightForWidth())
-        self.w_tw_beams.setSizePolicy(sizePolicy1)
-
-        self.gridLayout_4.addWidget(self.w_tw_beams, 7, 0, 1, 4)
-
-        self.w_cb_body_structure = QComboBox(self.groupBox_6)
-        self.w_cb_body_structure.setObjectName(u"w_cb_body_structure")
-
-        self.gridLayout_4.addWidget(self.w_cb_body_structure, 5, 2, 1, 2)
-
-        self.w_cb_plan_id = QComboBox(self.groupBox_6)
-        self.w_cb_plan_id.setObjectName(u"w_cb_plan_id")
-
-        self.gridLayout_4.addWidget(self.w_cb_plan_id, 3, 2, 1, 2)
-
-        self.w_l_patient_first_name = QLabel(self.groupBox_6)
-        self.w_l_patient_first_name.setObjectName(u"w_l_patient_first_name")
-
-        self.gridLayout_4.addWidget(self.w_l_patient_first_name, 1, 2, 1, 2)
-
-        self.w_l_patient_last_name = QLabel(self.groupBox_6)
-        self.w_l_patient_last_name.setObjectName(u"w_l_patient_last_name")
-
-        self.gridLayout_4.addWidget(self.w_l_patient_last_name, 2, 2, 1, 2)
-
-        self.label_15 = QLabel(self.groupBox_6)
-        self.label_15.setObjectName(u"label_15")
-
-        self.gridLayout_4.addWidget(self.label_15, 6, 0, 1, 4)
-
-        self.w_ch_use_dicomrt = QCheckBox(self.groupBox_6)
-        self.w_ch_use_dicomrt.setObjectName(u"w_ch_use_dicomrt")
-
-        self.gridLayout_4.addWidget(self.w_ch_use_dicomrt, 8, 0, 1, 4)
-
         self.w_gb_dicomrt_files = QGroupBox(self.groupBox_6)
         self.w_gb_dicomrt_files.setObjectName(u"w_gb_dicomrt_files")
         self.w_gb_dicomrt_files.setMinimumSize(QSize(0, 0))
@@ -155,19 +70,19 @@ class Ui_MainWindow(object):
 
         self.w_pb_dcm_struct_file = QPushButton(self.w_gb_dicomrt_files)
         self.w_pb_dcm_struct_file.setObjectName(u"w_pb_dcm_struct_file")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.w_pb_dcm_struct_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_dcm_struct_file.setSizePolicy(sizePolicy2)
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.w_pb_dcm_struct_file.sizePolicy().hasHeightForWidth())
+        self.w_pb_dcm_struct_file.setSizePolicy(sizePolicy1)
         self.w_pb_dcm_struct_file.setMaximumSize(QSize(25, 16777215))
 
         self.gridLayout_2.addWidget(self.w_pb_dcm_struct_file, 1, 2, 1, 1)
 
         self.w_pb_dcm_plan_file = QPushButton(self.w_gb_dicomrt_files)
         self.w_pb_dcm_plan_file.setObjectName(u"w_pb_dcm_plan_file")
-        sizePolicy2.setHeightForWidth(self.w_pb_dcm_plan_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_dcm_plan_file.setSizePolicy(sizePolicy2)
+        sizePolicy1.setHeightForWidth(self.w_pb_dcm_plan_file.sizePolicy().hasHeightForWidth())
+        self.w_pb_dcm_plan_file.setSizePolicy(sizePolicy1)
         self.w_pb_dcm_plan_file.setMaximumSize(QSize(25, 16777215))
 
         self.gridLayout_2.addWidget(self.w_pb_dcm_plan_file, 0, 2, 1, 1)
@@ -191,7 +106,102 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.label_6, 0, 0, 1, 1)
 
 
-        self.gridLayout_4.addWidget(self.w_gb_dicomrt_files, 9, 0, 1, 4)
+        self.gridLayout_4.addWidget(self.w_gb_dicomrt_files, 10, 0, 1, 4)
+
+        self.w_tw_beams = QTableWidget(self.groupBox_6)
+        self.w_tw_beams.setObjectName(u"w_tw_beams")
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.w_tw_beams.sizePolicy().hasHeightForWidth())
+        self.w_tw_beams.setSizePolicy(sizePolicy2)
+
+        self.gridLayout_4.addWidget(self.w_tw_beams, 8, 0, 1, 4)
+
+        self.w_pb_esapi_search = QPushButton(self.groupBox_6)
+        self.w_pb_esapi_search.setObjectName(u"w_pb_esapi_search")
+
+        self.gridLayout_4.addWidget(self.w_pb_esapi_search, 0, 3, 1, 1)
+
+        self.label_11 = QLabel(self.groupBox_6)
+        self.label_11.setObjectName(u"label_11")
+
+        self.gridLayout_4.addWidget(self.label_11, 1, 0, 1, 1)
+
+        self.label_12 = QLabel(self.groupBox_6)
+        self.label_12.setObjectName(u"label_12")
+
+        self.gridLayout_4.addWidget(self.label_12, 4, 0, 1, 1)
+
+        self.w_ch_use_dicomrt = QCheckBox(self.groupBox_6)
+        self.w_ch_use_dicomrt.setObjectName(u"w_ch_use_dicomrt")
+
+        self.gridLayout_4.addWidget(self.w_ch_use_dicomrt, 9, 0, 1, 4)
+
+        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
+        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
+
+        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 5, 1, 1, 2)
+
+        self.label_17 = QLabel(self.groupBox_6)
+        self.label_17.setObjectName(u"label_17")
+
+        self.gridLayout_4.addWidget(self.label_17, 5, 0, 1, 1)
+
+        self.label_14 = QLabel(self.groupBox_6)
+        self.label_14.setObjectName(u"label_14")
+
+        self.gridLayout_4.addWidget(self.label_14, 6, 0, 1, 1)
+
+        self.label_15 = QLabel(self.groupBox_6)
+        self.label_15.setObjectName(u"label_15")
+
+        self.gridLayout_4.addWidget(self.label_15, 7, 0, 1, 4)
+
+        self.label_13 = QLabel(self.groupBox_6)
+        self.label_13.setObjectName(u"label_13")
+
+        self.gridLayout_4.addWidget(self.label_13, 2, 0, 1, 1)
+
+        self.label_9 = QLabel(self.groupBox_6)
+        self.label_9.setObjectName(u"label_9")
+
+        self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
+
+        self.label_26 = QLabel(self.groupBox_6)
+        self.label_26.setObjectName(u"label_26")
+
+        self.gridLayout_4.addWidget(self.label_26, 3, 0, 1, 1)
+
+        self.w_cb_course_id = QComboBox(self.groupBox_6)
+        self.w_cb_course_id.setObjectName(u"w_cb_course_id")
+
+        self.gridLayout_4.addWidget(self.w_cb_course_id, 3, 1, 1, 2)
+
+        self.w_cb_plan_id = QComboBox(self.groupBox_6)
+        self.w_cb_plan_id.setObjectName(u"w_cb_plan_id")
+
+        self.gridLayout_4.addWidget(self.w_cb_plan_id, 4, 1, 1, 2)
+
+        self.w_cb_body_structure = QComboBox(self.groupBox_6)
+        self.w_cb_body_structure.setObjectName(u"w_cb_body_structure")
+
+        self.gridLayout_4.addWidget(self.w_cb_body_structure, 6, 1, 1, 2)
+
+        self.w_le_patinet_id = QLineEdit(self.groupBox_6)
+        self.w_le_patinet_id.setObjectName(u"w_le_patinet_id")
+
+        self.gridLayout_4.addWidget(self.w_le_patinet_id, 0, 1, 1, 2)
+
+        self.w_l_patient_first_name = QLabel(self.groupBox_6)
+        self.w_l_patient_first_name.setObjectName(u"w_l_patient_first_name")
+
+        self.gridLayout_4.addWidget(self.w_l_patient_first_name, 1, 1, 1, 2)
+
+        self.w_l_patient_last_name = QLabel(self.groupBox_6)
+        self.w_l_patient_last_name.setObjectName(u"w_l_patient_last_name")
+
+        self.gridLayout_4.addWidget(self.w_l_patient_last_name, 2, 1, 1, 2)
 
 
         self.verticalLayout.addWidget(self.groupBox_6)
@@ -369,8 +379,8 @@ class Ui_MainWindow(object):
         self.gridLayout_3.setObjectName(u"gridLayout_3")
         self.w_pb_obj_file = QPushButton(self.w_gb_obj_file)
         self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
-        sizePolicy2.setHeightForWidth(self.w_pb_obj_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_obj_file.setSizePolicy(sizePolicy2)
+        sizePolicy1.setHeightForWidth(self.w_pb_obj_file.sizePolicy().hasHeightForWidth())
+        self.w_pb_obj_file.setSizePolicy(sizePolicy1)
         self.w_pb_obj_file.setMaximumSize(QSize(25, 16777215))
 
         self.gridLayout_3.addWidget(self.w_pb_obj_file, 0, 2, 1, 1)
@@ -624,23 +634,24 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
         self.groupBox_6.setTitle(QCoreApplication.translate("MainWindow", u"Patient Information", None))
-        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Patient ID:", None))
-        self.label_11.setText(QCoreApplication.translate("MainWindow", u"First Name:", None))
-        self.w_l_plan_isocenter.setText("")
-        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
-        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Last Name:", None))
-        self.label_17.setText(QCoreApplication.translate("MainWindow", u"Isocenter:", None))
-        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Plan ID:", None))
-        self.w_pb_esapi_search.setText(QCoreApplication.translate("MainWindow", u"Search", None))
-        self.w_l_patient_first_name.setText("")
-        self.w_l_patient_last_name.setText("")
-        self.label_15.setText(QCoreApplication.translate("MainWindow", u"Beams", None))
-        self.w_ch_use_dicomrt.setText(QCoreApplication.translate("MainWindow", u"Use Dicom RT Files", None))
         self.w_gb_dicomrt_files.setTitle(QCoreApplication.translate("MainWindow", u"DICOM Files", None))
         self.w_pb_dcm_struct_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.w_pb_dcm_plan_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Structure Set", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Plan", None))
+        self.w_pb_esapi_search.setText(QCoreApplication.translate("MainWindow", u"Search", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"First Name:", None))
+        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Plan ID:", None))
+        self.w_ch_use_dicomrt.setText(QCoreApplication.translate("MainWindow", u"Use Dicom RT Files", None))
+        self.w_l_plan_isocenter.setText("")
+        self.label_17.setText(QCoreApplication.translate("MainWindow", u"Isocenter:", None))
+        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
+        self.label_15.setText(QCoreApplication.translate("MainWindow", u"Beams", None))
+        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Last Name:", None))
+        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Patient ID:", None))
+        self.label_26.setText(QCoreApplication.translate("MainWindow", u"Course ID:", None))
+        self.w_l_patient_first_name.setText("")
+        self.w_l_patient_last_name.setText("")
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"Couch Buffer:", None))
         self.w_pb_get_map.setText(QCoreApplication.translate("MainWindow", u"Get Map", None))
