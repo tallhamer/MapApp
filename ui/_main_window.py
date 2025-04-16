@@ -138,11 +138,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.w_ch_use_dicomrt, 9, 0, 1, 4)
 
-        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
-        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
-
-        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 5, 1, 1, 2)
-
         self.label_17 = QLabel(self.groupBox_6)
         self.label_17.setObjectName(u"label_17")
 
@@ -203,6 +198,11 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.w_l_patient_last_name, 2, 1, 1, 2)
 
+        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
+        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
+
+        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 5, 1, 1, 3)
+
 
         self.verticalLayout.addWidget(self.groupBox_6)
 
@@ -215,50 +215,46 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.label_21, 2, 0, 1, 1)
 
+        self.w_l_api_status = QLabel(self.groupBox)
+        self.w_l_api_status.setObjectName(u"w_l_api_status")
+
+        self.gridLayout_6.addWidget(self.w_l_api_status, 0, 1, 1, 2)
+
+        self.w_cb_treatment_room = QComboBox(self.groupBox)
+        self.w_cb_treatment_room.setObjectName(u"w_cb_treatment_room")
+
+        self.gridLayout_6.addWidget(self.w_cb_treatment_room, 8, 1, 1, 2)
+
+        self.label_28 = QLabel(self.groupBox)
+        self.label_28.setObjectName(u"label_28")
+
+        self.gridLayout_6.addWidget(self.label_28, 4, 1, 1, 1)
+
         self.w_pb_get_map = QPushButton(self.groupBox)
         self.w_pb_get_map.setObjectName(u"w_pb_get_map")
         self.w_pb_get_map.setEnabled(False)
 
-        self.gridLayout_6.addWidget(self.w_pb_get_map, 7, 3, 1, 1)
-
-        self.w_pb_api_ping = QPushButton(self.groupBox)
-        self.w_pb_api_ping.setObjectName(u"w_pb_api_ping")
-
-        self.gridLayout_6.addWidget(self.w_pb_api_ping, 0, 3, 1, 1)
-
-        self.w_dsb_api_couch_buffer = QDoubleSpinBox(self.groupBox)
-        self.w_dsb_api_couch_buffer.setObjectName(u"w_dsb_api_couch_buffer")
-        self.w_dsb_api_couch_buffer.setDecimals(1)
-        self.w_dsb_api_couch_buffer.setValue(2.000000000000000)
-
-        self.gridLayout_6.addWidget(self.w_dsb_api_couch_buffer, 2, 1, 1, 2)
-
-        self.w_ch_high_res = QCheckBox(self.groupBox)
-        self.w_ch_high_res.setObjectName(u"w_ch_high_res")
-
-        self.gridLayout_6.addWidget(self.w_ch_high_res, 4, 1, 1, 1)
-
-        self.w_dsb_api_patient_buffer = QDoubleSpinBox(self.groupBox)
-        self.w_dsb_api_patient_buffer.setObjectName(u"w_dsb_api_patient_buffer")
-        self.w_dsb_api_patient_buffer.setDecimals(1)
-        self.w_dsb_api_patient_buffer.setValue(2.000000000000000)
-
-        self.gridLayout_6.addWidget(self.w_dsb_api_patient_buffer, 3, 1, 1, 2)
-
-        self.w_cb_surface_for_map = QComboBox(self.groupBox)
-        self.w_cb_surface_for_map.setObjectName(u"w_cb_surface_for_map")
-
-        self.gridLayout_6.addWidget(self.w_cb_surface_for_map, 5, 1, 1, 2)
+        self.gridLayout_6.addWidget(self.w_pb_get_map, 9, 3, 1, 1)
 
         self.label_22 = QLabel(self.groupBox)
         self.label_22.setObjectName(u"label_22")
 
         self.gridLayout_6.addWidget(self.label_22, 3, 0, 1, 1)
 
+        self.label_24 = QLabel(self.groupBox)
+        self.label_24.setObjectName(u"label_24")
+
+        self.gridLayout_6.addWidget(self.label_24, 3, 3, 1, 1)
+
+        self.w_cb_surface_for_map = QComboBox(self.groupBox)
+        self.w_cb_surface_for_map.setObjectName(u"w_cb_surface_for_map")
+
+        self.gridLayout_6.addWidget(self.w_cb_surface_for_map, 7, 1, 1, 2)
+
         self.label_20 = QLabel(self.groupBox)
         self.label_20.setObjectName(u"label_20")
 
-        self.gridLayout_6.addWidget(self.label_20, 6, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.label_20, 8, 0, 1, 1)
 
         self.label_23 = QLabel(self.groupBox)
         self.label_23.setObjectName(u"label_23")
@@ -270,25 +266,79 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.label_18, 0, 0, 1, 1)
 
-        self.label_24 = QLabel(self.groupBox)
-        self.label_24.setObjectName(u"label_24")
+        self.w_pb_fetch_api_data = QPushButton(self.groupBox)
+        self.w_pb_fetch_api_data.setObjectName(u"w_pb_fetch_api_data")
 
-        self.gridLayout_6.addWidget(self.label_24, 3, 3, 1, 1)
-
-        self.w_l_api_status = QLabel(self.groupBox)
-        self.w_l_api_status.setObjectName(u"w_l_api_status")
-
-        self.gridLayout_6.addWidget(self.w_l_api_status, 0, 1, 1, 2)
+        self.gridLayout_6.addWidget(self.w_pb_fetch_api_data, 0, 3, 1, 1)
 
         self.label_19 = QLabel(self.groupBox)
         self.label_19.setObjectName(u"label_19")
 
-        self.gridLayout_6.addWidget(self.label_19, 5, 0, 1, 1)
+        self.gridLayout_6.addWidget(self.label_19, 7, 0, 1, 1)
 
-        self.w_cb_treatment_room = QComboBox(self.groupBox)
-        self.w_cb_treatment_room.setObjectName(u"w_cb_treatment_room")
+        self.label_29 = QLabel(self.groupBox)
+        self.label_29.setObjectName(u"label_29")
 
-        self.gridLayout_6.addWidget(self.w_cb_treatment_room, 6, 1, 1, 2)
+        self.gridLayout_6.addWidget(self.label_29, 5, 1, 1, 1)
+
+        self.label_27 = QLabel(self.groupBox)
+        self.label_27.setObjectName(u"label_27")
+
+        self.gridLayout_6.addWidget(self.label_27, 4, 0, 1, 1)
+
+        self.label_30 = QLabel(self.groupBox)
+        self.label_30.setObjectName(u"label_30")
+
+        self.gridLayout_6.addWidget(self.label_30, 6, 1, 1, 1)
+
+        self.w_dsb_surface_shift_x = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_surface_shift_x.setObjectName(u"w_dsb_surface_shift_x")
+
+        self.gridLayout_6.addWidget(self.w_dsb_surface_shift_x, 4, 2, 1, 1)
+
+        self.w_dsb_surface_shift_y = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_surface_shift_y.setObjectName(u"w_dsb_surface_shift_y")
+
+        self.gridLayout_6.addWidget(self.w_dsb_surface_shift_y, 5, 2, 1, 1)
+
+        self.w_dsb_surface_shift_z = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_surface_shift_z.setObjectName(u"w_dsb_surface_shift_z")
+
+        self.gridLayout_6.addWidget(self.w_dsb_surface_shift_z, 6, 2, 1, 1)
+
+        self.w_pb_obj_file = QPushButton(self.groupBox)
+        self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
+
+        self.gridLayout_6.addWidget(self.w_pb_obj_file, 7, 3, 1, 1)
+
+        self.label_2 = QLabel(self.groupBox)
+        self.label_2.setObjectName(u"label_2")
+
+        self.gridLayout_6.addWidget(self.label_2, 4, 3, 1, 1)
+
+        self.label_7 = QLabel(self.groupBox)
+        self.label_7.setObjectName(u"label_7")
+
+        self.gridLayout_6.addWidget(self.label_7, 5, 3, 1, 1)
+
+        self.label_31 = QLabel(self.groupBox)
+        self.label_31.setObjectName(u"label_31")
+
+        self.gridLayout_6.addWidget(self.label_31, 6, 3, 1, 1)
+
+        self.w_dsb_api_couch_buffer = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_api_couch_buffer.setObjectName(u"w_dsb_api_couch_buffer")
+        self.w_dsb_api_couch_buffer.setDecimals(1)
+        self.w_dsb_api_couch_buffer.setValue(2.000000000000000)
+
+        self.gridLayout_6.addWidget(self.w_dsb_api_couch_buffer, 2, 1, 1, 2)
+
+        self.w_dsb_api_patient_buffer = QDoubleSpinBox(self.groupBox)
+        self.w_dsb_api_patient_buffer.setObjectName(u"w_dsb_api_patient_buffer")
+        self.w_dsb_api_patient_buffer.setDecimals(1)
+        self.w_dsb_api_patient_buffer.setValue(2.000000000000000)
+
+        self.gridLayout_6.addWidget(self.w_dsb_api_patient_buffer, 3, 1, 1, 2)
 
 
         self.verticalLayout.addWidget(self.groupBox)
@@ -355,6 +405,11 @@ class Ui_MainWindow(object):
         self.groupBox_8.setObjectName(u"groupBox_8")
         self.gridLayout_5 = QGridLayout(self.groupBox_8)
         self.gridLayout_5.setObjectName(u"gridLayout_5")
+        self.w_l_obj_transparency = QLabel(self.groupBox_8)
+        self.w_l_obj_transparency.setObjectName(u"w_l_obj_transparency")
+
+        self.gridLayout_5.addWidget(self.w_l_obj_transparency, 2, 2, 1, 1)
+
         self.w_hs_obj_transparency = QSlider(self.groupBox_8)
         self.w_hs_obj_transparency.setObjectName(u"w_hs_obj_transparency")
         self.w_hs_obj_transparency.setMaximum(100)
@@ -362,57 +417,6 @@ class Ui_MainWindow(object):
         self.w_hs_obj_transparency.setOrientation(Qt.Orientation.Horizontal)
 
         self.gridLayout_5.addWidget(self.w_hs_obj_transparency, 2, 1, 1, 1)
-
-        self.w_ch_use_obj = QCheckBox(self.groupBox_8)
-        self.w_ch_use_obj.setObjectName(u"w_ch_use_obj")
-
-        self.gridLayout_5.addWidget(self.w_ch_use_obj, 4, 0, 1, 1)
-
-        self.label_4 = QLabel(self.groupBox_8)
-        self.label_4.setObjectName(u"label_4")
-
-        self.gridLayout_5.addWidget(self.label_4, 1, 0, 1, 1)
-
-        self.w_gb_obj_file = QGroupBox(self.groupBox_8)
-        self.w_gb_obj_file.setObjectName(u"w_gb_obj_file")
-        self.gridLayout_3 = QGridLayout(self.w_gb_obj_file)
-        self.gridLayout_3.setObjectName(u"gridLayout_3")
-        self.w_pb_obj_file = QPushButton(self.w_gb_obj_file)
-        self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
-        sizePolicy1.setHeightForWidth(self.w_pb_obj_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_obj_file.setSizePolicy(sizePolicy1)
-        self.w_pb_obj_file.setMaximumSize(QSize(25, 16777215))
-
-        self.gridLayout_3.addWidget(self.w_pb_obj_file, 0, 2, 1, 1)
-
-        self.w_le_obj_file = QLineEdit(self.w_gb_obj_file)
-        self.w_le_obj_file.setObjectName(u"w_le_obj_file")
-        self.w_le_obj_file.setMinimumSize(QSize(100, 0))
-
-        self.gridLayout_3.addWidget(self.w_le_obj_file, 0, 1, 1, 1)
-
-        self.label_2 = QLabel(self.w_gb_obj_file)
-        self.label_2.setObjectName(u"label_2")
-
-        self.gridLayout_3.addWidget(self.label_2, 0, 0, 1, 1)
-
-
-        self.gridLayout_5.addWidget(self.w_gb_obj_file, 5, 0, 1, 3)
-
-        self.w_pb_obj_color = QPushButton(self.groupBox_8)
-        self.w_pb_obj_color.setObjectName(u"w_pb_obj_color")
-
-        self.gridLayout_5.addWidget(self.w_pb_obj_color, 1, 1, 1, 1)
-
-        self.label_10 = QLabel(self.groupBox_8)
-        self.label_10.setObjectName(u"label_10")
-
-        self.gridLayout_5.addWidget(self.label_10, 2, 0, 1, 1)
-
-        self.w_l_obj_transparency = QLabel(self.groupBox_8)
-        self.w_l_obj_transparency.setObjectName(u"w_l_obj_transparency")
-
-        self.gridLayout_5.addWidget(self.w_l_obj_transparency, 2, 2, 1, 1)
 
         self.w_fr_obj_color = QFrame(self.groupBox_8)
         self.w_fr_obj_color.setObjectName(u"w_fr_obj_color")
@@ -425,37 +429,20 @@ class Ui_MainWindow(object):
 
         self.gridLayout_5.addWidget(self.w_fr_obj_color, 1, 2, 1, 1)
 
-        self.label_7 = QLabel(self.groupBox_8)
-        self.label_7.setObjectName(u"label_7")
+        self.label_4 = QLabel(self.groupBox_8)
+        self.label_4.setObjectName(u"label_4")
 
-        self.gridLayout_5.addWidget(self.label_7, 3, 0, 1, 1)
+        self.gridLayout_5.addWidget(self.label_4, 1, 0, 1, 1)
 
-        self.widget = QWidget(self.groupBox_8)
-        self.widget.setObjectName(u"widget")
-        self.horizontalLayout_3 = QHBoxLayout(self.widget)
-        self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
-        self.w_rb_hfs = QRadioButton(self.widget)
-        self.w_rb_hfs.setObjectName(u"w_rb_hfs")
+        self.w_pb_obj_color = QPushButton(self.groupBox_8)
+        self.w_pb_obj_color.setObjectName(u"w_pb_obj_color")
 
-        self.horizontalLayout_3.addWidget(self.w_rb_hfs)
+        self.gridLayout_5.addWidget(self.w_pb_obj_color, 1, 1, 1, 1)
 
-        self.w_rb_hfp = QRadioButton(self.widget)
-        self.w_rb_hfp.setObjectName(u"w_rb_hfp")
+        self.label_10 = QLabel(self.groupBox_8)
+        self.label_10.setObjectName(u"label_10")
 
-        self.horizontalLayout_3.addWidget(self.w_rb_hfp)
-
-        self.w_rb_ffs = QRadioButton(self.widget)
-        self.w_rb_ffs.setObjectName(u"w_rb_ffs")
-
-        self.horizontalLayout_3.addWidget(self.w_rb_ffs)
-
-        self.w_rb_ffp = QRadioButton(self.widget)
-        self.w_rb_ffp.setObjectName(u"w_rb_ffp")
-
-        self.horizontalLayout_3.addWidget(self.w_rb_ffp)
-
-
-        self.gridLayout_5.addWidget(self.widget, 3, 1, 1, 1)
+        self.gridLayout_5.addWidget(self.label_10, 2, 0, 1, 1)
 
 
         self.verticalLayout_3.addWidget(self.groupBox_8)
@@ -643,7 +630,6 @@ class Ui_MainWindow(object):
         self.label_11.setText(QCoreApplication.translate("MainWindow", u"First Name:", None))
         self.label_12.setText(QCoreApplication.translate("MainWindow", u"Plan ID:", None))
         self.w_ch_use_dicomrt.setText(QCoreApplication.translate("MainWindow", u"Use Dicom RT Files", None))
-        self.w_l_plan_isocenter.setText("")
         self.label_17.setText(QCoreApplication.translate("MainWindow", u"Isocenter:", None))
         self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"Beams", None))
@@ -652,18 +638,26 @@ class Ui_MainWindow(object):
         self.label_26.setText(QCoreApplication.translate("MainWindow", u"Course ID:", None))
         self.w_l_patient_first_name.setText("")
         self.w_l_patient_last_name.setText("")
+        self.w_l_plan_isocenter.setText("")
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"Couch Buffer:", None))
+        self.w_l_api_status.setText("")
+        self.label_28.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.w_pb_get_map.setText(QCoreApplication.translate("MainWindow", u"Get Map", None))
-        self.w_pb_api_ping.setText(QCoreApplication.translate("MainWindow", u"Ping API", None))
-        self.w_ch_high_res.setText(QCoreApplication.translate("MainWindow", u"High Resolution Map", None))
         self.label_22.setText(QCoreApplication.translate("MainWindow", u"Patient Buffer:", None))
+        self.label_24.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.label_20.setText(QCoreApplication.translate("MainWindow", u"Treatment Room", None))
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.label_18.setText(QCoreApplication.translate("MainWindow", u"API Status:", None))
-        self.label_24.setText(QCoreApplication.translate("MainWindow", u"cm", None))
-        self.w_l_api_status.setText("")
+        self.w_pb_fetch_api_data.setText(QCoreApplication.translate("MainWindow", u"Fetch Data", None))
         self.label_19.setText(QCoreApplication.translate("MainWindow", u"Surface:", None))
+        self.label_29.setText(QCoreApplication.translate("MainWindow", u"Y", None))
+        self.label_27.setText(QCoreApplication.translate("MainWindow", u"Shift Surface", None))
+        self.label_30.setText(QCoreApplication.translate("MainWindow", u"Z", None))
+        self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"From File", None))
+        self.label_2.setText(QCoreApplication.translate("MainWindow", u"cm", None))
+        self.label_7.setText(QCoreApplication.translate("MainWindow", u"cm", None))
+        self.label_31.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.w_tw_patient_settings.setTabText(self.w_tw_patient_settings.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Patient Context", None))
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"DICOM", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
@@ -671,19 +665,10 @@ class Ui_MainWindow(object):
         self.w_l_dcm_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.w_pb_dcm_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
         self.groupBox_8.setTitle(QCoreApplication.translate("MainWindow", u"OBJ", None))
-        self.w_ch_use_obj.setText(QCoreApplication.translate("MainWindow", u"Use .obj File", None))
+        self.w_l_obj_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
-        self.w_gb_obj_file.setTitle(QCoreApplication.translate("MainWindow", u"OBJ File", None))
-        self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"File Path       ", None))
         self.w_pb_obj_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
-        self.w_l_obj_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
-        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Orientation:", None))
-        self.w_rb_hfs.setText(QCoreApplication.translate("MainWindow", u"HFS", None))
-        self.w_rb_hfp.setText(QCoreApplication.translate("MainWindow", u"HFP", None))
-        self.w_rb_ffs.setText(QCoreApplication.translate("MainWindow", u"FFS", None))
-        self.w_rb_ffp.setText(QCoreApplication.translate("MainWindow", u"FFP", None))
         self.groupBox_9.setTitle(QCoreApplication.translate("MainWindow", u"Scene", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.w_pb_background_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))

@@ -300,7 +300,7 @@ class MapRTContext(qtc.QObject):
         self._current_surface = None        # vtk_polydata
         self._treatment_room_names = {}     # room_name: (room_id, room_scale)
         self._treatment_room_ids = {}       # room_id: (room_name, room_scale)
-        self._current_room = None           # str
+        self._current_room_label = None           # str
         self._current_room_id = None        # str
         self._current_room_scale = None     # str
         self._collision_maps = {}           # str: (map_view, x_ticks, y_ticks)
@@ -340,7 +340,7 @@ class MapRTContext(qtc.QObject):
 
     @property
     def current_room(self):
-        return self._current_room
+        return self._current_room_label
 
     @property
     def current_map_data(self):
@@ -360,8 +360,10 @@ class MapRTContext(qtc.QObject):
         print(f"patient buffer set to {value}")
         self._patient_buffer = value
 
-    def update_room(self, room_name):
-        self._current_room_id, self._current_room_scale = self.treatment_rooms[room_name]
+    def update_room(self, room_label):
+        print("current room updated")
+        self._current_room_label = room_label
+        self._current_room_id, self._current_room_scale = self.treatment_rooms[room_label]
         self.current_room_changed.emit()
 
     def update_surface(self, surface_label):
@@ -371,14 +373,15 @@ class MapRTContext(qtc.QObject):
                 self.current_surface_changed.emit(self._current_surface)
 
     def update_current_map_data(self, map_label):
-        self._current_map_data = self._collision_maps[map_label]
-        self.current_map_data_changed.emit(self._current_map_data)
+        if map_label in self._collision_maps:
+            self._current_map_data = self._collision_maps[map_label]
+            self.current_map_data_changed.emit(self._current_map_data)
 
     def load_surface_file(self, file_path, orientation):
         try:
             mesh = trimesh.load(file_path)
             _id = uuid.uuid4().hex
-            label = dt.datetime.strftime(dt.datetime.now(), '%Y%m%d %H%M%S')
+            label = dt.datetime.strftime(dt.datetime.now(), '%Y%m%d %H%M%S') + " <- File"
             self.__surface_id_map[_id] = label
             obj = open(file_path, 'rb')
             self._patient_surfaces[_id] = MapRTSurface(obj.read(),
@@ -386,7 +389,7 @@ class MapRTContext(qtc.QObject):
                                                        self.__surface_id_map[_id],
                                                        orientation
                                                        )
-            name_list = [key for key in self._patient_surfaces.keys()]
+            name_list = [value for key, value in self.__surface_id_map.items()]
             self.patient_surfaces_updated.emit(name_list)
             self.update_surface(label)
         except Exception as e:
@@ -487,7 +490,7 @@ class MapRTContext(qtc.QObject):
                                                                )
 
                     if len(self.__surface_id_map.keys()) == len(self._patient_surfaces.keys()):
-                        name_list = [key for key in self._patient_surfaces.keys()]
+                        name_list = [value for key, value in self.__surface_id_map.items()]
                         self.patient_surfaces_updated.emit(name_list)
                 else:
                     print('No plan context is set')
@@ -499,6 +502,11 @@ class MapRTContext(qtc.QObject):
                 # print("Data received:")
 
                 lst = text.split()
+                couch_samples, gantry_samples = lst[0].split(',')
+                gantry_step_size = 360 / int(gantry_samples)
+                couch_step_size = 180 / (int(couch_samples) - 1)
+                gantry_step = 1 if int(gantry_step_size) >=10 else 10
+                couch_step = 2 if int(couch_step_size) >= 5 else 10
                 new_str = ','.join(lst[1:-1])
                 a = np.fromstring(new_str, dtype=int, sep=',')
                 a = a.reshape((int(len(a) / 3), 3))
@@ -529,12 +537,12 @@ class MapRTContext(qtc.QObject):
                 x_map = dict([(str(couch_idx[i]), i) for i in range(len(couch_idx))])
                 y_map = dict([(str(gantry_idx[i]), i) for i in range(len(gantry_idx))])
 
-                x_labels = [(i, str(couch_idx[i])) for i in np.arange(0, len(couch_idx), 10)]
+                x_labels = [(i, str(couch_idx[i])) for i in np.arange(0, len(couch_idx), couch_step)]
                 x_ticks = [x_labels]
                 # bottom_axis = self.plot_widget.getAxis('bottom')
                 # bottom_axis.setTicks(x_ticks)
 
-                y_labels = [(j, str(gantry_idx[j])) for j in np.arange(0, len(gantry_idx), 10)]
+                y_labels = [(j, str(gantry_idx[j])) for j in np.arange(0, len(gantry_idx), gantry_step)]
                 y_ticks = [y_labels]
                 # left_axis = self.plot_widget.getAxis('left')
                 # left_axis.setTicks(y_ticks)

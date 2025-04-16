@@ -63,7 +63,7 @@ class DicomPlanContext(qtc.QObject):
 
     @isocenter.setter
     def isocenter(self, iter):
-        self._isocenter = [i for i in iter]
+        self._isocenter = [float(i) for i in iter]
         self.isocenter_changed.emit(self._isocenter)
 
     @property
@@ -135,17 +135,11 @@ class DicomPlanContext(qtc.QObject):
         # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}
         for structure in ds.StructureSetROISequence:
-            # print(f'{structure.ROIName} ({structure.ROIName.lower()})',
-            #       structure.ROINumber
-            #       )
             roi_lut[structure.ROINumber] = structure.ROIName.lower()
 
         # Grab the Body structure points
         contours = []
         for roi in ds.ROIContourSequence:
-            # if (roi.ReferencedROINumber in roi_lut) and \
-            #         roi_lut[roi.ReferencedROINumber] == 'body':
-            #     # print('Found Body')
             contours = []
             if hasattr(roi, "ContourSequence"):
                 # print(roi_lut[roi.ReferencedROINumber])
@@ -243,15 +237,6 @@ class PatientContext(qtc.QObject):
     current_plan_changed = qtc.Signal(DicomPlanContext)
     invalid_file_loaded = qtc.Signal(str)
 
-    # PlanContext Signals
-    # plan_context_plan_id_changed = qtc.Signal(str)
-    # plan_context_frame_of_reference_uid_changed = qtc.Signal(str)
-    # plan_context_isocenter_changed = qtc.Signal(list)
-    # plan_context_patient_orientation_changed = qtc.Signal(str)
-    # plan_context_beams_changed = qtc.Signal(str)
-    # plan_context_structures_updated = qtc.Signal(list)
-    # plan_context_current_structure_changed = qtc.Signal(vtk.vtkActor)
-
     def __init__(self):
         super().__init__()
 
@@ -308,7 +293,7 @@ class PatientContext(qtc.QObject):
         return self._current_plan
 
     def clear(self):
-        print("clear patient context")
+        # print("clear patient context")
         self.patient_id = ''
         self.first_name = ''
         self.last_name = ''
@@ -320,7 +305,7 @@ class PatientContext(qtc.QObject):
         self._current_plan.update_values(DicomPlanContext())
 
     def update_current_course(self, course_id):
-        print(f"Update current course to {course_id}")
+        # print(f"Update current course to {course_id}")
         if course_id in self._courses:
             self._current_course = course_id
             self._plans = self._courses[course_id]
@@ -337,8 +322,8 @@ class PatientContext(qtc.QObject):
             pass
 
     def load_context_from_dicom_rt_file(self, file_path):
-        print(f"Load context data from file {file_path}")
-        print(self.current_plan)
+        # print(f"Load context data from file {file_path}")
+        # print(self.current_plan)
         ds = pydicom.dcmread(file_path)
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
@@ -413,10 +398,11 @@ class PatientContext(qtc.QObject):
 
             plans = {self.current_plan.plan_id: self.current_plan}
             self._courses['F1'] = plans
-            print(f"courses_updated.emit")
+            # print(f"courses_updated.emit")
             self.courses_updated.emit(self.courses)
-            print("call method to update the current course")
+            # print("call method to update the current course")
             self.update_current_course('F1')
+            self.update_current_plan(self.current_plan.plan_id)
         else:
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
