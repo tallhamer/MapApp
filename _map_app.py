@@ -16,9 +16,6 @@ from models._dicom import PatientContext, DicomPlanContext, DicomFileValidationE
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         super().__init__()
         # Setup the ui appearance
         self.setupUi(self)
@@ -34,9 +31,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.patient_last_name_changed.connect(self.w_l_patient_last_name.setText)
         self.patient_ctx.courses_updated.connect(self.ui_update_courses)
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
-        self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
         self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
+
+        self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
         self.patient_ctx.current_plan.invalid_file_loaded.connect(self.ui_show_info_message)
+        self.patient_ctx.current_plan.beams_changed.connect(self.ui_update_beam_table)
 
         self.w_pb_dcm_plan_file.clicked.connect(self.patient_context_plans_from_dicom_rt_file)
         self.w_pb_dcm_struct_file.clicked.connect(self.plan_context_structures_from_dicom_rt_file)
@@ -145,21 +144,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     # PatientContext Connections and Methods
     def ui_update_courses(self, courses):
         print("ui update courses")
-        print(courses)
         if self.w_cb_course_id.count() == 0:
-            print(f"ui update courses 0 course")
             self.w_cb_course_id.addItems(courses)
         else:
-            print(f"ui update courses 1 or more course")
             current_selection = self.w_cb_course_id.currentText()
             if current_selection in courses:
-                print(f'current selection {current_selection}')
                 with qtc.QSignalBlocker(self.w_cb_course_id):
                     self.w_cb_course_id.clear()
                     self.w_cb_course_id.addItems(courses)
                     self.w_cb_course_id.setCurrentText(current_selection)
             else:
-                print('no matching selection')
                 self.w_cb_course_id.clear()
                 self.w_cb_course_id.addItems(courses)
 
@@ -179,6 +173,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_plan_id.addItems(plans)
 
     def ui_update_isocenter_label(self, iso):
+        print("ui update isocenter")
         if len(iso) == 3:
             x, y, z = iso
             x_str = f"<span style='color: #00aaff;'><b>X:</b></span> {x}"
@@ -191,8 +186,35 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             z_str = f"<span style='color: #00aaff;'><b>Z:</b></span> --"
             self.w_l_plan_isocenter.setText(f"{x_str} {y_str} {z_str}")
 
-    def ui_enable_load_structure_button(self):
-        self.w_pb_dcm_struct_file.setEnabled(True)
+    def ui_update_beam_table(self, beams):
+        print("ui update beams")
+        if not beams == []: # Need this for refreshes and clearing
+            self.w_tw_beams.setRowCount(len(beams))
+            self.w_tw_beams.setColumnCount(len(beams[0]))
+            self.w_tw_beams.setHorizontalHeaderLabels(["Status",
+                                                       "Num",
+                                                       "ID",
+                                                       "Name",
+                                                       "Couch",
+                                                       "Gantry Start",
+                                                       "Gantry Stop",
+                                                       "Rotation",
+                                                       "Type"
+                                                       ]
+                                                      )
+
+            for row_index, row_data in enumerate(beams):
+                for col_index, cell_data in enumerate(row_data):
+                    item = qtw.QTableWidgetItem(cell_data)
+                    item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
+                    self.w_tw_beams.setItem(row_index, col_index, item)
+
+            self.w_tw_beams.resizeColumnsToContents()
+            self.w_tw_beams.setSortingEnabled(True)
+        else:
+            self.w_tw_beams.clear()
+            self.w_tw_beams.setRowCount(0)
+            self.w_tw_beams.setColumnCount(0)
 
     def ui_update_structures(self, structures):
         print("ui update structures")
@@ -208,6 +230,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             else:
                 self.w_cb_body_structure.clear()
                 self.w_cb_body_structure.addItems(structures)
+
+    def ui_enable_load_structure_button(self):
+        self.w_pb_dcm_struct_file.setEnabled(True)
 
     def patient_context_plans_from_dicom_rt_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
@@ -254,9 +279,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 print(e)
 
     def update_dicom_visualization(self, model):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.dicom_actor is None:
             self.dicom_actor = self.patient_ctx.current_plan.current_structure
 
@@ -480,17 +502,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dicom_actor = None
 
     def _get_current_color(self, frame):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         palette = frame.palette()
         background_color = palette.color(qtg.QPalette.ColorRole.Window)
         return background_color.getRgb()
 
     def __get_viewing_bounds(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
 
         actors = self.vtk_renderer.GetActors()
@@ -512,9 +528,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def vtk_render_window_background_color_changed(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -527,9 +540,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def save_image(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
                                                       "Save Render Window as Image",
                                                       ".",
@@ -551,9 +561,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.Write()
 
     def set_camera_to_plus_x(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_plusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
@@ -578,9 +585,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_x(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_minusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
@@ -599,9 +603,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def sset_camera_to_plus_y(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_plusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
@@ -620,9 +621,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_y(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_minusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
@@ -641,9 +639,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_z(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_plusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
@@ -662,9 +657,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_z(self):
-        # print('MainWindow Function: ', inspect.stack()[0][3])
-        # print('\tCaller: ', inspect.stack()[1][3])
-
         if self.w_rb_minusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()

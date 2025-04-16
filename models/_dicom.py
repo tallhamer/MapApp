@@ -22,7 +22,7 @@ class DicomPlanContext(qtc.QObject):
     frame_of_reference_uid_changed = qtc.Signal(str)
     isocenter_changed = qtc.Signal(list)
     patient_orientation_changed = qtc.Signal(str)
-    beams_changed = qtc.Signal(str)
+    beams_changed = qtc.Signal(list)
     structures_updated = qtc.Signal(list)
     current_structure_changed = qtc.Signal(vtk.vtkActor)
     invalid_file_loaded = qtc.Signal(str)
@@ -138,11 +138,9 @@ class DicomPlanContext(qtc.QObject):
             roi_lut[structure.ROINumber] = structure.ROIName.lower()
 
         # Grab the Body structure points
-        contours = []
         for roi in ds.ROIContourSequence:
             contours = []
             if hasattr(roi, "ContourSequence"):
-                # print(roi_lut[roi.ReferencedROINumber])
                 for contour in roi.ContourSequence:
                     contours.append([[float(contour.ContourData[i]),
                                       float(contour.ContourData[i + 1]),
@@ -247,7 +245,6 @@ class PatientContext(qtc.QObject):
         self._current_course = ''                 # str
         self._plans = {}                            # PlanContext.plan_id: PlanContext
         self._current_plan = DicomPlanContext()     # PlanContext
-        print(self.current_plan)
 
     @property
     def patient_id(self):
@@ -314,7 +311,7 @@ class PatientContext(qtc.QObject):
             pass
 
     def update_current_plan(self, plan_id):
-        print(f"Update current plan to {plan_id}")
+        # print(f"Update current plan to {plan_id}")
         if plan_id in self._plans:
             self._current_plan.update_values(self._plans[plan_id])
             self.current_plan_changed.emit(self._current_plan)
