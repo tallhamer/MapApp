@@ -403,20 +403,17 @@ class Ui_MainWindow(object):
 
         self.groupBox_8 = QGroupBox(self.tab_2)
         self.groupBox_8.setObjectName(u"groupBox_8")
-        self.gridLayout_5 = QGridLayout(self.groupBox_8)
-        self.gridLayout_5.setObjectName(u"gridLayout_5")
-        self.w_l_obj_transparency = QLabel(self.groupBox_8)
-        self.w_l_obj_transparency.setObjectName(u"w_l_obj_transparency")
+        self.gridLayout_3 = QGridLayout(self.groupBox_8)
+        self.gridLayout_3.setObjectName(u"gridLayout_3")
+        self.label_4 = QLabel(self.groupBox_8)
+        self.label_4.setObjectName(u"label_4")
 
-        self.gridLayout_5.addWidget(self.w_l_obj_transparency, 2, 2, 1, 1)
+        self.gridLayout_3.addWidget(self.label_4, 0, 0, 1, 1)
 
-        self.w_hs_obj_transparency = QSlider(self.groupBox_8)
-        self.w_hs_obj_transparency.setObjectName(u"w_hs_obj_transparency")
-        self.w_hs_obj_transparency.setMaximum(100)
-        self.w_hs_obj_transparency.setValue(100)
-        self.w_hs_obj_transparency.setOrientation(Qt.Orientation.Horizontal)
+        self.w_pb_obj_color = QPushButton(self.groupBox_8)
+        self.w_pb_obj_color.setObjectName(u"w_pb_obj_color")
 
-        self.gridLayout_5.addWidget(self.w_hs_obj_transparency, 2, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.w_pb_obj_color, 0, 1, 1, 1)
 
         self.w_fr_obj_color = QFrame(self.groupBox_8)
         self.w_fr_obj_color.setObjectName(u"w_fr_obj_color")
@@ -427,22 +424,26 @@ class Ui_MainWindow(object):
         self.w_fr_obj_color.setFrameShape(QFrame.Shape.StyledPanel)
         self.w_fr_obj_color.setFrameShadow(QFrame.Shadow.Raised)
 
-        self.gridLayout_5.addWidget(self.w_fr_obj_color, 1, 2, 1, 1)
-
-        self.label_4 = QLabel(self.groupBox_8)
-        self.label_4.setObjectName(u"label_4")
-
-        self.gridLayout_5.addWidget(self.label_4, 1, 0, 1, 1)
-
-        self.w_pb_obj_color = QPushButton(self.groupBox_8)
-        self.w_pb_obj_color.setObjectName(u"w_pb_obj_color")
-
-        self.gridLayout_5.addWidget(self.w_pb_obj_color, 1, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.w_fr_obj_color, 0, 2, 1, 1)
 
         self.label_10 = QLabel(self.groupBox_8)
         self.label_10.setObjectName(u"label_10")
+        self.label_10.setMaximumSize(QSize(16777215, 16777215))
 
-        self.gridLayout_5.addWidget(self.label_10, 2, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.label_10, 1, 0, 1, 1)
+
+        self.w_hs_obj_transparency = QSlider(self.groupBox_8)
+        self.w_hs_obj_transparency.setObjectName(u"w_hs_obj_transparency")
+        self.w_hs_obj_transparency.setMaximum(100)
+        self.w_hs_obj_transparency.setValue(100)
+        self.w_hs_obj_transparency.setOrientation(Qt.Orientation.Horizontal)
+
+        self.gridLayout_3.addWidget(self.w_hs_obj_transparency, 1, 1, 1, 1)
+
+        self.w_l_obj_transparency = QLabel(self.groupBox_8)
+        self.w_l_obj_transparency.setObjectName(u"w_l_obj_transparency")
+
+        self.gridLayout_3.addWidget(self.w_l_obj_transparency, 1, 2, 1, 1)
 
 
         self.verticalLayout_3.addWidget(self.groupBox_8)
@@ -451,6 +452,12 @@ class Ui_MainWindow(object):
         self.groupBox_9.setObjectName(u"groupBox_9")
         self.gridLayout = QGridLayout(self.groupBox_9)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.w_pb_background_color = QPushButton(self.groupBox_9)
+        self.w_pb_background_color.setObjectName(u"w_pb_background_color")
+        self.w_pb_background_color.setMaximumSize(QSize(16777215, 16777215))
+
+        self.gridLayout.addWidget(self.w_pb_background_color, 0, 1, 1, 1)
+
         self.w_fr_background_color = QFrame(self.groupBox_9)
         self.w_fr_background_color.setObjectName(u"w_fr_background_color")
         sizePolicy3.setHeightForWidth(self.w_fr_background_color.sizePolicy().hasHeightForWidth())
@@ -464,13 +471,9 @@ class Ui_MainWindow(object):
 
         self.label_5 = QLabel(self.groupBox_9)
         self.label_5.setObjectName(u"label_5")
+        self.label_5.setMaximumSize(QSize(100, 16777215))
 
         self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
-
-        self.w_pb_background_color = QPushButton(self.groupBox_9)
-        self.w_pb_background_color.setObjectName(u"w_pb_background_color")
-
-        self.gridLayout.addWidget(self.w_pb_background_color, 0, 1, 1, 1)
 
         self.label_16 = QLabel(self.groupBox_9)
         self.label_16.setObjectName(u"label_16")
@@ -517,12 +520,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.w_rb_minusZ)
 
 
-        self.gridLayout.addWidget(self.widget_2, 1, 1, 1, 1)
+        self.gridLayout.addWidget(self.widget_2, 1, 1, 1, 2)
 
 
         self.verticalLayout_3.addWidget(self.groupBox_9)
 
-        self.verticalSpacer = QSpacerItem(373, 226, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
 
@@ -586,8 +589,11 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.vtk_widget = QVTKRenderWindowInteractor(self.groupBox_2)
         self.vtk_widget.setObjectName(u"vtk_widget")
-        sizePolicy.setHeightForWidth(self.vtk_widget.sizePolicy().hasHeightForWidth())
-        self.vtk_widget.setSizePolicy(sizePolicy)
+        sizePolicy6 = QSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Minimum)
+        sizePolicy6.setHorizontalStretch(0)
+        sizePolicy6.setVerticalStretch(0)
+        sizePolicy6.setHeightForWidth(self.vtk_widget.sizePolicy().hasHeightForWidth())
+        self.vtk_widget.setSizePolicy(sizePolicy6)
         self.vtk_widget.setMinimumSize(QSize(800, 800))
         self.vtk_widget.setMaximumSize(QSize(16777215, 16777215))
 
@@ -611,8 +617,8 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.w_tw_patient_settings.setCurrentIndex(0)
-        self.w_tw_visualizations.setCurrentIndex(0)
+        self.w_tw_patient_settings.setCurrentIndex(1)
+        self.w_tw_visualizations.setCurrentIndex(1)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -664,14 +670,14 @@ class Ui_MainWindow(object):
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.w_l_dcm_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.w_pb_dcm_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
-        self.groupBox_8.setTitle(QCoreApplication.translate("MainWindow", u"OBJ", None))
-        self.w_l_obj_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
+        self.groupBox_8.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.w_pb_obj_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
         self.label_10.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
+        self.w_l_obj_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.groupBox_9.setTitle(QCoreApplication.translate("MainWindow", u"Scene", None))
-        self.label_5.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.w_pb_background_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
+        self.label_5.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"View From", None))
         self.w_rb_plusX.setText(QCoreApplication.translate("MainWindow", u"+X", None))
         self.w_rb_minusX.setText(QCoreApplication.translate("MainWindow", u"-X", None))

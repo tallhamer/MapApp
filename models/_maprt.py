@@ -502,23 +502,25 @@ class MapRTContext(qtc.QObject):
                 # print("Data received:")
 
                 lst = text.split()
+
+                # Determine the sampling for the gantry and couch axes
                 couch_samples, gantry_samples = lst[0].split(',')
                 gantry_step_size = 360 / int(gantry_samples)
                 couch_step_size = 180 / (int(couch_samples) - 1)
-                gantry_step = 1 if int(gantry_step_size) >=10 else 10
-                couch_step = 2 if int(couch_step_size) >= 5 else 10
+
+                # Construct csv string and read into array using numpy
                 new_str = ','.join(lst[1:-1])
                 a = np.fromstring(new_str, dtype=int, sep=',')
                 a = a.reshape((int(len(a) / 3), 3))
+
+                # Grab the couch and gantry position arrays along with the safe flag
                 couch, gantry, isOK = a.T
+
+                # Construct a unique set of gantry and couch positions used to construct the 2D image
                 unique_couch = np.unique(couch)
                 unique_gantry = np.unique(gantry)
 
-                # print(unique_couch)
-                # print(len(unique_couch))
-                # print(unique_gantry)
-                # print(len(unique_gantry))
-
+                # Order them to match the MapRT collision map display settings
                 gantry_idx = np.hstack((unique_gantry[np.where(unique_gantry >= 180)],
                                         unique_gantry[np.where(unique_gantry < 180)]
                                         )
@@ -529,33 +531,55 @@ class MapRTContext(qtc.QObject):
                                        )
                                       )
 
-                # print(couch_idx)
-                # print(len(couch_idx))
-                # print(gantry_idx)
-                # print(len(gantry_idx))
-
+                # Construct mappings from gantry and couch readouts to array index positions
                 x_map = dict([(str(couch_idx[i]), i) for i in range(len(couch_idx))])
                 y_map = dict([(str(gantry_idx[i]), i) for i in range(len(gantry_idx))])
 
-                x_labels = [(i, str(couch_idx[i])) for i in np.arange(0, len(couch_idx), couch_step)]
-                x_ticks = [x_labels]
-                # bottom_axis = self.plot_widget.getAxis('bottom')
-                # bottom_axis.setTicks(x_ticks)
+                # Construct the initial 2D collision map image and assign the values to each pixel
+                _collision_map = np.zeros((len(gantry_idx), len(couch_idx)), dtype=int)
+                for j in range(len(couch)):
+                    _collision_map[y_map[str(gantry[j])], x_map[str(couch[j])]] = isOK[j]
 
-                y_labels = [(j, str(gantry_idx[j])) for j in np.arange(0, len(gantry_idx), gantry_step)]
+                collision_map = None
+
+                # If the gantry and couch are low resolution upsample to get consistent indices
+                if not gantry_step_size == 1 or not couch_step_size == 1:
+                    collision_map = np.repeat(np.repeat(_collision_map,
+                                                        int(gantry_step_size),
+                                                        axis=0
+                                                        ),
+                                              int(couch_step_size),
+                                              axis=1
+                                              )
+                else:
+                    collision_map = _collision_map
+
+                # construct couch index positions for resampled map
+                c0 = np.arange(270, 360, 1)
+                c1 = np.arange(0, 91, 1)
+                couch_values = np.hstack((c0, c1))
+                i_idx = np.arange(len(couch_values))
+
+                # construct gantry index positions for resampled map
+                g0 = np.arange(180, 360, 1)
+                g1 = np.arange(0, 180, 1)
+                gantry_values = np.hstack((g0, g1))
+                j_idx = np.arange(len(gantry_values))
+
+                # x_map = dict([(str(couch_values[x]), int(i_idx[x])) for x in range(len(i_idx))])
+                # y_map = dict([(str(gantry_values[y]), int(j_idx[y])) for y in range(len(j_idx))])
+
+                # construct the mappings for the tick labels for the couch and gantry axes
+                x_labels = [(x, str(couch_values[x])) for x in np.arange(0, len(couch_values), 10)]
+                x_ticks = [x_labels]
+
+                y_labels = [(y, str(gantry_values[y])) for y in np.arange(0, len(gantry_values), 10)]
                 y_ticks = [y_labels]
-                # left_axis = self.plot_widget.getAxis('left')
-                # left_axis.setTicks(y_ticks)
 
                 map_view = pg.ImageItem(axisOrder='row-major')
                 map_view.setZValue(0)
-                # map_view.setLookupTable(self.map_lut)
-
-                collision_map = np.zeros((len(gantry_idx), len(couch_idx)), dtype=int)
-                for j in range(len(couch)):
-                    collision_map[y_map[str(gantry[j])], x_map[str(couch[j])]] = isOK[j]
-
                 map_view.setImage(collision_map)
+
 
                 iso, cb, pb, sid, rid, rs = args.split(';')
                 surface_namee = self.__surface_id_map[sid]

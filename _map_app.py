@@ -117,18 +117,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_fr_dcm_color.show()
         self.w_hs_dcm_transparency.valueChanged.connect(self.dicom_surface_transparency_changed)
 
-        # Connect ui components
-        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
-        self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
-
         # MapRTSurface connections
-
         self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
         self.w_fr_obj_color.show()
         self.w_pb_obj_color.clicked.connect(self.maprt_surface_color_changed)
         self.w_hs_obj_transparency.valueChanged.connect(self.maprt_surface_transparency_changed)
 
-
+        # Connect ui components
+        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+        self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
         self.w_pb_save_image.clicked.connect(self.save_image)
 
         self.w_rb_plusX.toggled.connect(self.set_camera_to_plus_x)
