@@ -11,17 +11,18 @@
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
     QMetaObject, QObject, QPoint, QRect,
     QSize, QTime, QUrl, Qt)
-from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
-    QFont, QFontDatabase, QGradient, QIcon,
-    QImage, QKeySequence, QLinearGradient, QPainter,
-    QPalette, QPixmap, QRadialGradient, QTransform)
+from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
+    QCursor, QFont, QFontDatabase, QGradient,
+    QIcon, QImage, QKeySequence, QLinearGradient,
+    QPainter, QPalette, QPixmap, QRadialGradient,
+    QTransform)
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QFormLayout, QFrame, QGridLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QMenuBar, QPushButton, QRadioButton,
-    QSizePolicy, QSlider, QSpacerItem, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget)
+    QMainWindow, QMenu, QMenuBar, QPushButton,
+    QRadioButton, QSizePolicy, QSlider, QSpacerItem,
+    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
+    QVBoxLayout, QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -31,6 +32,16 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(1268, 956)
         MainWindow.setMinimumSize(QSize(0, 0))
+        self.exit_action = QAction(MainWindow)
+        self.exit_action.setObjectName(u"exit_action")
+        self.settings_action = QAction(MainWindow)
+        self.settings_action.setObjectName(u"settings_action")
+        self.about_action = QAction(MainWindow)
+        self.about_action.setObjectName(u"about_action")
+        self.actionCollision_Map = QAction(MainWindow)
+        self.actionCollision_Map.setObjectName(u"actionCollision_Map")
+        self.actionView_From = QAction(MainWindow)
+        self.actionView_From.setObjectName(u"actionView_From")
         self.centralwidget = QWidget(MainWindow)
         self.centralwidget.setObjectName(u"centralwidget")
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -610,10 +621,26 @@ class Ui_MainWindow(object):
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
         self.menubar.setGeometry(QRect(0, 0, 1268, 33))
+        self.file_menu = QMenu(self.menubar)
+        self.file_menu.setObjectName(u"file_menu")
+        self.view_menu = QMenu(self.menubar)
+        self.view_menu.setObjectName(u"view_menu")
+        self.options_menu = QMenu(self.menubar)
+        self.options_menu.setObjectName(u"options_menu")
+        self.help_menu = QMenu(self.menubar)
+        self.help_menu.setObjectName(u"help_menu")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
+
+        self.menubar.addAction(self.file_menu.menuAction())
+        self.menubar.addAction(self.view_menu.menuAction())
+        self.menubar.addAction(self.options_menu.menuAction())
+        self.menubar.addAction(self.help_menu.menuAction())
+        self.file_menu.addAction(self.exit_action)
+        self.options_menu.addAction(self.settings_action)
+        self.help_menu.addAction(self.about_action)
 
         self.retranslateUi(MainWindow)
 
@@ -626,6 +653,11 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.exit_action.setText(QCoreApplication.translate("MainWindow", u"&Exit", None))
+        self.settings_action.setText(QCoreApplication.translate("MainWindow", u"&Settings", None))
+        self.about_action.setText(QCoreApplication.translate("MainWindow", u"&About", None))
+        self.actionCollision_Map.setText(QCoreApplication.translate("MainWindow", u"Collision Map", None))
+        self.actionView_From.setText(QCoreApplication.translate("MainWindow", u"View From", None))
         self.groupBox_6.setTitle(QCoreApplication.translate("MainWindow", u"Patient Information", None))
         self.w_gb_dicomrt_files.setTitle(QCoreApplication.translate("MainWindow", u"DICOM Files", None))
         self.w_pb_dcm_struct_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
@@ -692,5 +724,9 @@ class Ui_MainWindow(object):
         self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Map View", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Render Window", None))
         self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"3D View", None))
+        self.file_menu.setTitle(QCoreApplication.translate("MainWindow", u"&File", None))
+        self.view_menu.setTitle(QCoreApplication.translate("MainWindow", u"&View", None))
+        self.options_menu.setTitle(QCoreApplication.translate("MainWindow", u"&Options", None))
+        self.help_menu.setTitle(QCoreApplication.translate("MainWindow", u"&Help", None))
     # retranslateUi
 
