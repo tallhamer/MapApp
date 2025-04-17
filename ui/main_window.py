@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file '_main_window.ui'
+## Form generated from reading UI file 'main_window.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.8.3
 ##
@@ -19,10 +19,9 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
 from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
     QFormLayout, QFrame, QGridLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QMenu, QMenuBar, QPushButton,
-    QRadioButton, QSizePolicy, QSlider, QSpacerItem,
-    QStatusBar, QTabWidget, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+    QMainWindow, QPushButton, QRadioButton, QSizePolicy,
+    QSlider, QSpacerItem, QStatusBar, QTabWidget,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -618,29 +617,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.w_tw_visualizations)
 
         MainWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QMenuBar(MainWindow)
-        self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1268, 33))
-        self.file_menu = QMenu(self.menubar)
-        self.file_menu.setObjectName(u"file_menu")
-        self.view_menu = QMenu(self.menubar)
-        self.view_menu.setObjectName(u"view_menu")
-        self.options_menu = QMenu(self.menubar)
-        self.options_menu.setObjectName(u"options_menu")
-        self.help_menu = QMenu(self.menubar)
-        self.help_menu.setObjectName(u"help_menu")
-        MainWindow.setMenuBar(self.menubar)
         self.statusbar = QStatusBar(MainWindow)
         self.statusbar.setObjectName(u"statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
-        self.menubar.addAction(self.file_menu.menuAction())
-        self.menubar.addAction(self.view_menu.menuAction())
-        self.menubar.addAction(self.options_menu.menuAction())
-        self.menubar.addAction(self.help_menu.menuAction())
-        self.file_menu.addAction(self.exit_action)
-        self.options_menu.addAction(self.settings_action)
-        self.help_menu.addAction(self.about_action)
 
         self.retranslateUi(MainWindow)
 
@@ -653,7 +632,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.exit_action.setText(QCoreApplication.translate("MainWindow", u"&Exit", None))
+        self.exit_action.setText(QCoreApplication.translate("MainWindow", u"E&xit", None))
         self.settings_action.setText(QCoreApplication.translate("MainWindow", u"&Settings", None))
         self.about_action.setText(QCoreApplication.translate("MainWindow", u"&About", None))
         self.actionCollision_Map.setText(QCoreApplication.translate("MainWindow", u"Collision Map", None))
@@ -724,9 +703,5 @@ class Ui_MainWindow(object):
         self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_3), QCoreApplication.translate("MainWindow", u"Map View", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Render Window", None))
         self.w_tw_visualizations.setTabText(self.w_tw_visualizations.indexOf(self.tab_4), QCoreApplication.translate("MainWindow", u"3D View", None))
-        self.file_menu.setTitle(QCoreApplication.translate("MainWindow", u"&File", None))
-        self.view_menu.setTitle(QCoreApplication.translate("MainWindow", u"&View", None))
-        self.options_menu.setTitle(QCoreApplication.translate("MainWindow", u"&Options", None))
-        self.help_menu.setTitle(QCoreApplication.translate("MainWindow", u"&Help", None))
     # retranslateUi
 

@@ -122,7 +122,7 @@ class MapRTAPIManager(qtc.QObject):
 
         self.manager.get(request)
 
-    def get_treatment_rooms (self):
+    def get_treatment_rooms(self):
         url = self._api_url + "/integration/rooms"
         attributes = f"Rooms:"
 

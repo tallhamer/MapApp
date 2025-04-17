@@ -9,8 +9,9 @@ import PySide6.QtGui as qtg
 import pyqtgraph as pg
 
 # from ui.test_window import Ui_MainWindow
-from ui._main_window import Ui_MainWindow
-from orient_dialog import OrientDialog
+from ui.main_window import Ui_MainWindow
+from diag_orient import OrientDialog
+from diag_settings import SettingsDialog
 from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
 
@@ -20,6 +21,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Setup the ui appearance
         self.setupUi(self)
         self.setWindowTitle("Map App")
+        self._construct_menu_actions()
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
@@ -51,45 +53,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self._setup_3d_visualization()
 
-        # # 3D Scene Widget Setup
-        # self.vtk_renderer = vtk.vtkRenderer()
-        # self.vtk_render_window = self.vtk_widget.GetRenderWindow()
-        # self.vtk_render_window.AddRenderer(self.vtk_renderer)
-        # self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
-        # self.vtk_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
-        #
-        # self.w_pb_background_color.clicked.connect(self.vtk_render_window_background_color_changed)
-        # self.w_fr_background_color.setStyleSheet(f"background-color: rgb({0}, {0}, {0});")
-        # self.w_fr_background_color.show()
-        #
-        # # Control the visuals on the DICOM Actor
-        # self.w_pb_dcm_color.clicked.connect(self.dicom_surface_color_changed)
-        # self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({0}, {127}, {0});")
-        # self.w_fr_dcm_color.show()
-        # self.w_hs_dcm_transparency.valueChanged.connect(self.dicom_surface_transparency_changed)
-        #
-        # # MapRTSurface connections
-        # self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
-        # self.w_fr_obj_color.show()
-        # self.w_pb_obj_color.clicked.connect(self.maprt_surface_color_changed)
-        # self.w_hs_obj_transparency.valueChanged.connect(self.maprt_surface_transparency_changed)
-
-        # # Connect ui components
-        # self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
-        # self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
-        # self.w_pb_save_image.clicked.connect(self.save_3d_image)
-
-        # self.w_rb_plusX.toggled.connect(self.set_camera_to_plus_x)
-        # self.w_rb_minusX.toggled.connect(self.set_camera_to_minus_x)
-        # self.w_rb_plusY.toggled.connect(self.sset_camera_to_plus_y)
-        # self.w_rb_minusY.toggled.connect(self.set_camera_to_minus_y)
-        # self.w_rb_plusZ.toggled.connect(self.set_camera_to_plus_z)
-        # self.w_rb_minusZ.toggled.connect(self.set_camera_to_minus_z)
-        #
-        # self.vtk_interactor.Initialize()
-        # self.vtk_widget.show()
-
-    # Hook-ups!
+    ####################################################################################
+    # Hook-ups!                                                                        #
+    ####################################################################################
     def _connect_patient_context_to_ui(self):
         # PatientContext specific Signals
         self.patient_ctx.patient_id_changed.connect(self.w_le_patinet_id.setText)
@@ -204,8 +170,25 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
 
+    def _construct_menu_actions(self):
+        menu_bar = self.menuBar()
+        menu_file = menu_bar.addMenu("&File")
 
-    # PatientContext Connections and Methods
+        action_exit = qtg.QAction("E&xit", self)
+        action_exit.triggered.connect(self.close)
+        menu_file.addAction(action_exit)
+
+        menu_options = menu_bar.addMenu("&Options")
+
+        action_settings = qtg.QAction("&Settings", self)
+        action_settings.triggered.connect(self.show_settings_dialog)
+        menu_options.addAction(action_settings)
+
+
+    ####################################################################################
+    # PatientContext Connections and Methods                                           #
+    ####################################################################################
+
     def ui_update_courses(self, courses):
         print("ui update courses")
         if self.w_cb_course_id.count() == 0:
@@ -386,8 +369,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             pass
 
+    ####################################################################################
+    # MapRTContext Connections and Methods                                             #
+    ####################################################################################
 
-    # MapRTContext Connections and Methods
     def fetch_api_data(self):
         self.maprt_api.get_status()
         self.maprt_api.get_treatment_rooms()
@@ -544,8 +529,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             pass
 
+    ####################################################################################
+    # ui to ui manipulation methods                                                    #
+    ####################################################################################
 
-    # ui to ui manipulation methods
+    def show_settings_dialog(self):
+        settings_dialog = SettingsDialog()
+        if settings_dialog.exec():
+            print("writing settings")
+        else:
+            print("ignoring settings changes")
+
     def ui_show_info_message(self, message):
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
