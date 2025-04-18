@@ -108,12 +108,44 @@ class MapRTAPIManager(qtc.QObject):
         # Endpoints to code
         self._get_beam_delivery_status = f"/integration/GetBeamDeliveryStatus"
 
+    @property
+    def api_url(self):
+        return self._api_url
+
+    @api_url.setter
+    def api_url(self, value):
+        self._api_url = str(value)
+
+    @property
+    def token(self):
+        return self._token
+
+    @token.setter
+    def token(self, value):
+        self._token = str(value)
+
+    @property
+    def user_agent(self):
+        return self._user_agent
+
+    @user_agent.setter
+    def user_agent(self, value):
+        self._user_agent= str(value)
+
+    @property
+    def header(self):
+        header = qtn.QHttpHeaders()
+        header.insert(0, "Content-Type", "application/json")
+        header.append("Authorization", f"Bearer {self.token}")
+        header.append("User-Agent", self.user_agent)
+        return header
+
     def get_status(self):
-        url = self._api_url + "/integration/ping"
+        url = self.api_url + "/integration/ping"
         attributes = f"Ping:"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
-        request.setHeaders(self._header)
+        request.setHeaders(self.header)
         request.setSslConfiguration(self.ssl_config)
         request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
         request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
@@ -123,11 +155,11 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_rooms(self):
-        url = self._api_url + "/integration/rooms"
+        url = self.api_url + "/integration/rooms"
         attributes = f"Rooms:"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
-        request.setHeaders(self._header)
+        request.setHeaders(self.header)
         request.setSslConfiguration(self.ssl_config)
         request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
         request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
@@ -137,11 +169,11 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_room(self, room_name):
-        url = self._api_url + f"/integration/rooms/{room_name}"
+        url = self.api_url + f"/integration/rooms/{room_name}"
         attributes = f"Room:{room_name}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
-        request.setHeaders(self._header)
+        request.setHeaders(self.header)
         request.setSslConfiguration(self.ssl_config)
         request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
         request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
@@ -151,11 +183,11 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_patient_surfaces(self, patient_id):
-        url = self._api_url + f"/integration/patients/{patient_id}/surfaces"
+        url = self.api_url + f"/integration/patients/{patient_id}/surfaces"
         attributes = f"Surfaces:{patient_id}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
-        request.setHeaders(self._header)
+        request.setHeaders(self.header)
         request.setSslConfiguration(self.ssl_config)
         request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
         request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
@@ -165,11 +197,11 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_surface(self, surface_id):
-        url = self._api_url + f"/integration/surfaces/{surface_id}"
+        url = self.api_url + f"/integration/surfaces/{surface_id}"
         attributes = f"Surface:{surface_id}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
-        request.setHeaders(self._header)
+        request.setHeaders(self.header)
         request.setSslConfiguration(self.ssl_config)
         request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
         request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
@@ -180,15 +212,12 @@ class MapRTAPIManager(qtc.QObject):
 
     def get_map(self, ctx):
         if ctx.plan_context is not None:
-            url = self._api_url + f"/integration/GetMap"
+            url = self.api_url + f"/integration/GetMap"
             isocenter = ctx.plan_context.isocenter
             couch_buff = ctx.couch_buffer * 10
             patient_buff = ctx.patient_buffer * 10
             surface_id = ctx.current_surface.id
-            # surface_id = "2e36321f-19de-49cd-899d-c772da051316" # For Testing
             room_id, room_scale = ctx.treatment_rooms[ctx.current_room]
-            # room_id = "eaf6df9d-8e60-c46a-4e6f-ca55e7470545" # For Testing
-            # room_scale = "IEC_61217" # For Testing
             attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
 
             X, Y, Z = isocenter
@@ -209,7 +238,7 @@ class MapRTAPIManager(qtc.QObject):
                 }
 
                 request = qtn.QNetworkRequest(qtc.QUrl(url))
-                request.setHeaders(self._header)
+                request.setHeaders(self.header)
                 request.setSslConfiguration(self.ssl_config)
                 request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
                 request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,

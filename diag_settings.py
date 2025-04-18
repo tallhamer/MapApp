@@ -8,9 +8,10 @@ from ui.app_settings_dialog import Ui_SettingsDialog
 from models.maprt import MapRTAPIManager
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
-    def __init__(self):
+    def __init__(self, dicom_data_dir, maprt_api_url, maprt_api_token, maprt_api_user_agent):
         super().__init__()
         self.setupUi(self)
+
         self.w_pb_dicom_directory.clicked.connect(self._browse_for_dicom_directory)
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
 

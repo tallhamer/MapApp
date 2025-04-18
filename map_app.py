@@ -25,6 +25,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
+        self.settings = qtc.QSettings("ThinkTank", "MapApp")
+        self.maprt_api_url = self.settings.value("maprt_api_url", "")
+        self.maprt_api_token = self.settings.value("maprt_api_token", "")
+        self.maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
+        self.dicom_data_directory = self.settings.value("dicom_data_directory", "")
+
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
         self._connect_patient_context_to_ui()
