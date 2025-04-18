@@ -1,16 +1,21 @@
-import pydicom
-from pydicom import dcmread
-from pynetdicom.sop_class import RTPlanStorage, RTStructureSetStorage
+import json
 
 import numpy as np
-import open3d as o3d
 from skimage import measure
 from scipy.spatial import cKDTree
+
+import pydicom
+from pynetdicom.sop_class import RTPlanStorage, RTStructureSetStorage
+
+import open3d as o3d
 
 import vtk
 from vtkmodules.util import numpy_support
 
+from models.settings import AppSettings
+
 import PySide6.QtCore as qtc
+import pyqtgraph as pg
 
 class DicomFileValidationError(Exception):
     def __init__(self, message):
@@ -23,6 +28,7 @@ class DicomPlanContext(qtc.QObject):
     isocenter_changed = qtc.Signal(list)
     patient_orientation_changed = qtc.Signal(str)
     beams_changed = qtc.Signal(list)
+    redraw_beams = qtc.Signal(tuple)
     structures_updated = qtc.Signal(list)
     current_structure_changed = qtc.Signal(vtk.vtkActor)
     invalid_file_loaded = qtc.Signal(str)
@@ -135,9 +141,103 @@ class DicomPlanContext(qtc.QObject):
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
     def validate_beams(self, map_data):
-        map_view, x_ticks, y_ticks = map_data
-        print(x_ticks)
-        print(y_ticks)
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            settings = AppSettings(**settings_data)
+
+            arc_check_resolution = settings.dicom.arc_check_resolution
+
+        collision_map, x_ticks, y_ticks = map_data
+
+        # construct couch index positions for resampled map
+        c0 = np.arange(270, 360, 1)
+        c1 = np.arange(0, 91, 1)
+        couch_values = np.hstack((c0, c1))
+        i_idx = np.arange(len(couch_values))
+
+        # construct gantry index positions for resampled map
+        g0 = np.arange(180, 360, 1)
+        g1 = np.arange(0, 180, 1)
+        gantry_values = np.hstack((g0, g1))
+        j_idx = np.arange(len(gantry_values))
+
+        x_map = dict([(str(couch_values[x]), int(i_idx[x])) for x in range(len(i_idx))])
+        y_map = dict([(str(gantry_values[y]), int(j_idx[y])) for y in range(len(j_idx))])
+
+        arc_plots = []
+        static_plots = []
+
+        for beam in self.beams:
+            _status, _num, _id, _name, _couch, _gantry_start, _gantry_stop, _gantry_rot_direction, _type = beam
+
+            if _gantry_rot_direction == 'NONE':
+                g_start_idx = y_map[str(round(float(_gantry_start)))]
+                c_pos_idx = x_map[_couch]
+                is_ok = np.all(collision_map.image[g_start_idx, c_pos_idx])
+                beam[0] = True if is_ok else False
+
+                static_beam = pg.ScatterPlotItem(x=[c_pos_idx], y=[g_start_idx], symbol='o')
+                if _type == 'SETUP':
+                    static_beam.setPen(pg.mkPen(color='cyan', width=5))
+                else:
+                    static_beam.setPen(pg.mkPen(color='g', width=5))
+
+                static_plots.append(static_beam)
+            else:
+                g_start_idx = y_map[str(round(float(_gantry_start)))]
+                g_stop_idx = y_map[str(round(float(_gantry_stop)))]
+                c_pos_idx = x_map[_couch]
+                if _gantry_rot_direction == 'CCW':
+                    if g_start_idx == 0 and g_stop_idx == 0:
+                        is_ok = np.all(collision_map.image[::,c_pos_idx])
+                        beam[0] = True if is_ok else False
+
+                        beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[0, len(j_idx)-1])
+                        beam_plot.setPen(pg.mkPen(color='y', width=4))
+                        arc_plots.append(beam_plot)
+
+                    elif g_start_idx == 0 and g_stop_idx > 0:
+                        is_ok_180 = np.all(collision_map.image[0, c_pos_idx])
+                        g_start_idx = len(j_idx) - 1
+                        is_ok_rest = np.all(
+                            collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
+                        is_ok = is_ok_180 and is_ok_rest
+                        beam[0] = True if is_ok else False
+
+                        beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
+                        beam_plot.setPen(pg.mkPen(color='y', width=4))
+                        arc_plots.append(beam_plot)
+
+                    else:
+                        is_ok = np.all(collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
+                        beam[0] = True if is_ok else False
+
+                        beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
+                        beam_plot.setPen(pg.mkPen(color='y', width=4))
+                        arc_plots.append(beam_plot)
+
+                else:
+                    if g_start_idx == 0 and g_stop_idx == 0:
+                        is_ok = np.all(collision_map.image[::,c_pos_idx])
+                        beam[0] = True if is_ok else False
+
+                        beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[0, len(j_idx) - 1])
+                        beam_plot.setPen(pg.mkPen(color='y', width=4))
+                        arc_plots.append(beam_plot)
+
+                    elif g_start_idx >= 0 and g_stop_idx > 0:
+                        is_ok = np.all(collision_map.image[g_start_idx:g_stop_idx:arc_check_resolution, c_pos_idx])
+                        beam[0] = True if is_ok else False
+
+                        beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
+                        beam_plot.setPen(pg.mkPen(color='y', width=4))
+                        arc_plots.append(beam_plot)
+
+            print(beam)
+        self.beams_changed.emit(self._beams)
+        print(arc_plots)
+        print(static_plots)
+        self.redraw_beams.emit((arc_plots, static_plots))
 
     def _get_structure_point_clouds(self, ds):
         # Generate ROI Look Up Table using the ROI Number as the key
@@ -417,8 +517,8 @@ if __name__ == '__main__':
     def print_struct(struct):
         print(struct)
 
-    plan_file = r"C:\__python__\Projects\MapApp\data\ESAPI_Testing\RP.1.2.246.352.71.5.206203234488.43856.20250402093313.dcm"
-    ss_file = r"C:\__python__\Projects\MapApp\data\ESAPI_Testing\RS.1.2.246.352.71.4.206203234488.21666.20250402094226.dcm"
+    plan_file = r"C:\tmp\map app data\ESAPI_Testing\RP.1.2.246.352.71.5.206203234488.43856.20250402093313.dcm"
+    ss_file = r"C:\tmp\map app data\ESAPI_Testing\RS.1.2.246.352.71.4.206203234488.21666.20250402094226.dcm"
 
     pt = PatientContext()
     pt.load_context_from_dicom_rt_file(plan_file)

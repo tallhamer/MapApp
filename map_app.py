@@ -19,6 +19,8 @@ from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomFileValidationError
 from models.settings import AppSettings
 
+import resource_rc
+
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -30,10 +32,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_visualizations.setCurrentIndex(1)
 
         self._load_application_settings()
-
-        # Setup the global PatientContext and PlanContext objects
-        self.patient_ctx = PatientContext()
-        self._connect_patient_context_to_ui()
+        self._setup_patient_context()
 
         # "https://maprtpkr.adventhealth.com:5000"
         # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
@@ -46,15 +45,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                          )
         self._connect_api_manager_to_ui()
 
-        # Setup the global MapRTContext object
-        self.maprt_ctx = MapRTContext(self.maprt_api)
-        self._connect_maprt_context_to_ui()
+        self._setup_maprt_context()
 
         # Connect PatientContext to MapRTContext
         self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
 
-        # TEST Code for Collision Map
-        self.collision_map = None
         self._setup_collision_map_plot()
 
         # VTK rendering setup
@@ -66,6 +61,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     # Setup                                                                            #
     ####################################################################################
+    def testing(self):
+        print('Stuff')
+
     def _load_application_settings(self):
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
@@ -78,25 +76,35 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
             self.maprt_api_user_agent = self.settings.maprt.api_user_agent
 
-    def _connect_patient_context_to_ui(self):
+    def _setup_patient_context(self):
+        # Setup the global PatientContext and PlanContext objects
+        self.patient_ctx = PatientContext()
+
+        self.w_pb_esapi_search.clicked.connect(self.testing)
+
         # PatientContext specific Signals
         self.patient_ctx.patient_id_changed.connect(self.w_le_patinet_id.setText)
         self.patient_ctx.patient_first_name_changed.connect(self.w_l_patient_first_name.setText)
         self.patient_ctx.patient_last_name_changed.connect(self.w_l_patient_last_name.setText)
         self.patient_ctx.courses_updated.connect(self.ui_update_courses)
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
+        self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
         self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
 
         # PatientContext.current_plan (PlanContext) specific Signals
         self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
         self.patient_ctx.current_plan.invalid_file_loaded.connect(self.ui_show_info_message)
         self.patient_ctx.current_plan.beams_changed.connect(self.ui_update_beam_table)
+        self.patient_ctx.current_plan.redraw_beams.connect(self.ui_update_beam_plots)
+        self.patient_ctx.current_plan.structures_updated.connect(self.ui_update_structures)
+        self.patient_ctx.current_plan.current_structure_changed.connect(self.update_dicom_visualization)
 
         # ui to PatientContext or PlanContext method connections
-        self.w_pb_dcm_plan_file.clicked.connect(self.patient_context_plans_from_dicom_rt_file)
-        self.w_pb_dcm_struct_file.clicked.connect(self.plan_context_structures_from_dicom_rt_file)
+        self.w_cb_body_structure.currentTextChanged.connect(self.patient_ctx.current_plan.update_current_structure)
 
         # Set ui to ui connections for DICOM RT file mode
+        self.w_pb_dcm_plan_file.clicked.connect(self.ui_select_dicom_rt_plan_file)
+        self.w_pb_dcm_struct_file.clicked.connect(self.ui_select_dicom_rt_structure_file)
         self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
         self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
 
@@ -105,7 +113,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_fetch_api_data.clicked.connect(self.fetch_api_data)
         self.w_pb_get_map.clicked.connect(self.get_maprt_collision_maps)
 
-    def _connect_maprt_context_to_ui(self):
+    def _setup_maprt_context(self):
+        # Setup the global MapRTContext object
+        self.maprt_ctx = MapRTContext(self.maprt_api)
+
         # Connect the MapRTContext specific Signals to the ui
         self.maprt_ctx.api_status_changed.connect(self.w_l_api_status.setText)
         self.maprt_ctx.treatment_rooms_updated.connect(self.ui_update_maprt_treatment_rooms)
@@ -121,11 +132,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_dsb_api_couch_buffer.valueChanged.connect(self.maprt_ctx.update_couch_buffer)
         self.w_dsb_api_patient_buffer.valueChanged.connect(self.maprt_ctx.update_patient_buffer)
         self.w_cb_current_map.currentTextChanged.connect(self.maprt_ctx.update_current_map_data)
-        self.w_pb_obj_file.clicked.connect(self.maprt_surface_from_file)
+        self.w_pb_obj_file.clicked.connect(self.ui_select_maprt_surface_file)
         self.w_cb_surface_for_map.currentTextChanged.connect(self.maprt_ctx.update_surface)
         self.w_cb_treatment_room.currentTextChanged.connect(self.maprt_ctx.update_room)
 
     def _setup_collision_map_plot(self):
+        self.collision_map = None
+
         # Create a pyqtgraph plot
         self.collision_map_plot_widget = pg.PlotWidget()
 
@@ -259,10 +272,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def ui_update_beam_table(self, beams):
         print("ui update beams")
+        good_icon = qtg.QIcon(":/icons/good.png")
+        bad_icon = qtg.QIcon(":/icons/bad.png")
         if not beams == []: # Need this for refreshes and clearing
+
+            self.w_tw_beams.clear()
+            self.w_tw_beams.setRowCount(0)
+            self.w_tw_beams.setColumnCount(0)
+
             self.w_tw_beams.setRowCount(len(beams))
             self.w_tw_beams.setColumnCount(len(beams[0]))
-            self.w_tw_beams.setHorizontalHeaderLabels(["Status",
+            self.w_tw_beams.setHorizontalHeaderLabels(["",
                                                        "Num",
                                                        "ID",
                                                        "Name",
@@ -276,9 +296,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             for row_index, row_data in enumerate(beams):
                 for col_index, cell_data in enumerate(row_data):
-                    item = qtw.QTableWidgetItem(cell_data)
-                    item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
-                    self.w_tw_beams.setItem(row_index, col_index, item)
+                    if col_index == 0 and cell_data is True:
+                        item = qtw.QTableWidgetItem()
+                        item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
+                        item.setIcon(good_icon)
+                        self.w_tw_beams.setItem(row_index, col_index, item)
+                    elif col_index == 0 and cell_data is False:
+                        item = qtw.QTableWidgetItem()
+                        item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
+                        item.setIcon(bad_icon)
+                        self.w_tw_beams.setItem(row_index, col_index, item)
+                    else:
+                        item = qtw.QTableWidgetItem(cell_data)
+                        item.setTextAlignment(qtc.Qt.AlignmentFlag.AlignCenter)
+                        self.w_tw_beams.setItem(row_index, col_index, item)
 
             self.w_tw_beams.resizeColumnsToContents()
             self.w_tw_beams.setSortingEnabled(True)
@@ -305,7 +336,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def ui_enable_load_structure_button(self):
         self.w_pb_dcm_struct_file.setEnabled(True)
 
-    def patient_context_plans_from_dicom_rt_file(self):
+    def ui_select_dicom_rt_plan_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       self.dicom_data_directory,
@@ -313,19 +344,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       )
         if file_path:
             try:
-                self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
                 self.patient_ctx.load_context_from_dicom_rt_file(file_path)
-                self.patient_ctx.current_plan.structures_updated.connect(self.ui_update_structures)
-                self.w_cb_body_structure.currentTextChanged.connect(self.patient_ctx.current_plan.update_current_structure)
-                self.patient_ctx.current_plan.current_structure_changed.connect(self.update_dicom_visualization)
-
                 self.w_le_dcm_plan_file.setText(file_path)
 
             except DicomFileValidationError as e:
                 self.dicomrt_plan_model = None
                 print(e)
 
-    def plan_context_structures_from_dicom_rt_file(self):
+    def ui_select_dicom_rt_structure_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                        "Select DICOM Structureset File",
                                                        self.dicom_data_directory,
@@ -500,22 +526,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.collision_map_plot_widget.addItem(self.collision_map)
         self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
+    def ui_update_beam_plots(self, beam_plot_items):
+        arcs, static_beams = beam_plot_items
+        for arc in arcs:
+            arc.setZValue(25)
+            self.collision_map_plot_widget.addItem(arc)
+        for static_beam in static_beams:
+            static_beam.setZValue(25)
+            self.collision_map_plot_widget.addItem(static_beam)
+
     def ui_notify_connection_error(self, message):
         qtw.QMessageBox.critical(self, "MapRT API Error", message, qtw.QMessageBox.Ok)
 
-    def collision_map_mouse_moved(self, event):
-        # print(evt)
-        pos = event  # using signal proxy turns original event into tuple
-        if self.collision_map_view_box.sceneBoundingRect().contains(pos):
-            mouse_point = self.collision_map_view_box.mapSceneToView(pos)
-            self.collision_map_v_line.setPos(mouse_point.x())
-            self.collision_map_v_line.setZValue(10)
-            self.collision_map_h_line.setPos(mouse_point.y())
-            self.collision_map_h_line.setZValue(11)
-            # self.text_item.setText(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
-            # print(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
-
-    def maprt_surface_from_file(self):
+    def ui_select_maprt_surface_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select MapRT .obj Surface File",
                                                       ".",
@@ -533,6 +556,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
                 if self.collision_map is not None:
                     self.collision_map_view_box.removeItem(self.collision_map)
+
+    def collision_map_mouse_moved(self, event):
+        # print(evt)
+        pos = event  # using signal proxy turns original event into tuple
+        if self.collision_map_view_box.sceneBoundingRect().contains(pos):
+            mouse_point = self.collision_map_view_box.mapSceneToView(pos)
+            self.collision_map_v_line.setPos(mouse_point.x())
+            self.collision_map_v_line.setZValue(100)
+            self.collision_map_h_line.setPos(mouse_point.y())
+            self.collision_map_h_line.setZValue(101)
+            # self.text_item.setText(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
+            # print(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
 
     def maprt_surface_color_changed(self):
         _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
@@ -588,7 +623,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
     def show_dicomrt_file_input_widgets(self):
-        self.patient_ctx.clear()
+        # self.patient_ctx.clear()
         self.w_le_dcm_plan_file.clear()
         self.w_le_dcm_struct_file.clear()
         self.w_pb_dcm_struct_file.setEnabled(False)
@@ -597,6 +632,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
         self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
         self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+
+        # self._setup_patient_context()
+        # self._setup_maprt_context()
+        # self._setup_collision_map_plot()
 
         if self.dicom_actor is not None:
             self.vtk_renderer.RemoveActor(self.dicom_actor)

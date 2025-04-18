@@ -84,6 +84,7 @@ class MapRTOrientTransform(object):
 
 class MapRTAPIManager(qtc.QObject):
     status_returned = qtc.Signal(str)
+    api_connection_error = qtc.Signal(str)
 
     def __init__(self, api_url, token, user_agent):
         super().__init__()
@@ -212,43 +213,46 @@ class MapRTAPIManager(qtc.QObject):
 
     def get_map(self, ctx):
         if ctx.plan_context is not None:
-            url = self.api_url + f"/integration/GetMap"
-            isocenter = ctx.plan_context.isocenter
-            couch_buff = ctx.couch_buffer * 10
-            patient_buff = ctx.patient_buffer * 10
-            surface_id = ctx.current_surface.id
-            room_id, room_scale = ctx.treatment_rooms[ctx.current_room]
-            attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
+            if ctx.current_surface is not None:
+                url = self.api_url + f"/integration/GetMap"
+                isocenter = ctx.plan_context.isocenter
+                couch_buff = ctx.couch_buffer * 10
+                patient_buff = ctx.patient_buffer * 10
+                surface_id = ctx.current_surface.id
+                room_id, room_scale = ctx.treatment_rooms[ctx.current_room]
+                attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
 
-            X, Y, Z = isocenter
+                X, Y, Z = isocenter
 
-            for res in (False, True):
-                body = {
-                    "CouchBuffer": couch_buff,
-                    "PatientBuffer": patient_buff,
-                    "HighResolution": res,
-                    "PatientSurfaceId": f"{surface_id}",
-                    "TreatmentRoomId": f"{room_id}",
-                    "Isocenter": {
-                        "x": X,
-                        "y": Y,
-                        "z": Z,
-                        "CoordinateSystem": f"{room_scale}",
+                for res in (False, True):
+                    body = {
+                        "CouchBuffer": couch_buff,
+                        "PatientBuffer": patient_buff,
+                        "HighResolution": res,
+                        "PatientSurfaceId": f"{surface_id}",
+                        "TreatmentRoomId": f"{room_id}",
+                        "Isocenter": {
+                            "x": X,
+                            "y": Y,
+                            "z": Z,
+                            "CoordinateSystem": f"{room_scale}",
+                        }
                     }
-                }
 
-                request = qtn.QNetworkRequest(qtc.QUrl(url))
-                request.setHeaders(self.header)
-                request.setSslConfiguration(self.ssl_config)
-                request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
-                request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
-                                     qtn.QNetworkRequest.CacheLoadControl.PreferCache
-                                     )
+                    request = qtn.QNetworkRequest(qtc.QUrl(url))
+                    request.setHeaders(self.header)
+                    request.setSslConfiguration(self.ssl_config)
+                    request.setAttribute(qtn.QNetworkRequest.Attribute.User, attributes)
+                    request.setAttribute(qtn.QNetworkRequest.Attribute.CacheLoadControlAttribute,
+                                         qtn.QNetworkRequest.CacheLoadControl.PreferCache
+                                         )
 
-                data = json.dumps(body).encode('utf-8')
-                self.manager.post(request, qtc.QByteArray(data))
+                    data = json.dumps(body).encode('utf-8')
+                    self.manager.post(request, qtc.QByteArray(data))
+                else:
+                    print("No MapRTSurface provided")
             else:
-                print("No Plan context set")
+                print("No PlanContext provided")
 
 class MapRTSurface(qtc.QObject):
     def __init__(self, data, _id, label, orientation):
@@ -304,13 +308,13 @@ class MapRTSurface(qtc.QObject):
 
 class MapRTContext(qtc.QObject):
     api_status_changed = qtc.Signal(str)
+    api_connection_error = qtc.Signal(str)
     treatment_rooms_updated = qtc.Signal(list)
     patient_surfaces_updated = qtc.Signal(list)
     collision_maps_updated = qtc.Signal(list)
     current_surface_changed = qtc.Signal(vtk.vtkActor)
     current_room_changed = qtc.Signal()
     current_map_data_changed = qtc.Signal(tuple)
-    api_connection_error = qtc.Signal(str)
     plan_context_changed = qtc.Signal(bool)
 
     def __init__(self, api_manager):
