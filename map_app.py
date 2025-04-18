@@ -115,6 +115,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.maprt_ctx.current_map_data_changed.connect(self.ui_update_collision_map_graphics_view)
         self.maprt_ctx.api_connection_error.connect(self.ui_notify_connection_error)
 
+        self.maprt_ctx.current_map_data_changed.connect(self.patient_ctx.current_plan.validate_beams)
+
         # Connect the ui signals to the MapRTContext objects methods
         self.w_dsb_api_couch_buffer.valueChanged.connect(self.maprt_ctx.update_couch_buffer)
         self.w_dsb_api_patient_buffer.valueChanged.connect(self.maprt_ctx.update_patient_buffer)
@@ -480,12 +482,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def ui_update_collision_map_graphics_view(self):
+    def ui_update_collision_map_graphics_view(self, current_map_data):
 
         if self.collision_map is not None:
             self.collision_map_plot_widget.removeItem(self.collision_map)
 
-        self.collision_map, x_ticks, y_ticks = self.maprt_ctx.current_map_data
+        self.collision_map, x_ticks, y_ticks = current_map_data
         self.collision_map.setZValue(0)
         self.collision_map.setLookupTable(self.collision_map_lut)
 

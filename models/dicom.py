@@ -134,6 +134,11 @@ class DicomPlanContext(qtc.QObject):
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Structure Set file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
+    def validate_beams(self, map_data):
+        map_view, x_ticks, y_ticks = map_data
+        print(x_ticks)
+        print(y_ticks)
+
     def _get_structure_point_clouds(self, ds):
         # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}

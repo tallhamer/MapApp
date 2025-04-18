@@ -309,7 +309,7 @@ class MapRTContext(qtc.QObject):
     collision_maps_updated = qtc.Signal(list)
     current_surface_changed = qtc.Signal(vtk.vtkActor)
     current_room_changed = qtc.Signal()
-    current_map_data_changed = qtc.Signal()
+    current_map_data_changed = qtc.Signal(tuple)
     api_connection_error = qtc.Signal(str)
     plan_context_changed = qtc.Signal(bool)
 
@@ -410,7 +410,7 @@ class MapRTContext(qtc.QObject):
         if map_label in self._collision_maps:
             self._current_map_label = map_label
             self._current_map_data = self._collision_maps[map_label]
-            self.current_map_data_changed.emit()
+            self.current_map_data_changed.emit(self._current_map_data)
 
     def load_surface_file(self, file_path, orientation):
         try:
@@ -605,10 +605,10 @@ class MapRTContext(qtc.QObject):
                 # y_map = dict([(str(gantry_values[y]), int(j_idx[y])) for y in range(len(j_idx))])
 
                 # construct the mappings for the tick labels for the couch and gantry axes
-                x_labels = [(x, str(couch_values[x])) for x in np.arange(0, len(couch_values), 10)]
+                x_labels = [(int(x), str(couch_values[x])) for x in np.arange(0, len(couch_values), 10)]
                 x_ticks = [x_labels]
 
-                y_labels = [(y, str(gantry_values[y])) for y in np.arange(0, len(gantry_values), 10)]
+                y_labels = [(int(y), str(gantry_values[y])) for y in np.arange(0, len(gantry_values), 10)]
                 y_ticks = [y_labels]
 
                 map_view = pg.ImageItem(axisOrder='row-major')
