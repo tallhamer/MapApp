@@ -26,19 +26,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_visualizations.setCurrentIndex(1)
 
         self.settings = qtc.QSettings("ThinkTank", "MapApp")
+        self.dicom_data_directory = self.settings.value("dicom_data_directory", ".")
         self.maprt_api_url = self.settings.value("maprt_api_url", "")
         self.maprt_api_token = self.settings.value("maprt_api_token", "")
         self.maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
-        self.dicom_data_directory = self.settings.value("dicom_data_directory", "")
+
 
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
         self._connect_patient_context_to_ui()
 
+        # "https://maprtpkr.adventhealth.com:5000"
+        # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
+        # "VisionRT.Integration.Saturn/1.2.8"
+
         # Setup the global MapRT API connection manager
-        self.maprt_api = MapRTAPIManager("https://maprtpkr.adventhealth.com:5000",
-                                         "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
-                                         "VisionRT.Integration.Saturn/1.2.8"
+        self.maprt_api = MapRTAPIManager(self.maprt_api_url,
+                                         self.maprt_api_token,
+                                         self.maprt_api_user_agent
                                          )
         self._connect_api_manager_to_ui()
 
@@ -290,7 +295,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def patient_context_plans_from_dicom_rt_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
-                                                      ".",
+                                                      self.dicom_data_directory,
                                                       "DICOM Files (*.dcm)"
                                                       )
         if file_path:
@@ -310,7 +315,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def plan_context_structures_from_dicom_rt_file(self):
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                        "Select DICOM Structureset File",
-                                                       ".",
+                                                       self.dicom_data_directory,
                                                        "DICOM Files (*.dcm)"
                                                        )
         if file_path:
@@ -420,11 +425,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.w_cb_current_map.count() == 0:
             self.w_cb_current_map.addItems(maps)
         else:
-            current_selection = self.w_cb_current_map.currentText()
+            # current_selection = self.w_cb_current_map.currentText()
             self.w_cb_current_map.clear()
             self.w_cb_current_map.addItems(maps)
-            if current_selection in maps:
-                self.w_cb_current_map.setCurrentText(current_selection)
+            self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
+            # if current_selection in maps:
+            #     self.w_cb_current_map.setCurrentText(current_selection)
 
     def ui_update_map_surface_visualization(self, surface):
         if self.maprt_actor is None:
@@ -463,12 +469,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self.vtk_render_window.Render()
 
-    def ui_update_collision_map_graphics_view(self, map_data):
+    def ui_update_collision_map_graphics_view(self):
 
         if self.collision_map is not None:
             self.collision_map_plot_widget.removeItem(self.collision_map)
 
-        self.collision_map, x_ticks, y_ticks = map_data
+        self.collision_map, x_ticks, y_ticks = self.maprt_ctx.current_map_data
         self.collision_map.setZValue(0)
         self.collision_map.setLookupTable(self.collision_map_lut)
 
@@ -479,6 +485,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         left_axis.setTicks(y_ticks)
 
         self.collision_map_plot_widget.addItem(self.collision_map)
+        self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
     def ui_notify_connection_error(self, message):
         qtw.QMessageBox.critical(self, "MapRT API Error", message, qtw.QMessageBox.Ok)
@@ -541,8 +548,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def show_settings_dialog(self):
         settings_dialog = SettingsDialog()
+
         if settings_dialog.exec():
             print("writing settings")
+
+            self.dicom_data_directory = settings_dialog.w_le_dicom_directory.text()
+            self.maprt_api.api_url = settings_dialog.w_le_api_url.text()
+            self.maprt_api.token = settings_dialog.w_le_api_token.text()
+            self.maprt_api.user_agent = settings_dialog.w_le_api_user_agent.text()
+
+            self.settings.setValue("dicom_data_directory", self.dicom_data_directory)
+            self.settings.setValue("maprt_api_url", self.maprt_api.api_url)
+            self.settings.setValue("maprt_api_token", self.maprt_api.token)
+            self.settings.setValue("maprt_api_user_agent", self.maprt_api.user_agent)
         else:
             print("ignoring settings changes")
 

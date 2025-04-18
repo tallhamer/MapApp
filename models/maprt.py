@@ -309,7 +309,7 @@ class MapRTContext(qtc.QObject):
     collision_maps_updated = qtc.Signal(list)
     current_surface_changed = qtc.Signal(vtk.vtkActor)
     current_room_changed = qtc.Signal()
-    current_map_data_changed = qtc.Signal(tuple)
+    current_map_data_changed = qtc.Signal()
     api_connection_error = qtc.Signal(str)
     plan_context_changed = qtc.Signal(bool)
 
@@ -333,6 +333,7 @@ class MapRTContext(qtc.QObject):
         self._current_room_id = None        # str
         self._current_room_scale = None     # str
         self._collision_maps = {}           # str: (map_view, x_ticks, y_ticks)
+        self._current_map_label = ''        # str
         self._current_map_data = None       # (map_view, x_ticks, y_ticks)
 
     @property
@@ -372,6 +373,10 @@ class MapRTContext(qtc.QObject):
         return self._current_room_label
 
     @property
+    def current_map_label(self):
+        return self._current_map_label
+
+    @property
     def current_map_data(self):
         return self._current_map_data
 
@@ -403,8 +408,9 @@ class MapRTContext(qtc.QObject):
 
     def update_current_map_data(self, map_label):
         if map_label in self._collision_maps:
+            self._current_map_label = map_label
             self._current_map_data = self._collision_maps[map_label]
-            self.current_map_data_changed.emit(self._current_map_data)
+            self.current_map_data_changed.emit()
 
     def load_surface_file(self, file_path, orientation):
         try:
@@ -620,6 +626,7 @@ class MapRTContext(qtc.QObject):
                 self._collision_maps[map_label] = (map_view, x_ticks, y_ticks)
                 map_labels = [key for key in self._collision_maps.keys()]
                 self.collision_maps_updated.emit(map_labels)
+                self.update_current_map_data(map_label)
         else:
             status_code = reply.attribute(qtn.QNetworkRequest.Attribute.HttpStatusCodeAttribute)
             call = f'Call to: {reply.request().url().toString()}'

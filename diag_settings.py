@@ -1,6 +1,7 @@
 import json
 from http.client import responses
 
+import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
 import PySide6.QtNetwork as qtn
 
@@ -8,9 +9,23 @@ from ui.app_settings_dialog import Ui_SettingsDialog
 from models.maprt import MapRTAPIManager
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
-    def __init__(self, dicom_data_dir, maprt_api_url, maprt_api_token, maprt_api_user_agent):
+    def __init__(self):
         super().__init__()
         self.setupUi(self)
+
+        self.settings = qtc.QSettings("ThinkTank", "MapApp")
+
+        dicom_dir = self.settings.value("dicom_data_directory", ".")
+        self.w_le_dicom_directory.setText(dicom_dir)
+
+        maprt_api_url = self.settings.value("maprt_api_url", "")
+        self.w_le_api_url.setText(maprt_api_url)
+
+        maprt_api_token = self.settings.value("maprt_api_token", "")
+        self.w_le_api_token.setText(maprt_api_token)
+
+        maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
+        self.w_le_api_user_agent.setText(maprt_api_user_agent)
 
         self.w_pb_dicom_directory.clicked.connect(self._browse_for_dicom_directory)
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
@@ -26,9 +41,9 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def _test_api_connection(self):
         self.w_te_test_connectio_results.clear()
 
-        self.maprt_api = MapRTAPIManager("https://maprtpkr.adventhealth.com:5000",
-                                         "82212e3b-7edb-40e4-b346-c4fe806a1a0b",
-                                         "VisionRT.Integration.Saturn/1.2.8"
+        self.maprt_api = MapRTAPIManager(self.w_le_api_url.text(),
+                                         self.w_le_api_token.text(),
+                                         self.w_le_api_user_agent.text()
                                          )
 
         self.maprt_api.manager.finished.connect(self._handle_test_results)
