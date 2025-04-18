@@ -25,12 +25,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
-        self.settings = qtc.QSettings("ThinkTank", "MapApp")
-        self.dicom_data_directory = self.settings.value("dicom_data_directory", ".")
-        self.maprt_api_url = self.settings.value("maprt_api_url", "")
-        self.maprt_api_token = self.settings.value("maprt_api_token", "")
-        self.maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
-
+        self._load_application_settings()
 
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
@@ -65,8 +60,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._setup_3d_visualization()
 
     ####################################################################################
-    # Hook-ups!                                                                        #
+    # Setup                                                                            #
     ####################################################################################
+    def _load_application_settings(self):
+        self.settings = qtc.QSettings("ThinkTank", "MapApp")
+        self.dicom_data_directory = self.settings.value("dicom_data_directory", ".")
+        self.arc_check_resolution = self.settings.value("arc_check_resolution", 1)
+        self.maprt_api_url = self.settings.value("maprt_api_url", "")
+        self.maprt_api_token = self.settings.value("maprt_api_token", "")
+        self.maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
+
     def _connect_patient_context_to_ui(self):
         # PatientContext specific Signals
         self.patient_ctx.patient_id_changed.connect(self.w_le_patinet_id.setText)
@@ -543,7 +546,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     ####################################################################################
-    # ui to ui manipulation methods                                                    #
+    # ui manipulation methods                                                          #
     ####################################################################################
 
     def show_settings_dialog(self):
@@ -553,11 +556,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             print("writing settings")
 
             self.dicom_data_directory = settings_dialog.w_le_dicom_directory.text()
+            self.arc_check_resolution = settings_dialog.w_sb_arc_check_resolution.value()
             self.maprt_api.api_url = settings_dialog.w_le_api_url.text()
             self.maprt_api.token = settings_dialog.w_le_api_token.text()
             self.maprt_api.user_agent = settings_dialog.w_le_api_user_agent.text()
 
             self.settings.setValue("dicom_data_directory", self.dicom_data_directory)
+            self.settings.setValue("arc_check_resolution", self.arc_check_resolution)
             self.settings.setValue("maprt_api_url", self.maprt_api.api_url)
             self.settings.setValue("maprt_api_token", self.maprt_api.token)
             self.settings.setValue("maprt_api_user_agent", self.maprt_api.user_agent)

@@ -17,8 +17,8 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
     QGridLayout, QGroupBox, QLabel, QLineEdit,
-    QPushButton, QSizePolicy, QSpacerItem, QTextEdit,
-    QVBoxLayout, QWidget)
+    QPushButton, QSizePolicy, QSpacerItem, QSpinBox,
+    QTextEdit, QVBoxLayout, QWidget)
 
 class Ui_SettingsDialog(object):
     def setupUi(self, SettingsDialog):
@@ -49,6 +49,19 @@ class Ui_SettingsDialog(object):
         self.w_pb_dicom_directory.setMaximumSize(QSize(25, 16777215))
 
         self.gridLayout_2.addWidget(self.w_pb_dicom_directory, 0, 2, 1, 1)
+
+        self.label_5 = QLabel(self.groupBox_2)
+        self.label_5.setObjectName(u"label_5")
+
+        self.gridLayout_2.addWidget(self.label_5, 1, 0, 1, 1)
+
+        self.w_sb_arc_check_resolution = QSpinBox(self.groupBox_2)
+        self.w_sb_arc_check_resolution.setObjectName(u"w_sb_arc_check_resolution")
+        self.w_sb_arc_check_resolution.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignVCenter)
+        self.w_sb_arc_check_resolution.setMinimum(1)
+        self.w_sb_arc_check_resolution.setMaximum(10)
+
+        self.gridLayout_2.addWidget(self.w_sb_arc_check_resolution, 1, 1, 1, 1)
 
 
         self.verticalLayout.addWidget(self.groupBox_2)
@@ -129,6 +142,7 @@ class Ui_SettingsDialog(object):
         self.groupBox_2.setTitle(QCoreApplication.translate("SettingsDialog", u"DICOM", None))
         self.label_4.setText(QCoreApplication.translate("SettingsDialog", u"Data Directory:", None))
         self.w_pb_dicom_directory.setText(QCoreApplication.translate("SettingsDialog", u"...", None))
+        self.label_5.setText(QCoreApplication.translate("SettingsDialog", u"Arc Check Resolution:", None))
         self.groupBox.setTitle(QCoreApplication.translate("SettingsDialog", u"MapRT API", None))
         self.label_3.setText(QCoreApplication.translate("SettingsDialog", u"User-Agent:", None))
         self.label.setText(QCoreApplication.translate("SettingsDialog", u"URL:", None))

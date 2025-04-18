@@ -18,6 +18,9 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         dicom_dir = self.settings.value("dicom_data_directory", ".")
         self.w_le_dicom_directory.setText(dicom_dir)
 
+        arc_check_resolution = self.settings.value("arc_check_resolution", "1")
+        self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
+
         maprt_api_url = self.settings.value("maprt_api_url", "")
         self.w_le_api_url.setText(maprt_api_url)
 
