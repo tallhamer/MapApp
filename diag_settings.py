@@ -1,34 +1,38 @@
 import json
+import base64
+import binascii
 from http.client import responses
 
-import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
 import PySide6.QtNetwork as qtn
 
 from ui.app_settings_dialog import Ui_SettingsDialog
 from models.maprt import MapRTAPIManager
+from models.settings import AppSettings
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
 
-        self.settings = qtc.QSettings("ThinkTank", "MapApp")
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            self.settings = AppSettings(**settings_data)
 
-        dicom_dir = self.settings.value("dicom_data_directory", ".")
-        self.w_le_dicom_directory.setText(dicom_dir)
+            dicom_dir = self.settings.dicom.dicom_data_directory
+            self.w_le_dicom_directory.setText(dicom_dir)
 
-        arc_check_resolution = self.settings.value("arc_check_resolution", "1")
-        self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
+            arc_check_resolution = self.settings.dicom.arc_check_resolution
+            self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
 
-        maprt_api_url = self.settings.value("maprt_api_url", "")
-        self.w_le_api_url.setText(maprt_api_url)
+            maprt_api_url = self.settings.maprt.api_url
+            self.w_le_api_url.setText(maprt_api_url)
 
-        maprt_api_token = self.settings.value("maprt_api_token", "")
-        self.w_le_api_token.setText(maprt_api_token)
+            maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+            self.w_le_api_token.setText(maprt_api_token)
 
-        maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
-        self.w_le_api_user_agent.setText(maprt_api_user_agent)
+            maprt_api_user_agent = self.settings.maprt.api_user_agent
+            self.w_le_api_user_agent.setText(maprt_api_user_agent)
 
         self.w_pb_dicom_directory.clicked.connect(self._browse_for_dicom_directory)
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
@@ -71,7 +75,6 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
             # Process reply based on call type that was executed
             if call_type == 'Ping':
                 json_data = json.loads(text)
-                print(json.dumps(json_data, indent=2))
 
                 self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
                 for header_name, header_value in reply.rawHeaderPairs():

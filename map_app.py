@@ -1,4 +1,7 @@
 import sys
+import json
+import base64
+import binascii
 import numpy as np
 
 import vtk
@@ -13,7 +16,8 @@ from ui.main_window import Ui_MainWindow
 from diag_orient import OrientDialog
 from diag_settings import SettingsDialog
 from models.maprt import MapRTAPIManager, MapRTContext
-from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
+from models.dicom import PatientContext, DicomFileValidationError
+from models.settings import AppSettings
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -63,12 +67,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     # Setup                                                                            #
     ####################################################################################
     def _load_application_settings(self):
-        self.settings = qtc.QSettings("ThinkTank", "MapApp")
-        self.dicom_data_directory = self.settings.value("dicom_data_directory", ".")
-        self.arc_check_resolution = self.settings.value("arc_check_resolution", 1)
-        self.maprt_api_url = self.settings.value("maprt_api_url", "")
-        self.maprt_api_token = self.settings.value("maprt_api_token", "")
-        self.maprt_api_user_agent = self.settings.value("maprt_api_user_agent", "")
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            self.settings = AppSettings(**settings_data)
+
+            self.dicom_data_directory = self.settings.dicom.dicom_data_directory
+            self.arc_check_resolution = self.settings.dicom.arc_check_resolution
+
+            self.maprt_api_url = self.settings.maprt.api_url
+            self.maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+            self.maprt_api_user_agent = self.settings.maprt.api_user_agent
 
     def _connect_patient_context_to_ui(self):
         # PatientContext specific Signals
@@ -561,11 +569,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.maprt_api.token = settings_dialog.w_le_api_token.text()
             self.maprt_api.user_agent = settings_dialog.w_le_api_user_agent.text()
 
-            self.settings.setValue("dicom_data_directory", self.dicom_data_directory)
-            self.settings.setValue("arc_check_resolution", self.arc_check_resolution)
-            self.settings.setValue("maprt_api_url", self.maprt_api.api_url)
-            self.settings.setValue("maprt_api_token", self.maprt_api.token)
-            self.settings.setValue("maprt_api_user_agent", self.maprt_api.user_agent)
+            self.settings.dicom.dicom_data_directory = self.dicom_data_directory
+            self.settings.dicom.arc_check_resolution = self.arc_check_resolution
+
+            self.settings.maprt.api_url =  self.maprt_api.api_url
+            hidden_token = base64.b64encode(binascii.hexlify(self.maprt_api.token.encode('utf-8'))).decode('utf-8')
+            self.settings.maprt.api_token = hidden_token
+            self.settings.maprt.api_user_agent =  self.maprt_api.user_agent
+
+            with open('settings.json', 'w') as settings:
+                settings.write(self.settings.model_dump_json(indent=4))
         else:
             print("ignoring settings changes")
 
