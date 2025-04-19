@@ -34,6 +34,7 @@ class DicomPlanContext(qtc.QObject):
     invalid_file_loaded = qtc.Signal(str)
 
     def __init__(self, plan_id='', ref_frame='', isocenter=[], orientation='', beams=[]):
+        print('DicomPlanContext.__init__')
         super().__init__()
         self._plan_id = plan_id
         self._frame_of_reference_uid = ref_frame
@@ -51,6 +52,7 @@ class DicomPlanContext(qtc.QObject):
 
     @plan_id.setter
     def plan_id(self, value):
+        print('DicomPlanContext.plan_id.setter')
         self._plan_id = str(value)
         self.plan_id_changed.emit(self._plan_id)
 
@@ -60,6 +62,7 @@ class DicomPlanContext(qtc.QObject):
 
     @frame_of_reference_uid.setter
     def frame_of_reference_uid(self, value):
+        print('DicomPlanContext.frame_of_reference_uid.setter')
         self._frame_of_reference_uid = str(value)
         self.frame_of_reference_uid_changed.emit(self._frame_of_reference_uid)
 
@@ -69,6 +72,7 @@ class DicomPlanContext(qtc.QObject):
 
     @isocenter.setter
     def isocenter(self, iter):
+        print('DicomPlanContext.isocenter.setter')
         self._isocenter = [float(i) for i in iter]
         self.isocenter_changed.emit(self._isocenter)
 
@@ -78,6 +82,7 @@ class DicomPlanContext(qtc.QObject):
 
     @patient_orientation.setter
     def patient_orientation(self, value):
+        print('DicomPlanContext.patient_orientation.setter')
         self._patient_orientation = str(value)
         self.patient_orientation_changed.emit(self._patient_orientation)
 
@@ -87,6 +92,7 @@ class DicomPlanContext(qtc.QObject):
 
     @beams.setter
     def beams(self, iter):
+        print('DicomPlanContext.beams.setter')
         self._beams = iter
         self.beams_changed.emit(self._beams)
 
@@ -99,6 +105,7 @@ class DicomPlanContext(qtc.QObject):
         return self._current_structure
 
     def update_values(self, plan_ctx):
+        print('DicomPlanContext.update_values')
         if isinstance(plan_ctx, DicomPlanContext):
             self.plan_id = plan_ctx.plan_id
             self.frame_of_reference_uid = plan_ctx.frame_of_reference_uid
@@ -112,6 +119,7 @@ class DicomPlanContext(qtc.QObject):
             self._current_structure = None
 
     def update_current_structure(self, structure_id):
+        print('DicomPlanContext.update_current_structure')
         if structure_id in self._structures:
             if self._structures[structure_id] is not None:
                 print("Using cashed mesh")
@@ -128,6 +136,7 @@ class DicomPlanContext(qtc.QObject):
             self._current_structure = None
 
     def load_structures_from_dicom_rt_file(self, file_path):
+        print('DicomPlanContext.load_structures_from_dicom_rt_file')
         ds = pydicom.dcmread(file_path)
         if ds.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
             if ds.FrameOfReferenceUID == self.frame_of_reference_uid:
@@ -141,6 +150,7 @@ class DicomPlanContext(qtc.QObject):
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
     def validate_beams(self, map_data):
+        print('DicomPlanContext.validate_beams')
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
             settings = AppSettings(**settings_data)
@@ -240,6 +250,7 @@ class DicomPlanContext(qtc.QObject):
         self.redraw_beams.emit((arc_plots, static_plots))
 
     def _get_structure_point_clouds(self, ds):
+        print('DicomPlanContext._get_structure_point_clouds')
         # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}
         for structure in ds.StructureSetROISequence:
@@ -272,6 +283,7 @@ class DicomPlanContext(qtc.QObject):
         self.structures_updated.emit(self.structures)
 
     def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
+        print('DicomPlanContext._pcloud_to_mesh')
         # Convet Open3D point cloud to numpy array
         points = np.asarray(pcd.points)
 
@@ -313,6 +325,7 @@ class DicomPlanContext(qtc.QObject):
         return mesh
 
     def _generate_visual_mesh(self, mesh):
+        print('DicomPlanContext._generate_visual_mesh')
         # Create a polydata object and add the points
         polydata = vtk.vtkPolyData()
         polydata.points = numpy_support.numpy_to_vtk(mesh.vertices)
@@ -344,6 +357,7 @@ class PatientContext(qtc.QObject):
     invalid_file_loaded = qtc.Signal(str)
 
     def __init__(self):
+        print('PatientContext.__init__')
         super().__init__()
 
         self._patient_id = ''                    # str
@@ -360,6 +374,7 @@ class PatientContext(qtc.QObject):
 
     @patient_id.setter
     def patient_id(self, value):
+        print('PatientContext.patient_id.setter')
         self._patient_id = str(value)
         self.patient_id_changed.emit(self._patient_id)
 
@@ -369,6 +384,7 @@ class PatientContext(qtc.QObject):
 
     @first_name.setter
     def first_name(self, value):
+        print('PatientContext.first_name.setter')
         self._first_name = str(value)
         self.patient_first_name_changed.emit(self._first_name)
 
@@ -378,6 +394,7 @@ class PatientContext(qtc.QObject):
 
     @last_name.setter
     def last_name(self, value):
+        print('PatientContext.last_name.setter')
         self._last_name = str(value)
         self.patient_last_name_changed.emit(self._last_name)
 
@@ -398,7 +415,7 @@ class PatientContext(qtc.QObject):
         return self._current_plan
 
     def clear(self):
-        # print("clear patient context")
+        print('PatientContext.clear')
         self.patient_id = ''
         self.first_name = ''
         self.last_name = ''
@@ -410,7 +427,7 @@ class PatientContext(qtc.QObject):
         self._current_plan.update_values(DicomPlanContext())
 
     def update_current_course(self, course_id):
-        # print(f"Update current course to {course_id}")
+        print('PatientContext.update_current_course')
         if course_id in self._courses:
             self._current_course = course_id
             self._plans = self._courses[course_id]
@@ -419,7 +436,7 @@ class PatientContext(qtc.QObject):
             pass
 
     def update_current_plan(self, plan_id):
-        # print(f"Update current plan to {plan_id}")
+        print('PatientContext.update_current_plan')
         if plan_id in self._plans:
             self._current_plan.update_values(self._plans[plan_id])
             self.current_plan_changed.emit(self._current_plan)
@@ -427,8 +444,7 @@ class PatientContext(qtc.QObject):
             pass
 
     def load_context_from_dicom_rt_file(self, file_path):
-        # print(f"Load context data from file {file_path}")
-        # print(self.current_plan)
+        print('PatientContext.load_context_from_dicom_rt_file')
         ds = pydicom.dcmread(file_path)
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
