@@ -24,6 +24,7 @@ import resource_rc
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
+        print('MainWindow.__init__')
         # Setup the ui appearance
         self.setupUi(self)
         self.setWindowTitle("Map App")
@@ -62,9 +63,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     # Setup                                                                            #
     ####################################################################################
     def testing(self):
+        print('MainWindow.testing')
         print('Stuff')
 
     def _load_application_settings(self):
+        print('MainWindow._load_application_settings')
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
             self.settings = AppSettings(**settings_data)
@@ -77,6 +80,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.maprt_api_user_agent = self.settings.maprt.api_user_agent
 
     def _setup_patient_context(self):
+        print('MainWindow._setup_patient_context')
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
 
@@ -109,11 +113,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
 
     def _connect_api_manager_to_ui(self):
+        print('MainWindow._connect_api_manager_to_ui')
         # Connect the ui signals to the MapRTAPIManager objects methods
         self.w_pb_fetch_api_data.clicked.connect(self.fetch_api_data)
         self.w_pb_get_map.clicked.connect(self.get_maprt_collision_maps)
 
     def _setup_maprt_context(self):
+        print('MainWindow._setup_maprt_context')
         # Setup the global MapRTContext object
         self.maprt_ctx = MapRTContext(self.maprt_api)
 
@@ -137,6 +143,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_treatment_room.currentTextChanged.connect(self.maprt_ctx.update_room)
 
     def _setup_collision_map_plot(self):
+        print('MainWindow._setup_collision_map_plot')
         self.collision_map = None
 
         # Create a pyqtgraph plot
@@ -169,6 +176,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         layout.addWidget(self.collision_map_plot_widget)
 
     def _setup_3d_visualization(self):
+        print('MainWindow._setup_3d_visualization')
         # 3D Scene Widget Setup
         self.vtk_renderer = vtk.vtkRenderer()
         self.vtk_render_window = self.vtk_widget.GetRenderWindow()
@@ -199,7 +207,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Connect view manipulation radiobuttons
         self.w_rb_plusX.toggled.connect(self.set_camera_to_plus_x)
         self.w_rb_minusX.toggled.connect(self.set_camera_to_minus_x)
-        self.w_rb_plusY.toggled.connect(self.sset_camera_to_plus_y)
+        self.w_rb_plusY.toggled.connect(self.set_camera_to_plus_y)
         self.w_rb_minusY.toggled.connect(self.set_camera_to_minus_y)
         self.w_rb_plusZ.toggled.connect(self.set_camera_to_plus_z)
         self.w_rb_minusZ.toggled.connect(self.set_camera_to_minus_z)
@@ -208,6 +216,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_widget.show()
 
     def _construct_menu_actions(self):
+        print('MainWindow._construct_menu_actions')
         menu_bar = self.menuBar()
         menu_file = menu_bar.addMenu("&File")
 
@@ -221,13 +230,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         action_settings.triggered.connect(self.show_settings_dialog)
         menu_options.addAction(action_settings)
 
-
     ####################################################################################
     # PatientContext Connections and Methods                                           #
     ####################################################################################
 
     def ui_update_courses(self, courses):
-        print("ui update courses")
+        print('MainWindow.ui_update_courses')
         if self.w_cb_course_id.count() == 0:
             self.w_cb_course_id.addItems(courses)
         else:
@@ -242,7 +250,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_course_id.addItems(courses)
 
     def ui_update_plans(self, plans):
-        print("ui update plans")
+        print('MainWindow.ui_update_plans')
         if self.w_cb_plan_id.count() == 0:
             self.w_cb_plan_id.addItems(plans)
         else:
@@ -257,7 +265,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_plan_id.addItems(plans)
 
     def ui_update_isocenter_label(self, iso):
-        print("ui update isocenter")
+        print('MainWindow.ui_update_isocenter_label')
         if len(iso) == 3:
             x, y, z = iso
             x_str = f"<span style='color: #00aaff;'><b>X:</b></span> {x}"
@@ -271,7 +279,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_l_plan_isocenter.setText(f"{x_str} {y_str} {z_str}")
 
     def ui_update_beam_table(self, beams):
-        print("ui update beams")
+        print('MainWindow.ui_update_beam_table')
         good_icon = qtg.QIcon(":/icons/good.png")
         bad_icon = qtg.QIcon(":/icons/bad.png")
         if not beams == []: # Need this for refreshes and clearing
@@ -319,7 +327,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_tw_beams.setColumnCount(0)
 
     def ui_update_structures(self, structures):
-        print("ui update structures")
+        print('MainWindow.ui_update_structures')
         if self.w_cb_body_structure.count() == 0:
             self.w_cb_body_structure.addItems(structures)
         else:
@@ -334,9 +342,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_body_structure.addItems(structures)
 
     def ui_enable_load_structure_button(self):
+        print('MainWindow.ui_enable_load_structure_button')
         self.w_pb_dcm_struct_file.setEnabled(True)
 
     def ui_select_dicom_rt_plan_file(self):
+        print('MainWindow.ui_select_dicom_rt_plan_file')
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select DICOM Structureset File",
                                                       self.dicom_data_directory,
@@ -352,6 +362,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 print(e)
 
     def ui_select_dicom_rt_structure_file(self):
+        print('MainWindow.ui_select_dicom_rt_structure_file')
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                        "Select DICOM Structureset File",
                                                        self.dicom_data_directory,
@@ -376,6 +387,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 print(e)
 
     def update_dicom_visualization(self, model):
+        print('MainWindow.update_dicom_visualization')
         if self.dicom_actor is None:
             self.dicom_actor = self.patient_ctx.current_plan.current_structure
 
@@ -399,6 +411,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def dicom_surface_color_changed(self):
+        print('MainWindow.dicom_surface_color_changed')
         _R, _G, _B, _A = self._get_current_color(self.w_fr_dcm_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
 
@@ -412,6 +425,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def dicom_surface_transparency_changed(self):
+        print('MainWindow.dicom_surface_transparency_changed')
         self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
         if self.dicom_actor is not None:
             self.dicom_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
@@ -424,15 +438,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def fetch_api_data(self):
+        print('MainWindow.fetch_api_data')
         self.maprt_api.get_status()
         self.maprt_api.get_treatment_rooms()
         self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
         self.w_pb_get_map.setEnabled(True)
 
     def get_maprt_collision_maps(self):
+        print('MainWindow.get_maprt_collision_maps')
         self.maprt_api.get_map(self.maprt_ctx)
 
     def ui_update_maprt_treatment_rooms(self, rooms):
+        print('MainWindow.ui_update_maprt_treatment_rooms')
         if self.w_cb_treatment_room.count() == 0:
             self.w_cb_treatment_room.addItems(rooms)
         else:
@@ -447,6 +464,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_treatment_room.addItems(rooms)
 
     def ui_update_maprt_surfaces(self, surfaces):
+        print('MainWindow.ui_update_maprt_surfaces')
         if self.w_cb_surface_for_map.count() == 0:
             self.w_cb_surface_for_map.addItems(surfaces)
         else:
@@ -461,6 +479,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_surface_for_map.addItems(surfaces)
 
     def ui_update_maprt_collision_maps(self, maps):
+        print('MainWindow.ui_update_maprt_collision_maps')
         if self.w_cb_current_map.count() == 0:
             self.w_cb_current_map.addItems(maps)
         else:
@@ -472,6 +491,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             #     self.w_cb_current_map.setCurrentText(current_selection)
 
     def ui_update_map_surface_visualization(self, surface):
+        print('MainWindow.ui_update_map_surface_visualization')
         if self.maprt_actor is None:
 
             self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
@@ -509,7 +529,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def ui_update_collision_map_graphics_view(self, current_map_data):
-
+        print('MainWindow.ui_update_collision_map_graphics_view')
         if self.collision_map is not None:
             self.collision_map_plot_widget.removeItem(self.collision_map)
 
@@ -527,6 +547,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
     def ui_update_beam_plots(self, beam_plot_items):
+        print('MainWindow.ui_update_beam_plots')
         arcs, static_beams = beam_plot_items
         for arc in arcs:
             arc.setZValue(25)
@@ -536,9 +557,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.collision_map_plot_widget.addItem(static_beam)
 
     def ui_notify_connection_error(self, message):
+        print('MainWindow.ui_notify_connection_error')
         qtw.QMessageBox.critical(self, "MapRT API Error", message, qtw.QMessageBox.Ok)
 
     def ui_select_maprt_surface_file(self):
+        print('MainWindow.ui_select_maprt_surface_file')
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select MapRT .obj Surface File",
                                                       ".",
@@ -558,7 +581,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     self.collision_map_view_box.removeItem(self.collision_map)
 
     def collision_map_mouse_moved(self, event):
-        # print(evt)
+        # print('MainWindow.collision_map_mouse_moved')
         pos = event  # using signal proxy turns original event into tuple
         if self.collision_map_view_box.sceneBoundingRect().contains(pos):
             mouse_point = self.collision_map_view_box.mapSceneToView(pos)
@@ -570,6 +593,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # print(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
 
     def maprt_surface_color_changed(self):
+        print('MainWindow.maprt_surface_color_changed')
         _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -583,6 +607,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def maprt_surface_transparency_changed(self):
+        print('MainWindow.maprt_surface_transparency_changed')
         self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
         if self.maprt_actor is not None:
             self.maprt_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
@@ -595,6 +620,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def show_settings_dialog(self):
+        print('MainWindow.show_settings_dialog')
         settings_dialog = SettingsDialog()
 
         if settings_dialog.exec():
@@ -620,9 +646,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             print("ignoring settings changes")
 
     def ui_show_info_message(self, message):
+        print('MainWindow.ui_show_info_message')
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
     def show_dicomrt_file_input_widgets(self):
+        print('MainWindow.show_dicomrt_file_input_widgets')
         # self.patient_ctx.clear()
         self.w_le_dcm_plan_file.clear()
         self.w_le_dcm_struct_file.clear()
@@ -643,11 +671,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.dicom_actor = None
 
     def _get_current_color(self, frame):
+        print('MainWindow._get_current_color')
         palette = frame.palette()
         background_color = palette.color(qtg.QPalette.ColorRole.Window)
         return background_color.getRgb()
 
-    def __get_viewing_bounds(self):
+    def _get_viewing_bounds(self):
+        print('MainWindow._get_viewing_bounds')
         _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
 
         actors = self.vtk_renderer.GetActors()
@@ -669,6 +699,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def vtk_render_window_background_color_changed(self):
+        print('MainWindow.vtk_render_window_background_color_changed')
         _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -681,6 +712,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def save_3d_image(self):
+        print('MainWindow.save_3d_image')
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
                                                       "Save Render Window as Image",
                                                       ".",
@@ -702,9 +734,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.Write()
 
     def set_camera_to_plus_x(self):
+        print('MainWindow.set_camera_to_plus_x')
         if self.w_rb_plusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
@@ -726,9 +759,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_x(self):
+        print('MainWindow.set_camera_to_minus_x')
         if self.w_rb_minusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
@@ -743,10 +777,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
 
-    def sset_camera_to_plus_y(self):
+    def set_camera_to_plus_y(self):
+        print('MainWindow.set_camera_to_plus_y')
         if self.w_rb_plusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
@@ -762,9 +797,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_y(self):
+        print('MainWindow.set_camera_to_minus_y')
         if self.w_rb_minusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
@@ -780,9 +816,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_z(self):
+        print('MainWindow.set_camera_to_plus_z')
         if self.w_rb_plusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
@@ -798,9 +835,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_z(self):
+        print('MainWindow.set_camera_to_minus_z')
         if self.w_rb_minusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
-            x_min, x_max, y_min, y_max, z_min, z_max = self.__get_viewing_bounds()
+            x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
             center = [(x_min + x_max) / 2.0, (y_min + y_max) / 2.0, (z_min + z_max) / 2.0]
 
             x_length = x_max - x_min
