@@ -31,6 +31,7 @@ class MissingDataError(Exception):
 
 class MapRTOrientTransform(object):
     def __init__(self):
+        print('MapRTOrientTransform.__init__')
         super().__init__()
         self._store = {}
         self._store[None] = self._IDENTITY = np.array([[1, 0, 0],
@@ -64,6 +65,7 @@ class MapRTOrientTransform(object):
                                                   )
 
     def __getitem__(self, item):
+        print('MapRTOrientTransform.__getitem__')
         return self._store[item]
 
     @property
@@ -87,16 +89,17 @@ class MapRTAPIManager(qtc.QObject):
     api_connection_error = qtc.Signal(str)
 
     def __init__(self, api_url, token, user_agent):
+        print('MapRTAPIManager.__init__')
         super().__init__()
 
         self._api_url = api_url
         self._token = token
         self._user_agent = user_agent
 
-        self._header = qtn.QHttpHeaders()
-        self._header.insert(0, "Content-Type", "application/json")
-        self._header.append("Authorization", f"Bearer {self._token}")
-        self._header.append("User-Agent", self._user_agent)
+        # self._header = qtn.QHttpHeaders()
+        # self._header.insert(0, "Content-Type", "application/json")
+        # self._header.append("Authorization", f"Bearer {self._token}")
+        # self._header.append("User-Agent", self._user_agent)
 
         self.ssl_config = qtn.QSslConfiguration.defaultConfiguration()
         self.ssl_config.setPeerVerifyMode(qtn.QSslSocket.PeerVerifyMode.VerifyNone)
@@ -115,6 +118,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @api_url.setter
     def api_url(self, value):
+        print('MapRTAPIManager.api_url.setter')
         self._api_url = str(value)
 
     @property
@@ -123,6 +127,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @token.setter
     def token(self, value):
+        print('MapRTAPIManager.token.setter')
         self._token = str(value)
 
     @property
@@ -131,6 +136,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @user_agent.setter
     def user_agent(self, value):
+        print('MapRTAPIManager.user_agent.setter')
         self._user_agent= str(value)
 
     @property
@@ -142,6 +148,7 @@ class MapRTAPIManager(qtc.QObject):
         return header
 
     def get_status(self):
+        print('MapRTAPIManager.get_status')
         url = self.api_url + "/integration/ping"
         attributes = f"Ping:"
 
@@ -156,6 +163,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_rooms(self):
+        print('MapRTAPIManager.get_treatment_rooms')
         url = self.api_url + "/integration/rooms"
         attributes = f"Rooms:"
 
@@ -170,6 +178,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_room(self, room_name):
+        print('MapRTAPIManager.get_treatment_room')
         url = self.api_url + f"/integration/rooms/{room_name}"
         attributes = f"Room:{room_name}"
 
@@ -184,6 +193,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_patient_surfaces(self, patient_id):
+        print('MapRTAPIManager.get_patient_surfaces')
         url = self.api_url + f"/integration/patients/{patient_id}/surfaces"
         attributes = f"Surfaces:{patient_id}"
 
@@ -198,6 +208,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_surface(self, surface_id):
+        print('MapRTAPIManager.get_surface')
         url = self.api_url + f"/integration/surfaces/{surface_id}"
         attributes = f"Surface:{surface_id}"
 
@@ -212,6 +223,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_map(self, ctx):
+        print('MapRTAPIManager.get_map')
         if ctx.plan_context is not None:
             if ctx.current_surface is not None:
                 url = self.api_url + f"/integration/GetMap"
@@ -256,6 +268,7 @@ class MapRTAPIManager(qtc.QObject):
 
 class MapRTSurface(qtc.QObject):
     def __init__(self, data, _id, label, orientation):
+        print('MapRTSurface.__init__')
         super().__init__()
         self._id = _id
         self._label = label
@@ -279,6 +292,7 @@ class MapRTSurface(qtc.QObject):
         return self._vtk_polydata
 
     def _process_data(self, data):
+        print('MapRTSurface._process_data')
         _mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(data), file_type='obj')
 
         transformer = MapRTOrientTransform()
@@ -318,6 +332,7 @@ class MapRTContext(qtc.QObject):
     plan_context_changed = qtc.Signal(bool)
 
     def __init__(self, api_manager):
+        print('MapRTContext.__init__')
         super().__init__()
         self._plan_context = None
 
@@ -385,38 +400,42 @@ class MapRTContext(qtc.QObject):
         return self._current_map_data
 
     def update_plan_context(self, ctx):
+        print('MapRTContext.update_plan_context')
         if isinstance(ctx, DicomPlanContext):
             self._plan_context = ctx
         else:
             raise TypeError("'_plan_context' attribute must be set to instance of a PlanContext")
 
     def update_couch_buffer(self, value):
-        print(f"couch buffer set to {value}")
+        print('MapRTContext.update_couch_buffer')
         self._couch_buffer = value
 
     def update_patient_buffer(self, value):
-        print(f"patient buffer set to {value}")
+        print('MapRTContext.update_patient_buffer')
         self._patient_buffer = value
 
     def update_room(self, room_label):
-        print("current room updated")
+        print('MapRTContext.update_room')
         self._current_room_label = room_label
         self._current_room_id, self._current_room_scale = self.treatment_rooms[room_label]
         self.current_room_changed.emit()
 
     def update_surface(self, surface_label):
+        print('MapRTContext.update_surface')
         for k, v in self.__surface_id_map.items():
             if v == surface_label:
                 self._current_surface = self._patient_surfaces[k]
                 self.current_surface_changed.emit(self._current_surface)
 
     def update_current_map_data(self, map_label):
+        print('MapRTContext.update_current_map_data')
         if map_label in self._collision_maps:
             self._current_map_label = map_label
             self._current_map_data = self._collision_maps[map_label]
             self.current_map_data_changed.emit(self._current_map_data)
 
     def load_surface_file(self, file_path, orientation):
+        print('MapRTContext.load_surface_file')
         try:
             mesh = trimesh.load(file_path)
             _id = uuid.uuid4().hex
@@ -434,8 +453,8 @@ class MapRTContext(qtc.QObject):
         except Exception as e:
             raise ObjFileValidationError(e)
 
-
     def generate_map_label(self):
+        print('MapRTContext.generate_map_label')
         if self._plan_context is not None:
             iso = self.plan_context.isocenter
             couch_buff = self.couch_buffer * 10
@@ -449,6 +468,7 @@ class MapRTContext(qtc.QObject):
             raise MissingDataError("Missing PlanContext is required for Isocenter location.")
 
     def get_collision_map(self):
+        print('MapRTContext.get_collision_map')
         label = self.generate_map_label()
         if label in self._collision_maps:
             self._current_map_data = self._collision_maps[label]
@@ -460,14 +480,15 @@ class MapRTContext(qtc.QObject):
                 raise MissingDataError("Missing PlanContext is required for Isocenter location.")
 
     def _handle_api_results(self, reply):
+        print('MapRTContext._handle_api_results')
         if reply.error() == qtn.QNetworkReply.NetworkError.NoError:
             attributes = reply.request().attribute(qtn.QNetworkRequest.Attribute.User)
             call_type, args = attributes.split(':')
             status_code = reply.attribute(qtn.QNetworkRequest.Attribute.HttpStatusCodeAttribute)
 
-            print(f'\tCall to: {reply.request().url().toString()}')
-            print(f'\tHTTP Status Code: {status_code} {responses[status_code]}')
-            print(f"\tCall Type Code: {call_type}")
+            # print(f'\tCall to: {reply.request().url().toString()}')
+            # print(f'\tHTTP Status Code: {status_code} {responses[status_code]}')
+            # print(f"\tCall Type Code: {call_type}")
 
 
             data = reply.readAll()
@@ -475,6 +496,7 @@ class MapRTContext(qtc.QObject):
 
             # Process reply based on call type that was executed
             if call_type == 'Ping':
+                print('MapRTContext._handle_api_results.Ping')
                 # json_data = json.loads(text)
                 # print('Passed Args: ', *args.split(','))
                 # print("Data received:")
@@ -483,6 +505,7 @@ class MapRTContext(qtc.QObject):
                 self.api_status_changed.emit(self._api_status)
 
             elif call_type == 'Rooms':
+                print('MapRTContext._handle_api_results.Rooms')
                 json_data = json.loads(text)
                 # print('Passed Args: ', *args.split(','))
                 # print("Data received:")
@@ -496,12 +519,14 @@ class MapRTContext(qtc.QObject):
                 self.treatment_rooms_updated.emit(room_names)
 
             elif call_type == 'Room':
+                print('MapRTContext._handle_api_results.Room')
                 json_data = json.loads(text)
                 # print('Passed Args: ', *args.split(','))
                 # print("Data received:")
                 # print(json.dumps(json_data, indent=2))
 
             elif call_type == 'Surfaces':
+                print('MapRTContext._handle_api_results.Surfaces')
                 json_data = json.loads(text)
                 # print('Passed Args: ', *args.split(','))
                 # print("Data received:")
@@ -513,6 +538,7 @@ class MapRTContext(qtc.QObject):
                     self.api_manager.get_surface(_id)
 
             elif call_type == 'Surface':
+                print('MapRTContext._handle_api_results.Surface')
                 if self._plan_context is not None:
                     _id, = args.split(',')
                     json_data = json.loads(text)
@@ -537,6 +563,7 @@ class MapRTContext(qtc.QObject):
 
 
             elif call_type == 'Map':
+                print('MapRTContext._handle_api_results.Map')
                 # print('Passed Args: ', *args.split(','))
                 # print("Data received:")
 
