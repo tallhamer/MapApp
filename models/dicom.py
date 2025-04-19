@@ -243,10 +243,7 @@ class DicomPlanContext(qtc.QObject):
                         beam_plot.setPen(pg.mkPen(color='y', width=4))
                         arc_plots.append(beam_plot)
 
-            print(beam)
         self.beams_changed.emit(self._beams)
-        print(arc_plots)
-        print(static_plots)
         self.redraw_beams.emit((arc_plots, static_plots))
 
     def _get_structure_point_clouds(self, ds):
@@ -440,12 +437,11 @@ class PatientContext(qtc.QObject):
         if plan_id in self._plans:
             self._current_plan.update_values(self._plans[plan_id])
             self.current_plan_changed.emit(self._current_plan)
-        else:
-            pass
 
     def load_context_from_dicom_rt_file(self, file_path):
         print('PatientContext.load_context_from_dicom_rt_file')
         ds = pydicom.dcmread(file_path)
+        
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
             self.patient_id = ds.PatientID
