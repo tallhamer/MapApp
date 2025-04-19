@@ -483,12 +483,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if self.w_cb_current_map.count() == 0:
             self.w_cb_current_map.addItems(maps)
         else:
-            # current_selection = self.w_cb_current_map.currentText()
+            self.w_cb_current_map.blockSignals(True)
             self.w_cb_current_map.clear()
+            self.w_cb_current_map.blockSignals(False)
             self.w_cb_current_map.addItems(maps)
             self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
-            # if current_selection in maps:
-            #     self.w_cb_current_map.setCurrentText(current_selection)
+
 
     def ui_update_map_surface_visualization(self, surface):
         print('MainWindow.ui_update_map_surface_visualization')

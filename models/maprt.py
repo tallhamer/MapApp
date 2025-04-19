@@ -652,7 +652,6 @@ class MapRTContext(qtc.QObject):
                 room_name, _ = self._treatment_room_ids[rid]
 
                 map_label = f"{room_name} -- {surface_namee} -- {iso} -- CB: {cb} -- PB: {pb}"
-                print(map_label)
 
                 self._collision_maps[map_label] = (map_view, x_ticks, y_ticks)
                 map_labels = [key for key in self._collision_maps.keys()]

@@ -441,7 +441,7 @@ class PatientContext(qtc.QObject):
     def load_context_from_dicom_rt_file(self, file_path):
         print('PatientContext.load_context_from_dicom_rt_file')
         ds = pydicom.dcmread(file_path)
-        
+
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
             self.patient_id = ds.PatientID
@@ -458,8 +458,9 @@ class PatientContext(qtc.QObject):
                 self.first_name = ds.PatientID
 
             # Plan Data
-            self.current_plan.plan_id = ds.SeriesDescription
-            self.current_plan.frame_of_reference_uid = ds.FrameOfReferenceUID
+            plan = DicomPlanContext()
+            plan.plan_id = ds.SeriesDescription
+            plan.frame_of_reference_uid = ds.FrameOfReferenceUID
 
             # Get Orientation from PatientSetupSequence
             _orientation = None
@@ -472,7 +473,7 @@ class PatientContext(qtc.QObject):
                     print("There are multiple patient orientations reported in the DICOM Plan")
                 else:
                     pass
-            self.current_plan.patient_orientation = _orientation
+            plan.patient_orientation = _orientation
 
             # Get beams and isocenter
             _isocenter = None
@@ -510,16 +511,14 @@ class PatientContext(qtc.QObject):
                                ]
                               )
 
-            self.current_plan.isocenter = _isocenter
-            self.current_plan.beams = _beams
+            plan.isocenter = _isocenter
+            plan.beams = _beams
+            plans = {plan.plan_id: plan}
 
-            plans = {self.current_plan.plan_id: self.current_plan}
             self._courses['F1'] = plans
-            # print(f"courses_updated.emit")
             self.courses_updated.emit(self.courses)
-            # print("call method to update the current course")
             self.update_current_course('F1')
-            self.update_current_plan(self.current_plan.plan_id)
+            self.update_current_plan(plan.plan_id)
         else:
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
