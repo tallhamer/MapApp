@@ -12,6 +12,7 @@ from models.settings import AppSettings
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def __init__(self):
+        print('SettingsDialog.__init__')
         super().__init__()
         self.setupUi(self)
 
@@ -38,6 +39,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
 
     def _browse_for_dicom_directory(self):
+        print('SettingsDialog._browse_for_dicom_directory')
         dir = qtw.QFileDialog.getExistingDirectory(self,
                                                    "Select location for DICOM RT files",
                                                    "."
@@ -46,6 +48,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.w_le_dicom_directory.setText(dir)
 
     def _test_api_connection(self):
+        print('SettingsDialog._test_api_connection')
         self.w_te_test_connectio_results.clear()
 
         self.maprt_api = MapRTAPIManager(self.w_le_api_url.text(),
@@ -59,6 +62,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.maprt_api.get_treatment_rooms()
 
     def _handle_test_results(self, reply):
+        print('SettingsDialog._handle_test_results')
         if reply.error() == qtn.QNetworkReply.NetworkError.NoError:
             attributes = reply.request().attribute(qtn.QNetworkRequest.Attribute.User)
             call_type, args = attributes.split(':')
@@ -74,6 +78,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
 
             # Process reply based on call type that was executed
             if call_type == 'Ping':
+                print('SettingsDialog._handle_test_results.Ping')
                 json_data = json.loads(text)
 
                 self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
@@ -88,6 +93,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
 
 
             elif call_type == 'Rooms':
+                print('SettingsDialog._handle_test_results.Rooms')
                 json_data = json.loads(text)
 
                 self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
