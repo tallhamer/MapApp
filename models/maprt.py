@@ -340,7 +340,7 @@ class MapRTContext(qtc.QObject):
         self._api_manager = api_manager
         self._api_manager.manager.finished.connect(self._handle_api_results)
 
-        self._api_status = None  # str
+        self._api_status = None             # str
         self._couch_buffer = 2.0            # float
         self._patient_buffer = 2.0          # float
         self.__surface_id_map = {}          # surface_id: surface_label
@@ -399,6 +399,29 @@ class MapRTContext(qtc.QObject):
     def current_map_data(self):
         return self._current_map_data
 
+    def clear(self):
+        print('MapRTContext.clear')
+        self._plan_context = None
+
+        self._api_status = None  # str
+        self.api_status_changed.emit('')
+        self._couch_buffer = 2.0  # float
+        self._patient_buffer = 2.0  # float
+        self.__surface_id_map = {}  # surface_id: surface_label
+        self._patient_surfaces = {}  # surface_id: vtk_polydata
+        self._current_surface = None  # vtk_polydata
+        self.patient_surfaces_updated.emit([])
+        self._treatment_room_names = {}  # room_name: (room_id, room_scale)
+        self._treatment_room_ids = {}  # room_id: (room_name, room_scale)
+        self._current_room_label = None  # str
+        self._current_room_id = None  # str
+        self._current_room_scale = None  # str
+        self.treatment_rooms_updated.emit([])
+        self._collision_maps = {}  # str: (map_view, x_ticks, y_ticks)
+        self._current_map_label = ''  # str
+        self._current_map_data = None  # (map_view, x_ticks, y_ticks)
+        self.collision_maps_updated.emit([])
+
     def update_plan_context(self, ctx):
         print('MapRTContext.update_plan_context')
         if isinstance(ctx, DicomPlanContext):
@@ -416,9 +439,10 @@ class MapRTContext(qtc.QObject):
 
     def update_room(self, room_label):
         print('MapRTContext.update_room')
-        self._current_room_label = room_label
-        self._current_room_id, self._current_room_scale = self.treatment_rooms[room_label]
-        self.current_room_changed.emit()
+        if room_label in self._treatment_room_names: # needed for clearing
+            self._current_room_label = room_label
+            self._current_room_id, self._current_room_scale = self.treatment_rooms[room_label]
+            self.current_room_changed.emit()
 
     def update_surface(self, surface_label):
         print('MapRTContext.update_surface')
@@ -486,10 +510,6 @@ class MapRTContext(qtc.QObject):
             call_type, args = attributes.split(':')
             status_code = reply.attribute(qtn.QNetworkRequest.Attribute.HttpStatusCodeAttribute)
 
-            # print(f'\tCall to: {reply.request().url().toString()}')
-            # print(f'\tHTTP Status Code: {status_code} {responses[status_code]}')
-            # print(f"\tCall Type Code: {call_type}")
-
 
             data = reply.readAll()
             text = str(data, 'utf-8')
@@ -497,19 +517,12 @@ class MapRTContext(qtc.QObject):
             # Process reply based on call type that was executed
             if call_type == 'Ping':
                 print('MapRTContext._handle_api_results.Ping')
-                # json_data = json.loads(text)
-                # print('Passed Args: ', *args.split(','))
-                # print("Data received:")
-                # print(json.dumps(json_data, indent=2))
                 self._api_status = f'HTTP Status Code: {status_code} {responses[status_code]}'
                 self.api_status_changed.emit(self._api_status)
 
             elif call_type == 'Rooms':
                 print('MapRTContext._handle_api_results.Rooms')
                 json_data = json.loads(text)
-                # print('Passed Args: ', *args.split(','))
-                # print("Data received:")
-                # print(json.dumps(json_data, indent=2))
 
                 for room in json_data['data']:
                     self._treatment_room_names[room['name']] = (room['id'], room['coordinateSystem'])
@@ -521,16 +534,11 @@ class MapRTContext(qtc.QObject):
             elif call_type == 'Room':
                 print('MapRTContext._handle_api_results.Room')
                 json_data = json.loads(text)
-                # print('Passed Args: ', *args.split(','))
-                # print("Data received:")
-                # print(json.dumps(json_data, indent=2))
 
             elif call_type == 'Surfaces':
                 print('MapRTContext._handle_api_results.Surfaces')
                 json_data = json.loads(text)
-                # print('Passed Args: ', *args.split(','))
-                # print("Data received:")
-                # print(json.dumps(json_data, indent=2))
+
                 for surface in json_data['data']:
                     self.__surface_id_map[surface['id']] = surface['label']
 
@@ -542,9 +550,6 @@ class MapRTContext(qtc.QObject):
                 if self._plan_context is not None:
                     _id, = args.split(',')
                     json_data = json.loads(text)
-                    # print('Passed Args: ', *args.split(','))
-                    # print("Data received:")
-                    # print(json.dumps(json_data, indent=2))
 
                     base64_data = json_data["data"].split(',')[-1]
                     decoded_data = base64.b64decode(base64_data)
@@ -564,8 +569,6 @@ class MapRTContext(qtc.QObject):
 
             elif call_type == 'Map':
                 print('MapRTContext._handle_api_results.Map')
-                # print('Passed Args: ', *args.split(','))
-                # print("Data received:")
 
                 lst = text.split()
 
@@ -624,16 +627,14 @@ class MapRTContext(qtc.QObject):
                 c0 = np.arange(270, 360, 1)
                 c1 = np.arange(0, 91, 1)
                 couch_values = np.hstack((c0, c1))
-                i_idx = np.arange(len(couch_values))
+                # i_idx = np.arange(len(couch_values))
 
                 # construct gantry index positions for resampled map
                 g0 = np.arange(180, 360, 1)
                 g1 = np.arange(0, 180, 1)
                 gantry_values = np.hstack((g0, g1))
-                j_idx = np.arange(len(gantry_values))
+                # j_idx = np.arange(len(gantry_values))
 
-                # x_map = dict([(str(couch_values[x]), int(i_idx[x])) for x in range(len(i_idx))])
-                # y_map = dict([(str(gantry_values[y]), int(j_idx[y])) for y in range(len(j_idx))])
 
                 # construct the mappings for the tick labels for the couch and gantry axes
                 x_labels = [(int(x), str(couch_values[x])) for x in np.arange(0, len(couch_values), 10)]

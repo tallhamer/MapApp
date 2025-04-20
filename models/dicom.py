@@ -352,6 +352,8 @@ class PatientContext(qtc.QObject):
     plans_updated = qtc.Signal(list)
     current_plan_changed = qtc.Signal(DicomPlanContext)
     invalid_file_loaded = qtc.Signal(str)
+    patient_context_cleared = qtc.Signal()
+
 
     def __init__(self):
         print('PatientContext.__init__')
@@ -422,6 +424,7 @@ class PatientContext(qtc.QObject):
         self._plans = {}
         self.plans_updated.emit(self.plans)
         self._current_plan.update_values(DicomPlanContext())
+        self.patient_context_cleared.emit()
 
     def update_current_course(self, course_id):
         print('PatientContext.update_current_course')

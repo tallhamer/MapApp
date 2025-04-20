@@ -97,6 +97,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
         self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
         self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
+        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_patient_context_widgets)
+        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
 
         # PatientContext.current_plan (PlanContext) specific Signals
         self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
@@ -147,6 +149,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         # Connect PatientContext to MapRTContext
         self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
+        self.patient_ctx.patient_context_cleared.connect(self.maprt_ctx.clear)
+        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_maprt_3d_scene)
+
 
     def _setup_collision_map_plot(self):
         print('MainWindow._setup_collision_map_plot')
@@ -380,8 +385,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def show_dicomrt_file_input_widgets(self):
         print('MainWindow.show_dicomrt_file_input_widgets')
         self.patient_ctx.clear()
-        self.ui_clear_patient_context_widgets()
-        self.ui_clear_dicom_3d_scene()
+        self.w_le_dcm_plan_file.clear()
+        self.w_le_dcm_struct_file.clear()
+        self.w_pb_dcm_struct_file.setEnabled(False)
+        self.w_pb_esapi_search.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+        # self.ui_clear_dicom_3d_scene()
 
     def ui_select_dicom_rt_plan_file(self):
         print('MainWindow.ui_select_dicom_rt_plan_file')
@@ -498,14 +510,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def ui_clear_patient_context_widgets(self):
         print('MainWindow.ui_clear_patient_context_widgets')
-        self.w_le_dcm_plan_file.clear()
-        self.w_le_dcm_struct_file.clear()
-        self.w_pb_dcm_struct_file.setEnabled(False)
-        self.w_pb_esapi_search.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
 
     def ui_clear_dicom_3d_scene(self):
         print('MainWindow.ui_clear_dicom_3d_scene')
@@ -717,6 +721,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
         else:
             pass
+
+    def ui_clear_maprt_3d_scene(self):
+        print('MainWindow.ui_clear_maprt_3d_scene')
+        if self.maprt_actor is not None:
+            self.vtk_renderer.RemoveActor(self.maprt_actor)
+            for laser_actor in self.maprt_laser_actors:
+                self.vtk_renderer.RemoveActor(laser_actor)
+            self.vtk_render_window.Render()
+            self.maprt_actor = None
+            self.maprt_laser_actors = None
 
     ####################################################################################
     # ui manipulation methods                                                          #
