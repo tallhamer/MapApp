@@ -390,18 +390,18 @@ class Ui_MainWindow(object):
 
         self.gridLayout_7.addWidget(self.label_3, 0, 0, 1, 1)
 
-        self.w_hs_dcm_transparency = QSlider(self.groupBox_7)
-        self.w_hs_dcm_transparency.setObjectName(u"w_hs_dcm_transparency")
-        self.w_hs_dcm_transparency.setMaximum(100)
-        self.w_hs_dcm_transparency.setValue(100)
-        self.w_hs_dcm_transparency.setOrientation(Qt.Orientation.Horizontal)
+        self.w_hs_dcm_opacity = QSlider(self.groupBox_7)
+        self.w_hs_dcm_opacity.setObjectName(u"w_hs_dcm_opacity")
+        self.w_hs_dcm_opacity.setMaximum(100)
+        self.w_hs_dcm_opacity.setValue(100)
+        self.w_hs_dcm_opacity.setOrientation(Qt.Orientation.Horizontal)
 
-        self.gridLayout_7.addWidget(self.w_hs_dcm_transparency, 2, 2, 1, 1)
+        self.gridLayout_7.addWidget(self.w_hs_dcm_opacity, 2, 2, 1, 1)
 
-        self.w_l_dcm_transparency = QLabel(self.groupBox_7)
-        self.w_l_dcm_transparency.setObjectName(u"w_l_dcm_transparency")
+        self.w_l_dcm_opacity = QLabel(self.groupBox_7)
+        self.w_l_dcm_opacity.setObjectName(u"w_l_dcm_opacity")
 
-        self.gridLayout_7.addWidget(self.w_l_dcm_transparency, 2, 3, 1, 1)
+        self.gridLayout_7.addWidget(self.w_l_dcm_opacity, 2, 3, 1, 1)
 
         self.w_pb_dcm_color = QPushButton(self.groupBox_7)
         self.w_pb_dcm_color.setObjectName(u"w_pb_dcm_color")
@@ -442,18 +442,18 @@ class Ui_MainWindow(object):
 
         self.gridLayout_3.addWidget(self.label_10, 1, 0, 1, 1)
 
-        self.w_hs_obj_transparency = QSlider(self.groupBox_8)
-        self.w_hs_obj_transparency.setObjectName(u"w_hs_obj_transparency")
-        self.w_hs_obj_transparency.setMaximum(100)
-        self.w_hs_obj_transparency.setValue(100)
-        self.w_hs_obj_transparency.setOrientation(Qt.Orientation.Horizontal)
+        self.w_hs_obj_opacity = QSlider(self.groupBox_8)
+        self.w_hs_obj_opacity.setObjectName(u"w_hs_obj_opacity")
+        self.w_hs_obj_opacity.setMaximum(100)
+        self.w_hs_obj_opacity.setValue(100)
+        self.w_hs_obj_opacity.setOrientation(Qt.Orientation.Horizontal)
 
-        self.gridLayout_3.addWidget(self.w_hs_obj_transparency, 1, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.w_hs_obj_opacity, 1, 1, 1, 1)
 
-        self.w_l_obj_transparency = QLabel(self.groupBox_8)
-        self.w_l_obj_transparency.setObjectName(u"w_l_obj_transparency")
+        self.w_l_obj_opacity = QLabel(self.groupBox_8)
+        self.w_l_obj_opacity.setObjectName(u"w_l_obj_opacity")
 
-        self.gridLayout_3.addWidget(self.w_l_obj_transparency, 1, 2, 1, 1)
+        self.gridLayout_3.addWidget(self.w_l_obj_opacity, 1, 2, 1, 1)
 
 
         self.verticalLayout_3.addWidget(self.groupBox_8)
@@ -462,11 +462,61 @@ class Ui_MainWindow(object):
         self.groupBox_9.setObjectName(u"groupBox_9")
         self.gridLayout = QGridLayout(self.groupBox_9)
         self.gridLayout.setObjectName(u"gridLayout")
+        self.label_33 = QLabel(self.groupBox_9)
+        self.label_33.setObjectName(u"label_33")
+
+        self.gridLayout.addWidget(self.label_33, 2, 0, 1, 1)
+
+        self.w_pb_laser_color = QPushButton(self.groupBox_9)
+        self.w_pb_laser_color.setObjectName(u"w_pb_laser_color")
+
+        self.gridLayout.addWidget(self.w_pb_laser_color, 1, 1, 1, 1)
+
+        self.w_l_laser_opacity = QLabel(self.groupBox_9)
+        self.w_l_laser_opacity.setObjectName(u"w_l_laser_opacity")
+
+        self.gridLayout.addWidget(self.w_l_laser_opacity, 2, 2, 1, 1)
+
+        self.label_5 = QLabel(self.groupBox_9)
+        self.label_5.setObjectName(u"label_5")
+        self.label_5.setMaximumSize(QSize(100, 16777215))
+
+        self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
+
+        self.w_fr_laser_color = QFrame(self.groupBox_9)
+        self.w_fr_laser_color.setObjectName(u"w_fr_laser_color")
+        sizePolicy3.setHeightForWidth(self.w_fr_laser_color.sizePolicy().hasHeightForWidth())
+        self.w_fr_laser_color.setSizePolicy(sizePolicy3)
+        self.w_fr_laser_color.setMinimumSize(QSize(25, 25))
+        self.w_fr_laser_color.setMaximumSize(QSize(25, 25))
+        self.w_fr_laser_color.setFrameShape(QFrame.Shape.StyledPanel)
+        self.w_fr_laser_color.setFrameShadow(QFrame.Shadow.Raised)
+
+        self.gridLayout.addWidget(self.w_fr_laser_color, 1, 2, 1, 1)
+
         self.w_pb_background_color = QPushButton(self.groupBox_9)
         self.w_pb_background_color.setObjectName(u"w_pb_background_color")
         self.w_pb_background_color.setMaximumSize(QSize(16777215, 16777215))
 
         self.gridLayout.addWidget(self.w_pb_background_color, 0, 1, 1, 1)
+
+        self.w_hs_laser_opacity = QSlider(self.groupBox_9)
+        self.w_hs_laser_opacity.setObjectName(u"w_hs_laser_opacity")
+        self.w_hs_laser_opacity.setMaximum(100)
+        self.w_hs_laser_opacity.setValue(100)
+        self.w_hs_laser_opacity.setOrientation(Qt.Orientation.Horizontal)
+
+        self.gridLayout.addWidget(self.w_hs_laser_opacity, 2, 1, 1, 1)
+
+        self.label_16 = QLabel(self.groupBox_9)
+        self.label_16.setObjectName(u"label_16")
+
+        self.gridLayout.addWidget(self.label_16, 3, 0, 1, 1)
+
+        self.label_32 = QLabel(self.groupBox_9)
+        self.label_32.setObjectName(u"label_32")
+
+        self.gridLayout.addWidget(self.label_32, 1, 0, 1, 1)
 
         self.w_fr_background_color = QFrame(self.groupBox_9)
         self.w_fr_background_color.setObjectName(u"w_fr_background_color")
@@ -478,17 +528,6 @@ class Ui_MainWindow(object):
         self.w_fr_background_color.setFrameShadow(QFrame.Shadow.Raised)
 
         self.gridLayout.addWidget(self.w_fr_background_color, 0, 2, 1, 1)
-
-        self.label_5 = QLabel(self.groupBox_9)
-        self.label_5.setObjectName(u"label_5")
-        self.label_5.setMaximumSize(QSize(100, 16777215))
-
-        self.gridLayout.addWidget(self.label_5, 0, 0, 1, 1)
-
-        self.label_16 = QLabel(self.groupBox_9)
-        self.label_16.setObjectName(u"label_16")
-
-        self.gridLayout.addWidget(self.label_16, 1, 0, 1, 1)
 
         self.widget_2 = QWidget(self.groupBox_9)
         self.widget_2.setObjectName(u"widget_2")
@@ -530,7 +569,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_2.addWidget(self.w_rb_minusZ)
 
 
-        self.gridLayout.addWidget(self.widget_2, 1, 1, 1, 2)
+        self.gridLayout.addWidget(self.widget_2, 4, 0, 1, 3)
 
 
         self.verticalLayout_3.addWidget(self.groupBox_9)
@@ -624,7 +663,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         self.w_tw_patient_settings.setCurrentIndex(1)
-        self.w_tw_visualizations.setCurrentIndex(1)
+        self.w_tw_visualizations.setCurrentIndex(0)
 
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -677,19 +716,23 @@ class Ui_MainWindow(object):
         self.label_31.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.w_tw_patient_settings.setTabText(self.w_tw_patient_settings.indexOf(self.tab), QCoreApplication.translate("MainWindow", u"Patient Context", None))
         self.groupBox_7.setTitle(QCoreApplication.translate("MainWindow", u"DICOM", None))
-        self.label_8.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
-        self.w_l_dcm_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
+        self.label_8.setText(QCoreApplication.translate("MainWindow", u"Surface Opacity:", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"Surface Color:", None))
+        self.w_l_dcm_opacity.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.w_pb_dcm_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
         self.groupBox_8.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
-        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
+        self.label_4.setText(QCoreApplication.translate("MainWindow", u"Surface Color:", None))
         self.w_pb_obj_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
-        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Transparency:", None))
-        self.w_l_obj_transparency.setText(QCoreApplication.translate("MainWindow", u"100", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"Surface Opacity:", None))
+        self.w_l_obj_opacity.setText(QCoreApplication.translate("MainWindow", u"100", None))
         self.groupBox_9.setTitle(QCoreApplication.translate("MainWindow", u"Scene", None))
+        self.label_33.setText(QCoreApplication.translate("MainWindow", u"Laser Opacity", None))
+        self.w_pb_laser_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
+        self.w_l_laser_opacity.setText(QCoreApplication.translate("MainWindow", u"100", None))
+        self.label_5.setText(QCoreApplication.translate("MainWindow", u"Background Color:", None))
         self.w_pb_background_color.setText(QCoreApplication.translate("MainWindow", u"Select Color", None))
-        self.label_5.setText(QCoreApplication.translate("MainWindow", u"Color:", None))
         self.label_16.setText(QCoreApplication.translate("MainWindow", u"View From", None))
+        self.label_32.setText(QCoreApplication.translate("MainWindow", u"Laser Color:", None))
         self.w_rb_plusX.setText(QCoreApplication.translate("MainWindow", u"+X", None))
         self.w_rb_minusX.setText(QCoreApplication.translate("MainWindow", u"-X", None))
         self.w_rb_plusY.setText(QCoreApplication.translate("MainWindow", u"+Y", None))

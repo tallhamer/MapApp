@@ -105,7 +105,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_dcm_color.clicked.connect(self.dcm_color_changed)
         self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({0}, {127}, {0});")
         self.w_fr_dcm_color.show()
-        self.w_hs_dcm_transparency.valueChanged.connect(self.dcm_transparency_changed)
+        self.w_hs_dcm_opacity.valueChanged.connect(self.dcm_transparency_changed)
 
         #OBJ Code
 
@@ -116,7 +116,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
         self.w_fr_obj_color.show()
         self.w_pb_obj_color.clicked.connect(self.obj_color_changed)
-        self.w_hs_obj_transparency.valueChanged.connect(self.obj_transparency_changed)
+        self.w_hs_obj_opacity.valueChanged.connect(self.obj_transparency_changed)
 
         self.w_rb_hfs.toggled.connect(self.orientation_changed)
         self.w_rb_hfp.toggled.connect(self.orientation_changed)
@@ -412,7 +412,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dcm_actor)
             self.vtk_renderer.ResetCamera()
@@ -422,7 +422,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dcm_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dcm_actor)
             self.vtk_renderer.ResetCamera()
@@ -458,7 +458,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.obj_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.obj_actor)
             self.vtk_renderer.ResetCamera()
@@ -468,7 +468,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.obj_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.obj_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.obj_actor)
             self.vtk_renderer.ResetCamera()
@@ -534,9 +534,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # print('MainWindow Function: ', inspect.stack()[0][3])
         # print('\tCaller: ', inspect.stack()[1][3])
 
-        self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
+        self.w_l_dcm_opacity.setText(str(self.w_hs_dcm_opacity.value()))
         if self.dcm_actor is not None:
-            self.dcm_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dcm_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass
@@ -545,9 +545,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # print('MainWindow Function: ', inspect.stack()[0][3])
         # print('\tCaller: ', inspect.stack()[1][3])
 
-        self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
+        self.w_l_obj_opacity.setText(str(self.w_hs_obj_opacity.value()))
         if self.obj_actor is not None:
-            self.obj_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.obj_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass

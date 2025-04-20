@@ -25,14 +25,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         print('MainWindow.__init__')
-        # Setup the ui appearance
         self.setupUi(self)
+
+        self._load_application_settings()
+
         self.setWindowTitle("Map App")
         self._construct_menu_actions()
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
-        self._load_application_settings()
+
         self._setup_patient_context()
 
         # "https://maprtpkr.adventhealth.com:5000"
@@ -48,14 +50,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         self._setup_maprt_context()
 
-        # Connect PatientContext to MapRTContext
-        self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
+        # # Connect PatientContext to MapRTContext
+        # self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
 
         self._setup_collision_map_plot()
 
         # VTK rendering setup
-        self.maprt_actor = None
-        self.dicom_actor = None
+        # self.maprt_actor = None
+        # self.maprt_laser_actors = None
+        # self.dicom_actor = None
+        # self.dicom_laser_actors = None
 
         self._setup_3d_visualization()
 
@@ -64,7 +68,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     def testing(self):
         print('MainWindow.testing')
-        print('Stuff')
 
     def _load_application_settings(self):
         print('MainWindow._load_application_settings')
@@ -142,6 +145,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_surface_for_map.currentTextChanged.connect(self.maprt_ctx.update_surface)
         self.w_cb_treatment_room.currentTextChanged.connect(self.maprt_ctx.update_room)
 
+        # Connect PatientContext to MapRTContext
+        self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
+
     def _setup_collision_map_plot(self):
         print('MainWindow._setup_collision_map_plot')
         self.collision_map = None
@@ -177,11 +183,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def _setup_3d_visualization(self):
         print('MainWindow._setup_3d_visualization')
+        self.maprt_actor = None
+        self.maprt_laser_actors = None
+        self.dicom_actor = None
+        self.dicom_laser_actors = None
+
         # 3D Scene Widget Setup
         self.vtk_renderer = vtk.vtkRenderer()
         self.vtk_render_window = self.vtk_widget.GetRenderWindow()
         self.vtk_render_window.AddRenderer(self.vtk_renderer)
         self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
+        # self.vtk_interactor.render_window = self.vtk_render_window
         self.vtk_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
 
         # Setup 3D scene color controls
@@ -193,13 +205,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_dcm_color.clicked.connect(self.dicom_surface_color_changed)
         self.w_fr_dcm_color.setStyleSheet(f"background-color: rgb({0}, {127}, {0});")
         self.w_fr_dcm_color.show()
-        self.w_hs_dcm_transparency.valueChanged.connect(self.dicom_surface_transparency_changed)
+        self.w_hs_dcm_opacity.valueChanged.connect(self.dicom_surface_opacity_changed)
 
         # Setup MapRT obj actor color controls
+        self.w_pb_obj_color.clicked.connect(self.maprt_surface_color_changed)
         self.w_fr_obj_color.setStyleSheet(f"background-color: rgb({127}, {127}, {127});")
         self.w_fr_obj_color.show()
-        self.w_pb_obj_color.clicked.connect(self.maprt_surface_color_changed)
-        self.w_hs_obj_transparency.valueChanged.connect(self.maprt_surface_transparency_changed)
+        self.w_hs_obj_opacity.valueChanged.connect(self.maprt_surface_opacity_changed)
+
+        # Setup MapRT obj actor color controls
+        self.w_pb_laser_color.clicked.connect(self.laser_color_changed)
+        self.w_fr_laser_color.setStyleSheet(f"background-color: rgb({255}, {0}, {0});")
+        self.w_fr_laser_color.show()
+        self.w_hs_laser_opacity.valueChanged.connect(self.laser_opacity_changed)
 
         # Connect image save button
         self.w_pb_save_image.clicked.connect(self.save_3d_image)
@@ -211,6 +229,24 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_rb_minusY.toggled.connect(self.set_camera_to_minus_y)
         self.w_rb_plusZ.toggled.connect(self.set_camera_to_plus_z)
         self.w_rb_minusZ.toggled.connect(self.set_camera_to_minus_z)
+
+        # Create axes actor
+        axes_actor = vtk.vtkAxesActor()
+
+        # Create orientation marker widget
+        self.orientation_widget = vtk.vtkOrientationMarkerWidget()
+        self.orientation_widget.SetOutlineColor(0.9300, 0.5700, 0.1300)
+        self.orientation_widget.SetOrientationMarker(axes_actor)
+        self.orientation_widget.SetInteractor(self.vtk_interactor)
+        self.orientation_widget.SetViewport(0.0, 0.0, 0.2, 0.2)  # Set size and position
+        self.orientation_widget.EnabledOn()
+        self.orientation_widget.InteractiveOff()
+        self.orientation_widget.On()
+
+        self.cam_orient_manipulator = vtk.vtkCameraOrientationWidget(parent_renderer=self.vtk_renderer,
+                                                                interactor=self.vtk_interactor)
+        # Enable the widget.
+        self.cam_orient_manipulator.On()
 
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
@@ -341,9 +377,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_body_structure.clear()
                 self.w_cb_body_structure.addItems(structures)
 
-    def ui_enable_load_structure_button(self):
-        print('MainWindow.ui_enable_load_structure_button')
-        self.w_pb_dcm_struct_file.setEnabled(True)
+    def show_dicomrt_file_input_widgets(self):
+        print('MainWindow.show_dicomrt_file_input_widgets')
+        self.patient_ctx.clear()
+        self.ui_clear_patient_context_widgets()
+        self.ui_clear_dicom_3d_scene()
 
     def ui_select_dicom_rt_plan_file(self):
         print('MainWindow.ui_select_dicom_rt_plan_file')
@@ -360,6 +398,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             except DicomFileValidationError as e:
                 self.dicomrt_plan_model = None
                 print(e)
+
+    def ui_enable_load_structure_button(self):
+        print('MainWindow.ui_enable_load_structure_button')
+        self.w_pb_dcm_struct_file.setEnabled(True)
 
     def ui_select_dicom_rt_structure_file(self):
         print('MainWindow.ui_select_dicom_rt_structure_file')
@@ -393,19 +435,40 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dicom_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.dicom_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
+
+            self.dicom_laser_actors = self._get_laser_marks(self.dicom_actor.GetMapper().GetInput())
+
+            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+            for laser_actor in self.dicom_laser_actors:
+                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dicom_actor)
+            for laser_actor in self.dicom_laser_actors:
+                self.vtk_renderer.AddActor(laser_actor)
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.dicom_actor)
+            for laser_actor in self.dicom_laser_actors:
+                self.vtk_renderer.RemoveActor(laser_actor)
+
             self.dicom_actor = self.patient_ctx.current_plan.current_structure
 
             R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
             self.dicom_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.dicom_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
+
+            self.dicom_laser_actors = self._get_laser_marks(self.dicom_actor.GetMapper().GetInput())
+
+            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+            for laser_actor in self.dicom_laser_actors:
+                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.dicom_actor)
+            for laser_actor in self.dicom_laser_actors:
+                self.vtk_renderer.AddActor(laser_actor)
             self.vtk_renderer.ResetCamera()
 
         self.vtk_render_window.Render()
@@ -424,14 +487,35 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.dicom_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
                 self.vtk_render_window.Render()
 
-    def dicom_surface_transparency_changed(self):
-        print('MainWindow.dicom_surface_transparency_changed')
-        self.w_l_dcm_transparency.setText(str(self.w_hs_dcm_transparency.value()))
+    def dicom_surface_opacity_changed(self):
+        print('MainWindow.dicom_surface_opacity_changed')
+        self.w_l_dcm_opacity.setText(str(self.w_hs_dcm_opacity.value()))
         if self.dicom_actor is not None:
-            self.dicom_actor.property.opacity = self.w_hs_dcm_transparency.value() / 100.0
+            self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass
+
+    def ui_clear_patient_context_widgets(self):
+        print('MainWindow.ui_clear_patient_context_widgets')
+        self.w_le_dcm_plan_file.clear()
+        self.w_le_dcm_struct_file.clear()
+        self.w_pb_dcm_struct_file.setEnabled(False)
+        self.w_pb_esapi_search.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
+        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+
+    def ui_clear_dicom_3d_scene(self):
+        print('MainWindow.ui_clear_dicom_3d_scene')
+        if self.dicom_actor is not None:
+            self.vtk_renderer.RemoveActor(self.dicom_actor)
+            for laser_actor in self.dicom_laser_actors:
+                self.vtk_renderer.RemoveActor(laser_actor)
+            self.vtk_render_window.Render()
+            self.dicom_actor = None
+            self.dicom_laser_actors = None
 
     ####################################################################################
     # MapRTContext Connections and Methods                                             #
@@ -489,7 +573,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_cb_current_map.addItems(maps)
             self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
-
     def ui_update_map_surface_visualization(self, surface):
         print('MainWindow.ui_update_map_surface_visualization')
         if self.maprt_actor is None:
@@ -504,12 +587,23 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.maprt_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
+
+            self.maprt_laser_actors = self._get_laser_marks(self.maprt_actor.GetMapper().GetInput())
+
+            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+            for laser_actor in self.maprt_laser_actors:
+                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.maprt_actor)
+            for laser_actor in self.maprt_laser_actors:
+                self.vtk_renderer.AddActor(laser_actor)
             self.vtk_renderer.ResetCamera()
         else:
             self.vtk_renderer.RemoveActor(self.maprt_actor)
+            for laser_actor in self.maprt_laser_actors:
+                self.vtk_renderer.RemoveActor(laser_actor)
 
             self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
             self.maprt_ctx.current_surface.vtk_polydata >> self.maprt_surface_mapper
@@ -521,9 +615,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.maprt_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
+
+            self.maprt_laser_actors = self._get_laser_marks(self.maprt_actor.GetMapper().GetInput())
+
+            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+            for laser_actor in self.maprt_laser_actors:
+                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
 
             self.vtk_renderer.AddActor(self.maprt_actor)
+            for laser_actor in self.maprt_laser_actors:
+                self.vtk_renderer.AddActor(laser_actor)
             self.vtk_renderer.ResetCamera()
 
         self.vtk_render_window.Render()
@@ -606,11 +709,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
                 self.vtk_render_window.Render()
 
-    def maprt_surface_transparency_changed(self):
-        print('MainWindow.maprt_surface_transparency_changed')
-        self.w_l_obj_transparency.setText(str(self.w_hs_obj_transparency.value()))
+    def maprt_surface_opacity_changed(self):
+        print('MainWindow.maprt_surface_opacity_changed')
+        self.w_l_obj_opacity.setText(str(self.w_hs_obj_opacity.value()))
         if self.maprt_actor is not None:
-            self.maprt_actor.property.opacity = self.w_hs_obj_transparency.value() / 100.0
+            self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
             self.vtk_render_window.Render()
         else:
             pass
@@ -649,26 +752,118 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print('MainWindow.ui_show_info_message')
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
-    def show_dicomrt_file_input_widgets(self):
-        print('MainWindow.show_dicomrt_file_input_widgets')
-        # self.patient_ctx.clear()
-        self.w_le_dcm_plan_file.clear()
-        self.w_le_dcm_struct_file.clear()
-        self.w_pb_dcm_struct_file.setEnabled(False)
-        self.w_pb_esapi_search.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
+    def _get_laser_marks(self, polydata):
+        X, Y, Z = self.patient_ctx.current_plan.isocenter
 
-        # self._setup_patient_context()
-        # self._setup_maprt_context()
-        # self._setup_collision_map_plot()
+        # Create laser planes
+        xy_plane = vtk.vtkPlane()
+        xy_plane.SetOrigin(0, 0, Z)
+        xy_plane.SetNormal(0, 0, 1)
+
+        # Create a planes
+        yz_plane = vtk.vtkPlane()
+        yz_plane.SetOrigin(X, 0, 0)
+        yz_plane.SetNormal(1, 0, 0)
+
+        # Create a planes
+        zx_plane = vtk.vtkPlane()
+        zx_plane.SetOrigin(0, Y, 0)
+        zx_plane.SetNormal(0, 1, 0)
+
+        # Create laser cutters
+        xy_cutter = vtk.vtkCutter()
+        xy_cutter.SetCutFunction(xy_plane)
+        xy_cutter.SetInputData(polydata)
+        xy_cutter.Update()
+
+        yz_cutter = vtk.vtkCutter()
+        yz_cutter.SetCutFunction(yz_plane)
+        yz_cutter.SetInputData(polydata)
+        yz_cutter.Update()
+
+        zx_cutter = vtk.vtkCutter()
+        zx_cutter.SetCutFunction(zx_plane)
+        zx_cutter.SetInputData(polydata)
+        zx_cutter.Update()
+
+        # Create sphere geometry
+        sphereSource = vtk.vtkSphereSource()
+        sphereSource.radius = 1.5
+        sphereSource.phi_resolution = 5
+        sphereSource.theta_resolution = 5
+
+        # Mapp the Sphere Glyph to the points
+        xy_glyphFilter = vtk.vtkGlyph3D()
+        xy_glyphFilter.SetInputData(xy_cutter.GetOutput())
+        xy_glyphFilter.SetSourceConnection(sphereSource.GetOutputPort())
+        xy_glyphFilter.SetScaling(False)  # Disable scaling of glyphs
+        xy_glyphFilter.Update()
+
+        yz_glyphFilter = vtk.vtkGlyph3D()
+        yz_glyphFilter.SetInputData(yz_cutter.GetOutput())
+        yz_glyphFilter.SetSourceConnection(sphereSource.GetOutputPort())
+        yz_glyphFilter.SetScaling(False)  # Disable scaling of glyphs
+        yz_glyphFilter.Update()
+
+        zx_glyphFilter = vtk.vtkGlyph3D()
+        zx_glyphFilter.SetInputData(zx_cutter.GetOutput())
+        zx_glyphFilter.SetSourceConnection(sphereSource.GetOutputPort())
+        zx_glyphFilter.SetScaling(False)  # Disable scaling of glyphs
+        zx_glyphFilter.Update()
+
+        # Create a mapper and actor for the cut surface
+        xy_cut_mapper = vtk.vtkPolyDataMapper()
+        xy_cut_mapper.SetInputData(xy_glyphFilter.GetOutput())
+        xy_cut_actor = vtk.vtkActor()
+        xy_cut_actor.SetMapper(xy_cut_mapper)
+        xy_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface
+
+        yz_cut_mapper = vtk.vtkPolyDataMapper()
+        yz_cut_mapper.SetInputData(yz_glyphFilter.GetOutput())
+        yz_cut_actor = vtk.vtkActor()
+        yz_cut_actor.SetMapper(yz_cut_mapper)
+        yz_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface
+
+        zx_cut_mapper = vtk.vtkPolyDataMapper()
+        zx_cut_mapper.SetInputData(zx_glyphFilter.GetOutput())
+        zx_cut_actor = vtk.vtkActor()
+        zx_cut_actor.SetMapper(zx_cut_mapper)
+        zx_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface
+
+        return (xy_cut_actor, yz_cut_actor, zx_cut_actor)
+
+    def laser_color_changed(self):
+        print('MainWindow.laser_color_changed')
+        _R, _G, _B, _A = self._get_current_color(self.w_fr_laser_color)
+        color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
+
+        if color.isValid():
+            R, G, B, A = color.getRgb()
+            self.w_fr_laser_color.setStyleSheet(f"background-color: rgb({R}, {G}, {B});")
+            self.w_fr_laser_color.show()
+
+            if self.dicom_actor is not None:
+                for laser_actor in self.dicom_laser_actors:
+                    laser_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+
+            if self.maprt_actor is not None:
+                for laser_actor in self.maprt_laser_actors:
+                    laser_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+
+            self.vtk_render_window.Render()
+
+    def laser_opacity_changed(self):
+        print('MainWindow.laser_transparency_changed')
+        self.w_l_laser_opacity.setText(str(self.w_hs_laser_opacity.value()))
+        if self.maprt_actor is not None:
+            for laser_actor in self.maprt_laser_actors:
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+            self.vtk_render_window.Render()
 
         if self.dicom_actor is not None:
-            self.vtk_renderer.RemoveActor(self.dicom_actor)
+            for laser_actor in self.dicom_laser_actors:
+                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
             self.vtk_render_window.Render()
-            self.dicom_actor = None
 
     def _get_current_color(self, frame):
         print('MainWindow._get_current_color')
@@ -745,15 +940,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             z_length = z_max - z_min
             max_length = max(x_length, y_length, z_length)
 
-            # # Set near clipping distance to a small fraction of the max length
-            # near_clipping = max_length / 1000.0
-            # # Set far clipping distance to a value larger than the max length
-            # far_clipping = max_length * 10
-            # camera.SetClippingRange(near_clipping, far_clipping)
-
             camera.SetPosition(x_max + max_length, center[1], center[2])
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 1, 0)
+            camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
@@ -772,7 +961,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             camera.SetPosition(x_min - max_length, center[1], center[2])
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 1, 0)
+            camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
@@ -791,7 +980,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             camera.SetPosition(center[0], y_max + max_length, center[2])
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 0, -1)
+            camera.SetViewUp(0, 0, 1)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
@@ -810,7 +999,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             camera.SetPosition(center[0], y_min - max_length, center[2])
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 0, -1)
+            camera.SetViewUp(0, 0, 1)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
@@ -829,7 +1018,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             camera.SetPosition(center[0], center[1], z_max + max_length)
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 1, 0)
+            camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
@@ -848,7 +1037,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             camera.SetPosition(center[0], center[1], z_min - max_length)
             camera.SetFocalPoint(center[0], center[1], center[2])
-            camera.SetViewUp(0, 1, 0)
+            camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
             self.vtk_render_window.Render()
