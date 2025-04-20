@@ -19,6 +19,10 @@ import PySide6.QtNetwork as qtn
 
 from models.dicom import DicomPlanContext
 
+# "https://maprtpkr.adventhealth.com:5000"
+# "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
+# "VisionRT.Integration.Saturn/1.2.8"
+
 class ObjFileValidationError(Exception):
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
@@ -95,11 +99,6 @@ class MapRTAPIManager(qtc.QObject):
         self._api_url = api_url
         self._token = token
         self._user_agent = user_agent
-
-        # self._header = qtn.QHttpHeaders()
-        # self._header.insert(0, "Content-Type", "application/json")
-        # self._header.append("Authorization", f"Bearer {self._token}")
-        # self._header.append("User-Agent", self._user_agent)
 
         self.ssl_config = qtn.QSslConfiguration.defaultConfiguration()
         self.ssl_config.setPeerVerifyMode(qtn.QSslSocket.PeerVerifyMode.VerifyNone)

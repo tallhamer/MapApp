@@ -34,12 +34,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
-
         self._setup_patient_context()
-
-        # "https://maprtpkr.adventhealth.com:5000"
-        # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
-        # "VisionRT.Integration.Saturn/1.2.8"
 
         # Setup the global MapRT API connection manager
         self.maprt_api = MapRTAPIManager(self.maprt_api_url,
@@ -49,18 +44,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._connect_api_manager_to_ui()
 
         self._setup_maprt_context()
-
-        # # Connect PatientContext to MapRTContext
-        # self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
-
         self._setup_collision_map_plot()
-
-        # VTK rendering setup
-        # self.maprt_actor = None
-        # self.maprt_laser_actors = None
-        # self.dicom_actor = None
-        # self.dicom_laser_actors = None
-
         self._setup_3d_visualization()
 
     ####################################################################################
@@ -151,11 +135,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
         self.patient_ctx.patient_context_cleared.connect(self.maprt_ctx.clear)
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_maprt_3d_scene)
-
+        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_collision_map_plot)
 
     def _setup_collision_map_plot(self):
         print('MainWindow._setup_collision_map_plot')
         self.collision_map = None
+        self.plotted_beams = None
 
         # Create a pyqtgraph plot
         self.collision_map_plot_widget = pg.PlotWidget()
@@ -656,12 +641,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def ui_update_beam_plots(self, beam_plot_items):
         print('MainWindow.ui_update_beam_plots')
         arcs, static_beams = beam_plot_items
+
+        if self.plotted_beams is not None:
+            for beam in self.plotted_beams:
+                self.collision_map_plot_widget.removeItem(beam)
+
+        plotted_beams = []
         for arc in arcs:
             arc.setZValue(25)
             self.collision_map_plot_widget.addItem(arc)
+            plotted_beams.append(arc)
         for static_beam in static_beams:
             static_beam.setZValue(25)
             self.collision_map_plot_widget.addItem(static_beam)
+            plotted_beams.append(static_beam)
+        self.plotted_beams = plotted_beams
 
     def ui_notify_connection_error(self, message):
         print('MainWindow.ui_notify_connection_error')
@@ -731,6 +725,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
             self.maprt_actor = None
             self.maprt_laser_actors = None
+
+    def ui_clear_collision_map_plot(self):
+        print('MainWindow.ui_clear_collision_map_plot')
+        if self.collision_map is not None:
+            self.collision_map_plot_widget.removeItem(self.collision_map)
+            self.collision_map = None
+
+        if self.plotted_beams is not None:
+            for beam in self.plotted_beams:
+                self.collision_map_plot_widget.removeItem(beam)
+
+            self.plotted_beams = None
 
     ####################################################################################
     # ui manipulation methods                                                          #
