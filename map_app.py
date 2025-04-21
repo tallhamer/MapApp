@@ -15,8 +15,9 @@ import pyqtgraph as pg
 from ui.main_window import Ui_MainWindow
 from diag_orient import OrientDialog
 from diag_settings import SettingsDialog
+from diag_maprt_patient import MapRTPatientDialog
 from models.maprt import MapRTAPIManager, MapRTContext
-from models.dicom import PatientContext, DicomFileValidationError
+from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
 from models.settings import AppSettings
 
 import resource_rc
@@ -30,7 +31,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._load_application_settings()
 
         self.setWindowTitle("Map App")
-        self._construct_menu_actions()
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
@@ -47,11 +47,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._setup_collision_map_plot()
         self._setup_3d_visualization()
 
+        self._construct_menu_actions()
+
     ####################################################################################
     # Setup                                                                            #
     ####################################################################################
     def testing(self):
-        print('MainWindow.testing')
+        print('MainWindow.ESAPI_Stub')
 
     def _load_application_settings(self):
         print('MainWindow._load_application_settings')
@@ -81,7 +83,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
         self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
         self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
-        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_patient_context_widgets)
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
 
         # PatientContext.current_plan (PlanContext) specific Signals
@@ -248,6 +249,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print('MainWindow._construct_menu_actions')
         menu_bar = self.menuBar()
         menu_file = menu_bar.addMenu("&File")
+
+        action_clear_current_patient = qtg.QAction("&Clear Current Patient", self)
+        action_clear_current_patient.triggered.connect(self.patient_ctx.clear)
+        action_clear_current_patient.triggered.connect(self.ui_clear_dicom_3d_scene)
+        action_clear_current_patient.triggered.connect(self.ui_clear_maprt_3d_scene)
+        action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot())
+        menu_file.addAction(action_clear_current_patient)
+
+        menu_file.addSeparator()
 
         action_exit = qtg.QAction("E&xit", self)
         action_exit.triggered.connect(self.close)
@@ -500,9 +510,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                (self.w_hs_dcm_opacity.value() / 100.0)
             self.vtk_render_window.Render()
 
-    # def ui_clear_patient_context_widgets(self):
-    #     print('MainWindow.ui_clear_patient_context_widgets')
-
     def ui_clear_dicom_3d_scene(self):
         print('MainWindow.ui_clear_dicom_3d_scene')
         if self.dicom_actor is not None:
@@ -519,10 +526,31 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def fetch_api_data(self):
         print('MainWindow.fetch_api_data')
-        self.maprt_api.get_status()
-        self.maprt_api.get_treatment_rooms()
-        self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
-        self.w_pb_get_map.setEnabled(True)
+
+        if self.patient_ctx.patient_id == '':
+            dialog = MapRTPatientDialog()
+            if dialog.exec():
+                self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
+                self.patient_ctx.first_name = 'Preview'
+                self.patient_ctx.last_name = 'MapRT Patient'
+
+                plan = DicomPlanContext()
+                plan.plan_id = 'Preview Plan'
+                plan.frame_of_reference_uid = 'Preview'
+                plan.patient_orientation = dialog.w_cb_patient_orientation.currentText()
+                plan.isocenter = np.zeros(3)
+                plan.beams = []
+                plans = {plan.plan_id: plan}
+
+                self.patient_ctx._courses['P1'] = plans
+                self.patient_ctx.courses_updated.emit(self.patient_ctx.courses)
+                self.patient_ctx.update_current_course('P1')
+                self.patient_ctx.update_current_plan(plan.plan_id)
+
+                self.maprt_api.get_status()
+                self.maprt_api.get_treatment_rooms()
+                self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
+                self.w_pb_get_map.setEnabled(True)
 
     def get_maprt_collision_maps(self):
         print('MainWindow.get_maprt_collision_maps')

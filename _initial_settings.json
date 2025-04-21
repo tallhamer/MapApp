@@ -1,0 +1,11 @@
+{
+    "dicom": {
+        "dicom_data_directory": "",
+        "arc_check_resolution": 1
+    },
+    "maprt": {
+        "api_url": "https://localhost:5000",
+        "api_token": "TlRrMlpqYzFOekl5TURVME5tWTJZalkxTm1VeU1EUTROalUzTWpZMQ==",
+        "api_user_agent": "VisionRT.Integration.Saturn/1.2.8"
+    }
+}
