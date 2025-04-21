@@ -221,12 +221,16 @@ class MapRTAPIManager(qtc.QObject):
 
         self.manager.get(request)
 
-    def get_map(self, ctx):
+    def get_map(self, ctx, x_shift=0, y_shift=0, z_shift=0):
         print('MapRTAPIManager.get_map')
         if ctx.plan_context is not None:
             if ctx.current_surface is not None:
                 url = self.api_url + f"/integration/GetMap"
-                isocenter = ctx.plan_context.isocenter
+                X, Y, Z = ctx.plan_context.isocenter
+                X += (-10 * x_shift)    # x-1 to change the direction - x10 to change from cm to mm
+                Y += (-10 * y_shift)    # x-1 to change the direction - x10 to change from cm to mm
+                Z += (-10 * z_shift)    # x-1 to change the direction - x10 to change from cm to mm
+                isocenter = [round(X,2), round(Y,2), round(Z,2)]
                 couch_buff = ctx.couch_buffer * 10
                 patient_buff = ctx.patient_buffer * 10
                 surface_id = ctx.current_surface.id
@@ -234,6 +238,10 @@ class MapRTAPIManager(qtc.QObject):
                 attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
 
                 X, Y, Z = isocenter
+
+                X += (-1 * x_shift)
+                Y += (-1 * y_shift)
+                Z += (-1 * z_shift)
 
                 for res in (False, True):
                     body = {

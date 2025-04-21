@@ -81,7 +81,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
         self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
         self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
-        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_patient_context_widgets)
+        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_patient_context_widgets)
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
 
         # PatientContext.current_plan (PlanContext) specific Signals
@@ -117,7 +117,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.maprt_ctx.treatment_rooms_updated.connect(self.ui_update_maprt_treatment_rooms)
         self.maprt_ctx.patient_surfaces_updated.connect(self.ui_update_maprt_surfaces)
         self.maprt_ctx.collision_maps_updated.connect(self.ui_update_maprt_collision_maps)
-        self.maprt_ctx.current_surface_changed.connect(self.ui_update_map_surface_visualization)
+        self.maprt_ctx.current_surface_changed.connect(self.ui_update_maprt_3D_surface_visualization)
         self.maprt_ctx.current_map_data_changed.connect(self.ui_update_collision_map_graphics_view)
         self.maprt_ctx.api_connection_error.connect(self.ui_notify_connection_error)
 
@@ -183,7 +183,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window = self.vtk_widget.GetRenderWindow()
         self.vtk_render_window.AddRenderer(self.vtk_renderer)
         self.vtk_interactor = self.vtk_widget.GetRenderWindow().GetInteractor()
-        # self.vtk_interactor.render_window = self.vtk_render_window
         self.vtk_interactor.SetInteractorStyle(vtk.vtkInteractorStyleTrackballCamera())
 
         # Setup 3D scene color controls
@@ -211,6 +210,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         # Connect image save button
         self.w_pb_save_image.clicked.connect(self.save_3d_image)
+
+        self.w_dsb_surface_shift_x.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
+        self.w_dsb_surface_shift_y.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
+        self.w_dsb_surface_shift_z.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
 
         # Connect view manipulation radiobuttons
         self.w_rb_plusX.toggled.connect(self.set_camera_to_plus_x)
@@ -439,7 +442,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
             for laser_actor in self.dicom_laser_actors:
                 laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_dcm_opacity.value() / 100.0)
 
             self.vtk_renderer.AddActor(self.dicom_actor)
             for laser_actor in self.dicom_laser_actors:
@@ -461,7 +465,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
             for laser_actor in self.dicom_laser_actors:
                 laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_dcm_opacity.value() / 100.0)
 
             self.vtk_renderer.AddActor(self.dicom_actor)
             for laser_actor in self.dicom_laser_actors:
@@ -489,12 +494,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_l_dcm_opacity.setText(str(self.w_hs_dcm_opacity.value()))
         if self.dicom_actor is not None:
             self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
-            self.vtk_render_window.Render()
-        else:
-            pass
 
-    def ui_clear_patient_context_widgets(self):
-        print('MainWindow.ui_clear_patient_context_widgets')
+            for laser_actor in self.dicom_laser_actors:
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_dcm_opacity.value() / 100.0)
+            self.vtk_render_window.Render()
+
+    # def ui_clear_patient_context_widgets(self):
+    #     print('MainWindow.ui_clear_patient_context_widgets')
 
     def ui_clear_dicom_3d_scene(self):
         print('MainWindow.ui_clear_dicom_3d_scene')
@@ -519,7 +526,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def get_maprt_collision_maps(self):
         print('MainWindow.get_maprt_collision_maps')
-        self.maprt_api.get_map(self.maprt_ctx)
+        self.maprt_api.get_map(self.maprt_ctx,
+                               x_shift=self.w_dsb_surface_shift_x.value(),
+                               y_shift=self.w_dsb_surface_shift_y.value(),
+                               z_shift=self.w_dsb_surface_shift_z.value()
+                               )
 
     def ui_update_maprt_treatment_rooms(self, rooms):
         print('MainWindow.ui_update_maprt_treatment_rooms')
@@ -562,61 +573,82 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_cb_current_map.addItems(maps)
             self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
-    def ui_update_map_surface_visualization(self, surface):
+    def ui_update_maprt_3D_surface_visualization(self, surface):
         print('MainWindow.ui_update_map_surface_visualization')
         if self.maprt_actor is None:
 
+            self.maprt_transform = vtk.vtkTransform()
+            self.maprt_transform.PostMultiply()
+            self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
+                                           self.w_dsb_surface_shift_y.value() * 10,
+                                           self.w_dsb_surface_shift_z.value() * 10
+                                           )
+
+            # Create a transform filter
+            self.maprt_transform_filter = vtk.vtkTransformFilter()
+            self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
+            self.maprt_transform_filter.SetTransform(self.maprt_transform)
+            self.maprt_transform_filter.Update()
+
             self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
-            self.maprt_ctx.current_surface.vtk_polydata >> self.maprt_surface_mapper
+            self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
 
             self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
-
-            self.maprt_transform = vtk.vtkTransform()
-            self.maprt_actor.SetUserTransform(self.maprt_transform)
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
-            self.maprt_laser_actors = self._get_laser_marks(self.maprt_actor.GetMapper().GetInput())
+            self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
 
             laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
             for laser_actor in self.maprt_laser_actors:
                 laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_obj_opacity.value() / 100.0)
 
             self.vtk_renderer.AddActor(self.maprt_actor)
             for laser_actor in self.maprt_laser_actors:
                 self.vtk_renderer.AddActor(laser_actor)
-            self.vtk_renderer.ResetCamera()
+
         else:
             self.vtk_renderer.RemoveActor(self.maprt_actor)
             for laser_actor in self.maprt_laser_actors:
                 self.vtk_renderer.RemoveActor(laser_actor)
 
+            self.maprt_transform = vtk.vtkTransform()
+            self.maprt_transform.PostMultiply()
+            self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
+                                           self.w_dsb_surface_shift_y.value() * 10,
+                                           self.w_dsb_surface_shift_z.value() * 10
+                                           )
+
+            # Create a transform filter
+            self.maprt_transform_filter = vtk.vtkTransformFilter()
+            self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
+            self.maprt_transform_filter.SetTransform(self.maprt_transform)
+            self.maprt_transform_filter.Update()
+
             self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
-            self.maprt_ctx.current_surface.vtk_polydata >> self.maprt_surface_mapper
+            self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
 
             self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
-
-            self.maprt_transform = vtk.vtkTransform()
-            self.maprt_actor.SetUserTransform(self.maprt_transform)
 
             R, G, B, A = self._get_current_color(self.w_fr_obj_color)
             self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
             self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
-            self.maprt_laser_actors = self._get_laser_marks(self.maprt_actor.GetMapper().GetInput())
+            self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
 
             laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
             for laser_actor in self.maprt_laser_actors:
                 laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_obj_opacity.value() / 100.0)
 
             self.vtk_renderer.AddActor(self.maprt_actor)
             for laser_actor in self.maprt_laser_actors:
                 self.vtk_renderer.AddActor(laser_actor)
-            self.vtk_renderer.ResetCamera()
 
         self.vtk_render_window.Render()
 
@@ -712,6 +744,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_l_obj_opacity.setText(str(self.w_hs_obj_opacity.value()))
         if self.maprt_actor is not None:
             self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
+            for laser_actor in self.maprt_laser_actors:
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_obj_opacity.value() / 100.0)
             self.vtk_render_window.Render()
         else:
             pass
@@ -725,6 +760,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
             self.maprt_actor = None
             self.maprt_laser_actors = None
+            self.w_dsb_surface_shift_x.setValue(0)
+            self.w_dsb_surface_shift_y.setValue(0)
+            self.w_dsb_surface_shift_z.setValue(0)
 
     def ui_clear_collision_map_plot(self):
         print('MainWindow.ui_clear_collision_map_plot')
@@ -877,12 +915,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_l_laser_opacity.setText(str(self.w_hs_laser_opacity.value()))
         if self.maprt_actor is not None:
             for laser_actor in self.maprt_laser_actors:
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_obj_opacity.value() / 100.0)
             self.vtk_render_window.Render()
 
         if self.dicom_actor is not None:
             for laser_actor in self.dicom_laser_actors:
-                laser_actor.property.opacity = self.w_hs_laser_opacity.value() / 100.0
+                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                               (self.w_hs_dcm_opacity.value() / 100.0)
             self.vtk_render_window.Render()
 
     def _get_current_color(self, frame):

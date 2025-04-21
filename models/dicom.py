@@ -178,9 +178,11 @@ class DicomPlanContext(qtc.QObject):
         static_plots = []
 
         for beam in self.beams:
+            print(beam)
             _status, _num, _id, _name, _couch, _gantry_start, _gantry_stop, _gantry_rot_direction, _type = beam
 
             if _gantry_rot_direction == 'NONE':
+
                 g_start_idx = y_map[str(round(float(_gantry_start)))]
                 c_pos_idx = x_map[_couch]
                 is_ok = np.all(collision_map.image[g_start_idx, c_pos_idx])
@@ -193,14 +195,19 @@ class DicomPlanContext(qtc.QObject):
                     static_beam.setPen(pg.mkPen(color='g', width=5))
 
                 static_plots.append(static_beam)
+
             else:
                 g_start_idx = y_map[str(round(float(_gantry_start)))]
                 g_stop_idx = y_map[str(round(float(_gantry_stop)))]
                 c_pos_idx = x_map[_couch]
-                if _gantry_rot_direction == 'CCW':
+                if _gantry_rot_direction == 'CC':
                     if g_start_idx == 0 and g_stop_idx == 0:
+
                         is_ok = np.all(collision_map.image[::,c_pos_idx])
                         beam[0] = True if is_ok else False
+
+                        print(collision_map.image[::, c_pos_idx])
+                        print(is_ok)
 
                         beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[0, len(j_idx)-1])
                         beam_plot.setPen(pg.mkPen(color='y', width=4))
@@ -208,11 +215,20 @@ class DicomPlanContext(qtc.QObject):
 
                     elif g_start_idx == 0 and g_stop_idx > 0:
                         is_ok_180 = np.all(collision_map.image[0, c_pos_idx])
+                        print(g_start_idx, g_stop_idx, c_pos_idx)
+                        print(collision_map.image[0, c_pos_idx])
+                        print(is_ok_180)
                         g_start_idx = len(j_idx) - 1
+
                         is_ok_rest = np.all(
                             collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
+
                         is_ok = is_ok_180 and is_ok_rest
                         beam[0] = True if is_ok else False
+
+                        print(g_start_idx, g_stop_idx, c_pos_idx, -arc_check_resolution)
+                        print(collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
+                        print(is_ok)
 
                         beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
                         beam_plot.setPen(pg.mkPen(color='y', width=4))
@@ -221,6 +237,10 @@ class DicomPlanContext(qtc.QObject):
                     else:
                         is_ok = np.all(collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
                         beam[0] = True if is_ok else False
+
+                        print(g_start_idx, g_stop_idx, c_pos_idx, -arc_check_resolution)
+                        print(collision_map.image[g_start_idx:g_stop_idx:-arc_check_resolution, c_pos_idx])
+                        print(is_ok)
 
                         beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
                         beam_plot.setPen(pg.mkPen(color='y', width=4))
@@ -231,6 +251,10 @@ class DicomPlanContext(qtc.QObject):
                         is_ok = np.all(collision_map.image[::,c_pos_idx])
                         beam[0] = True if is_ok else False
 
+                        print(g_start_idx, g_stop_idx, c_pos_idx)
+                        print(collision_map.image[::,c_pos_idx])
+                        print(is_ok)
+
                         beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[0, len(j_idx) - 1])
                         beam_plot.setPen(pg.mkPen(color='y', width=4))
                         arc_plots.append(beam_plot)
@@ -238,6 +262,10 @@ class DicomPlanContext(qtc.QObject):
                     elif g_start_idx >= 0 and g_stop_idx > 0:
                         is_ok = np.all(collision_map.image[g_start_idx:g_stop_idx:arc_check_resolution, c_pos_idx])
                         beam[0] = True if is_ok else False
+
+                        print(g_start_idx, g_stop_idx, c_pos_idx, arc_check_resolution)
+                        print(collision_map.image[g_start_idx:g_stop_idx:arc_check_resolution, c_pos_idx])
+                        print(is_ok)
 
                         beam_plot = pg.PlotCurveItem(x=[c_pos_idx, c_pos_idx], y=[g_start_idx, g_stop_idx])
                         beam_plot.setPen(pg.mkPen(color='y', width=4))

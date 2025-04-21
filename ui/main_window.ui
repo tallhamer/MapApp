@@ -45,7 +45,7 @@
        <enum>QTabWidget::TabPosition::North</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -393,13 +393,43 @@
             </widget>
            </item>
            <item row="4" column="2">
-            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_x"/>
+            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_x">
+             <property name="minimum">
+              <double>-100.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+             <property name="value">
+              <double>0.000000000000000</double>
+             </property>
+            </widget>
            </item>
            <item row="5" column="2">
-            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_y"/>
+            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_y">
+             <property name="minimum">
+              <double>-100.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>100.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+            </widget>
            </item>
            <item row="6" column="2">
-            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_z"/>
+            <widget class="QDoubleSpinBox" name="w_dsb_surface_shift_z">
+             <property name="minimum">
+              <double>-100.000000000000000</double>
+             </property>
+             <property name="maximum">
+              <double>100.000000000000000</double>
+             </property>
+             <property name="singleStep">
+              <double>0.500000000000000</double>
+             </property>
+            </widget>
            </item>
            <item row="7" column="3">
             <widget class="QPushButton" name="w_pb_obj_file">
