@@ -254,7 +254,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         action_clear_current_patient.triggered.connect(self.patient_ctx.clear)
         action_clear_current_patient.triggered.connect(self.ui_clear_dicom_3d_scene)
         action_clear_current_patient.triggered.connect(self.ui_clear_maprt_3d_scene)
-        action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot())
+        action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot)
         menu_file.addAction(action_clear_current_patient)
 
         menu_file.addSeparator()
@@ -551,6 +551,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.maprt_api.get_treatment_rooms()
                 self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
                 self.w_pb_get_map.setEnabled(True)
+        else:
+            self.maprt_api.get_status()
+            self.maprt_api.get_treatment_rooms()
+            self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
+            self.w_pb_get_map.setEnabled(True)
 
     def get_maprt_collision_maps(self):
         print('MainWindow.get_maprt_collision_maps')
@@ -603,7 +608,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def ui_update_maprt_3D_surface_visualization(self, surface):
         print('MainWindow.ui_update_map_surface_visualization')
-        if self.maprt_actor is None:
+        if self.maprt_actor is None and self.maprt_ctx.current_surface is not None:
 
             self.maprt_transform = vtk.vtkTransform()
             self.maprt_transform.PostMultiply()
