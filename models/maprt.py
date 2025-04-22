@@ -224,9 +224,9 @@ class MapRTAPIManager(qtc.QObject):
     def get_map(self, ctx, x_shift=0, y_shift=0, z_shift=0):
         print('MapRTAPIManager.get_map')
         if ctx.plan_context is not None:
-            print('\tPlanContext found')
+            # print('\tPlanContext found')
             if ctx.current_surface is not None:
-                print('\tMapRT Surfact found')
+                # print('\tMapRT Surfact found')
                 url = self.api_url + f"/integration/GetMap"
                 X, Y, Z = ctx.plan_context.isocenter
                 X += (-10 * x_shift)    # x-1 to change the direction - x10 to change from cm to mm
@@ -236,12 +236,12 @@ class MapRTAPIManager(qtc.QObject):
                 couch_buff = ctx.couch_buffer * 10
                 patient_buff = ctx.patient_buffer * 10
                 surface_id = ctx.current_surface.id
-                room_id, room_scale = ctx.treatment_rooms[ctx.current_room]
+                room_id, room_scale = ctx.treatment_rooms[ctx.current_room] # Room scale is ignored for now
                 attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
 
-                print(f"\t{isocenter} - {couch_buff} - {patient_buff} - {surface_id} - {ctx.current_room} - {room_id} - {room_scale}")
-                for k,v in ctx.treatment_rooms.items():
-                    print(f'\t{k},{v}')
+                # print(f"\t{isocenter} - {couch_buff} - {patient_buff} - {surface_id} - {ctx.current_room} - {room_id} - {room_scale}")
+                # for k,v in ctx.treatment_rooms.items():
+                #     print(f'\t{k},{v}')
 
                 X, Y, Z = isocenter
 
@@ -260,7 +260,7 @@ class MapRTAPIManager(qtc.QObject):
                             "x": X,
                             "y": Y,
                             "z": Z,
-                            "CoordinateSystem": f"{room_scale}",
+                            "CoordinateSystem": "IEC_61217",
                         }
                     }
 
@@ -273,10 +273,9 @@ class MapRTAPIManager(qtc.QObject):
                                          )
 
                     data = json.dumps(body).encode('utf-8')
-                    print('\tCall Body:')
-                    print(f'\t{json.dumps(body, indent=2)}')
-                    print(data)
-                    # self.manager.post(request, qtc.QByteArray(data))
+                    # print('\tCall Body:')
+                    # print(f'\t{json.dumps(body, indent=2)}')
+                    # print(data)
                     self.manager.post(request, data)
             else:
                 print("No MapRTSurface provided")
