@@ -224,7 +224,9 @@ class MapRTAPIManager(qtc.QObject):
     def get_map(self, ctx, x_shift=0, y_shift=0, z_shift=0):
         print('MapRTAPIManager.get_map')
         if ctx.plan_context is not None:
+            print('\tPlanContext found')
             if ctx.current_surface is not None:
+                print('\tMapRT Surfact found')
                 url = self.api_url + f"/integration/GetMap"
                 X, Y, Z = ctx.plan_context.isocenter
                 X += (-10 * x_shift)    # x-1 to change the direction - x10 to change from cm to mm
@@ -236,6 +238,10 @@ class MapRTAPIManager(qtc.QObject):
                 surface_id = ctx.current_surface.id
                 room_id, room_scale = ctx.treatment_rooms[ctx.current_room]
                 attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
+
+                print(f"\t{isocenter} - {couch_buff} - {patient_buff} - {surface_id} - {ctx.current_room} - {room_id} - {room_scale}")
+                for k,v in ctx.treatment_rooms.items():
+                    print(f'\t{k},{v}')
 
                 X, Y, Z = isocenter
 
@@ -267,11 +273,15 @@ class MapRTAPIManager(qtc.QObject):
                                          )
 
                     data = json.dumps(body).encode('utf-8')
-                    self.manager.post(request, qtc.QByteArray(data))
-                else:
-                    print("No MapRTSurface provided")
+                    print('\tCall Body:')
+                    print(f'\t{json.dumps(body, indent=2)}')
+                    print(data)
+                    # self.manager.post(request, qtc.QByteArray(data))
+                    self.manager.post(request, data)
             else:
-                print("No PlanContext provided")
+                print("No MapRTSurface provided")
+        else:
+            print("No PlanContext provided")
 
 class MapRTSurface(qtc.QObject):
     def __init__(self, data, _id, label, orientation):
@@ -634,14 +644,11 @@ class MapRTContext(qtc.QObject):
                 c0 = np.arange(270, 360, 1)
                 c1 = np.arange(0, 91, 1)
                 couch_values = np.hstack((c0, c1))
-                # i_idx = np.arange(len(couch_values))
 
                 # construct gantry index positions for resampled map
                 g0 = np.arange(180, 360, 1)
                 g1 = np.arange(0, 180, 1)
                 gantry_values = np.hstack((g0, g1))
-                # j_idx = np.arange(len(gantry_values))
-
 
                 # construct the mappings for the tick labels for the couch and gantry axes
                 x_labels = [(int(x), str(couch_values[x])) for x in np.arange(0, len(couch_values), 10)]
@@ -653,7 +660,6 @@ class MapRTContext(qtc.QObject):
                 map_view = pg.ImageItem(axisOrder='row-major')
                 map_view.setZValue(0)
                 map_view.setImage(collision_map)
-
 
                 iso, cb, pb, sid, rid, rs = args.split(';')
                 surface_namee = self.__surface_id_map[sid]
