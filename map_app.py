@@ -2,9 +2,18 @@ import sys
 import json
 import base64
 import binascii
+from pathlib import Path
+import datetime as dt
+
+import pydicom
+from pydicom.dataset import Dataset, FileMetaDataset
+from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage
+
 import numpy as np
+import open3d as o3d
 
 import vtk
+from vtkmodules.util.numpy_support import  vtk_to_numpy
 
 import PySide6.QtCore as qtc
 import PySide6.QtWidgets as qtw
@@ -54,6 +63,181 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     def testing(self):
         print('MainWindow.ESAPI_Stub')
+
+        polydata = self.maprt_transform_filter.GetOutput()
+        points = vtk_to_numpy(polydata.GetPoints().GetData())
+
+        colors = np.zeros_like(points) + 255
+        pcloud = o3d.geometry.PointCloud()
+        pcloud.points = o3d.utility.Vector3dVector(points)
+        pcloud.colors = o3d.utility.Vector3dVector(colors)
+
+        voxel_size = 5
+        voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcloud, voxel_size=voxel_size)
+
+        bounds_min = voxel_grid.get_min_bound()
+        x_min, y_min, z_min = bounds_min
+        bounds_max = voxel_grid.get_max_bound()
+        x_max, y_max, z_max = bounds_max
+
+        # print(bounds_min)
+        # print(bounds_max)
+        # print(x_min, y_min, z_min, x_max, y_max, z_max)
+
+        # Calculate grid dimensions
+        dimensions = np.ceil((bounds_max - bounds_min) / voxel_grid.voxel_size).astype(int)
+        # print(dimensions)
+
+        # Initialize an empty NumPy array with the calculated dimensions
+        pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
+
+        # Get the voxel data
+        voxels = voxel_grid.get_voxels()
+
+        # Iterate through the voxels and update the NumPy array
+        for voxel in voxels:
+            index = voxel.grid_index
+            # Calculate grayscale value from color (if color exists, otherwise use 255)
+            if voxel.color is not None:
+                gray_value = int(np.mean(voxel.color))
+            else:
+                gray_value = 0
+            pixel_data[index[2], index[1], index[0]] = gray_value
+
+
+
+        dicom_path = None
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            self.settings = AppSettings(**settings_data)
+
+            dicom_path = Path(self.settings.dicom.dicom_data_directory)
+
+        save_path = dicom_path / self.patient_ctx.patient_id
+        save_path.mkdir(parents=True, exist_ok=True)
+
+        dt_object = dt.datetime.now()
+        study = pydicom.uid.generate_uid()
+        series = pydicom.uid.generate_uid()
+        frame_of_ref = pydicom.uid.generate_uid()
+        for i, image in enumerate(pixel_data):
+
+            instance = pydicom.uid.generate_uid()
+
+            file_meta = FileMetaDataset()
+            file_meta.FileMetaInformationGroupLength = 192
+            file_meta.FileMetaInformationVersion = b'\x00\x01'
+            file_meta.MediaStorageSOPClassUID = CTImageStorage
+            file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+            file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+
+            # Main data elements
+            ds = Dataset()
+            ds.file_meta = file_meta
+            ds.is_implicit_VR = True
+            ds.is_little_endian = True
+
+            ds.PatientName = f"{self.patient_ctx.last_name}^{self.patient_ctx.first_name}"
+            ds.PatientID = self.patient_ctx.patient_id
+
+            ds.SpecificCharacterSet = 'ISO_IR 192'
+            ds.ImageType = ['ORIGINAL', 'PRIMARY', 'AXIAL']
+            ds.InstanceCreationDate = dt_object.strftime("%Y%m%d")
+            ds.InstanceCreationTime = dt_object.strftime("%H%M%S")
+            ds.SOPClassUID = CTImageStorage
+            ds.SOPInstanceUID = instance
+            ds.StudyInstanceUID = study
+            ds.SeriesInstanceUID = series
+            ds.StudyID = '42'
+            ds.SeriesNumber = '1'
+            # ds.AcquisitionNumber = '1'
+            ds.InstanceNumber = str(i + 1)
+            ds.StudyDate = dt_object.strftime("%Y%m%d")
+            ds.SeriesDate = dt_object.strftime("%Y%m%d")
+            ds.AcquisitionDate = dt_object.strftime("%Y%m%d")
+            ds.ContentDate = dt_object.strftime("%Y%m%d")
+            ds.StudyTime = dt_object.strftime("%H%M%S.%f")
+            ds.SeriesTime = dt_object.strftime("%H%M%S.%f")
+            ds.AcquisitionTime = dt_object.strftime("%H%M%S.%f")
+            ds.ContentTime = dt_object.strftime("%H%M%S.%f")
+            ds.AccessionNumber = ''
+            ds.Modality = 'CT'
+            ds.Manufacturer = 'Map App'
+            ds.ReferringPhysicianName = ''
+            ds.StationName = 'Map App'
+            ds.StudyDescription = 'Synthetic Surface CT'
+            ds.PhysiciansOfRecord = 'Physician'
+            ds.OperatorsName = 'DICOM Service'
+            ds.ManufacturerModelName = 'Patient Verification'
+
+            ds.ImagePositionPatient = [x_min, y_min, z_min + (i * voxel_size)]
+            ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+            ds.FrameOfReferenceUID = frame_of_ref
+            ds.PositionReferenceIndicator = ''
+            ds.ImageComments = 'Reconstruction Mode THREE_D\r\nFilter AUTO\r\nRing Suppression MEDIUM\r\n'
+            ds.SamplesPerPixel = 1
+            ds.PhotometricInterpretation = 'MONOCHROME2'
+            ds.Rows = image.shape[0]
+            ds.Columns = image.shape[1]
+            ds.PixelSpacing = [voxel_size, voxel_size]
+            ds.BitsAllocated = 16
+            ds.BitsStored = 16
+            ds.HighBit = 15
+            ds.PixelRepresentation = 0
+            ds.WindowCenter = '37.0'
+            ds.WindowWidth = '468.0'
+            ds.RescaleIntercept = '-1000.0'
+            ds.RescaleSlope = '1.0'
+            ds.RescaleType = 'HU'
+            # ds.PatientSupportAngle = '0'
+            # ds.TableTopLongitudinalPosition = '100'
+            # ds.TableTopLateralPosition = '0'
+            # ds.TableTopPitchAngle = 0
+            # ds.TableTopRollAngle = 0
+
+            # # Create a new DICOM dataset
+            # file_meta = Dataset()
+            # file_meta.MediaStorageSOPClassUID = CTImageStorage
+            # file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+            # file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+
+            # ds = FileDataset('dummy.dcm', {}, file_meta=file_meta, preamble=b"\0" * 128)
+            #
+            # # Add the required attributes for a CT image
+            # ds.Modality = 'CT'
+            # ds.ContentDate = dt_object.strftime("%Y%m%d")
+            # ds.ContentTime = dt_object.strftime("%H%M%S.%f")
+            # ds.StudyInstanceUID = study
+            # ds.SeriesInstanceUID = series
+            # ds.SOPInstanceUID = instance
+            # ds.SOPClassUID = CTImageStorage
+            # ds.PatientName = f"{self.patient_ctx.last_name}^{self.patient_ctx.first_name}"
+            # ds.PatientID = self.patient_ctx.patient_id
+            # ds.StudyID = '1'
+            # ds.SeriesNumber = '1'
+            # ds.InstanceNumber = str(i + 1)
+            # ds.PhotometricInterpretation = 'MONOCHROME2'
+            # ds.SamplesPerPixel = 1
+            # ds.ImagePositionPatient = [x_min + (i * voxel_size), y_min + (i * voxel_size), z_min + (i * voxel_size)]
+            # ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+            # ds.PixelSpacing = [voxel_size, voxel_size]
+            # ds.SliceThickness = 1
+            # ds.KVP = 120
+            # ds.XRayTubeCurrent = 100
+            # ds.Rows = image.shape[0]
+            # ds.Columns = image.shape[1]
+            # ds.BitsAllocated = 16
+            # ds.BitsStored = 16
+            # ds.HighBit = 15
+            # ds.PixelRepresentation = 0
+            # ds.RescaleIntercept = -1000.0
+            # ds.RescaleSlope = 1
+            # ds.RescaleType = 'HU'
+
+            ds.PixelData = image.tobytes()
+
+            # Save the DICOM file
+            ds.save_as(f'{str(save_path)}\\CT.{instance}.dcm', write_like_original=False)
 
     def _load_application_settings(self):
         print('MainWindow._load_application_settings')
@@ -249,6 +433,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print('MainWindow._construct_menu_actions')
         menu_bar = self.menuBar()
         menu_file = menu_bar.addMenu("&File")
+
+        action_export_surface_to_dicom = qtg.QAction("&Export Surface to DICOM", self)
+        action_export_surface_to_dicom.triggered.connect(self.testing)
+        menu_file.addAction(action_export_surface_to_dicom)
 
         action_clear_current_patient = qtg.QAction("&Clear Current Patient", self)
         action_clear_current_patient.triggered.connect(self.patient_ctx.clear)

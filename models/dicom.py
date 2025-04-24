@@ -1,11 +1,14 @@
 import json
-
+import datetime as dt
 import numpy as np
 from skimage import measure
 from scipy.spatial import cKDTree
 
 import pydicom
-from pynetdicom.sop_class import RTPlanStorage, RTStructureSetStorage
+from pydicom.dataset import Dataset, FileDataset
+from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage, RTPlanStorage, RTStructureSetStorage
+
+# from pynetdicom.sop_class import RTPlanStorage, RTStructureSetStorage
 
 import open3d as o3d
 
@@ -553,6 +556,53 @@ class PatientContext(qtc.QObject):
         else:
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
+
+def convert_3d_surface_to_ct_data(patient_ctx, actor):
+    dt_object = dt.datetime.now()
+
+    # Create a new DICOM dataset
+    file_meta = Dataset()
+    file_meta.MediaStorageSOPClassUID = CTImageStorage
+    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+    file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+
+    ds = FileDataset('dummy.dcm', {}, file_meta=file_meta, preamble=b"\0" * 128)
+
+    # Add the required attributes for a CT image
+    ds.Modality = 'CT'
+    ds.ContentDate = dt_object.strftime("%Y%m%d")
+    ds.ContentTime = dt_object.strftime()
+    ds.StudyInstanceUID = pydicom.uid.generate_uid()
+    ds.SeriesInstanceUID = pydicom.uid.generate_uid()
+    ds.SOPInstanceUID = pydicom.uid.generate_uid()
+    ds.SOPClassUID = CTImageStorage
+    ds.PatientName = f"{patient_ctx.last_name}^{patient_ctx.first_name}"
+    ds.PatientID = patient_ctx.patient_id
+    ds.StudyID = '1'
+    ds.SeriesNumber = '1'
+    ds.InstanceNumber = '1'
+    ds.ImagePositionPatient = [0, 0, 0]
+    ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+    ds.PixelSpacing = [1, 1]
+    ds.SliceThickness = 1
+    ds.KVP = 120
+    ds.XRayTubeCurrent = 100
+    ds.Rows = 512
+    ds.Columns = 512
+    ds.BitsAllocated = 16
+    ds.BitsStored = 16
+    ds.HighBit = 15
+    ds.PixelRepresentation = 0
+    ds.RescaleIntercept = -1024
+    ds.RescaleSlope = 1
+
+    # Create dummy pixel data (replace with actual CT data)
+    pixel_data = np.random.randint(-1024, 3071, size=(512, 512), dtype=np.int16)
+    ds.PixelData = pixel_data.tobytes()
+
+    # Save the DICOM file
+    ds.save_as('ct_slice.dcm', write_like_original=False)
+
 
 if __name__ == '__main__':
 
