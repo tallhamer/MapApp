@@ -871,6 +871,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             for laser_actor in self.maprt_laser_actors:
                 self.vtk_renderer.AddActor(laser_actor)
 
+        # self.vtk_renderer.ResetCamera()
         self.vtk_render_window.Render()
 
     def ui_update_collision_map_graphics_view(self, current_map_data):
@@ -1226,6 +1227,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_x(self):
@@ -1245,6 +1247,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_y(self):
@@ -1264,6 +1267,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, 0, 1)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_y(self):
@@ -1283,6 +1287,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, 0, 1)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_z(self):
@@ -1302,6 +1307,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_z(self):
@@ -1321,6 +1327,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             camera.SetViewUp(0, -1, 0)
             camera.SetParallelProjection(True)
             self.vtk_renderer.ResetCameraClippingRange()
+            self.vtk_renderer.ResetCamera()
             self.vtk_render_window.Render()
 
 
