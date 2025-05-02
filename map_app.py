@@ -394,7 +394,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_hs_laser_opacity.valueChanged.connect(self.laser_opacity_changed)
 
         # Connect image save button
-        self.w_pb_save_image.clicked.connect(self.save_3d_image)
+        # self.w_pb_save_image.clicked.connect(self.save_3d_image)
 
         self.w_dsb_surface_shift_x.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
         self.w_dsb_surface_shift_y.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
@@ -434,16 +434,26 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         menu_bar = self.menuBar()
         menu_file = menu_bar.addMenu("&File")
 
-        action_export_surface_to_dicom = qtg.QAction("&Export Surface to DICOM", self)
-        action_export_surface_to_dicom.triggered.connect(self.testing)
-        menu_file.addAction(action_export_surface_to_dicom)
-
         action_clear_current_patient = qtg.QAction("&Clear Current Patient", self)
         action_clear_current_patient.triggered.connect(self.patient_ctx.clear)
         action_clear_current_patient.triggered.connect(self.ui_clear_dicom_3d_scene)
         action_clear_current_patient.triggered.connect(self.ui_clear_maprt_3d_scene)
         action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot)
         menu_file.addAction(action_clear_current_patient)
+
+        menu_file.addSeparator()
+
+        menu_save = menu_file.addMenu("&Save")
+
+        action_3d_scene_to_image = qtg.QAction("&Render Window Image", self)
+        action_3d_scene_to_image.triggered.connect(self.save_3d_image)
+        menu_save.addAction(action_3d_scene_to_image)
+
+        menu_export = menu_file.addMenu("&Export")
+
+        action_export_surface_to_dicom = qtg.QAction("&MapRT Surface to DICOM", self)
+        action_export_surface_to_dicom.triggered.connect(self.testing)
+        menu_export.addAction(action_export_surface_to_dicom)
 
         menu_file.addSeparator()
 
