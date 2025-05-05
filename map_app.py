@@ -805,7 +805,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
     def ui_update_maprt_3D_surface_visualization(self, surface):
-        print('MainWindow.ui_update_map_surface_visualization')
+        print('MainWindow.ui_update_map_3D_surface_visualization')
         if self.maprt_actor is None and self.maprt_ctx.current_surface is not None:
 
             self.maprt_transform = vtk.vtkTransform()
@@ -933,17 +933,41 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "OBJ Files (*.obj)"
                                                       )
         if file_path:
-            dialog = OrientDialog()
-            if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
-                _orientation = dialog.w_cb_obj_surface_orientation.currentText()
-                if _orientation == "Current Plan" and self.patient_ctx.current_plan is not None:
+            if self.patient_ctx.patient_id == '':
+                dialog = MapRTPatientDialog()
+                if dialog.exec():
+                    self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
+                    self.patient_ctx.first_name = 'Preview'
+                    self.patient_ctx.last_name = 'MapRT Patient'
+
+                    plan = DicomPlanContext()
+                    plan.plan_id = 'Preview Plan'
+                    plan.frame_of_reference_uid = 'Preview'
+                    plan.patient_orientation = dialog.w_cb_patient_orientation.currentText()
+                    plan.isocenter = np.zeros(3)
+                    plan.beams = []
+                    plans = {plan.plan_id: plan}
+
+                    self.patient_ctx._courses['P1'] = plans
+                    self.patient_ctx.courses_updated.emit(self.patient_ctx.courses)
+                    self.patient_ctx.update_current_course('P1')
+                    self.patient_ctx.update_current_plan(plan.plan_id)
+
                     self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
 
-                else:
-                    self.maprt_ctx.load_surface_file(file_path, _orientation)
+            else:
 
-                if self.collision_map is not None:
-                    self.collision_map_view_box.removeItem(self.collision_map)
+                dialog = OrientDialog()
+                if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
+                    _orientation = dialog.w_cb_obj_surface_orientation.currentText()
+                    if _orientation == "Current Plan" and self.patient_ctx.current_plan is not None:
+                        self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
+
+                    else:
+                        self.maprt_ctx.load_surface_file(file_path, _orientation)
+
+                    # if self.collision_map is not None:
+                    #     self.collision_map_view_box.removeItem(self.collision_map)
 
     def collision_map_mouse_moved(self, event):
         # print('MainWindow.collision_map_mouse_moved')

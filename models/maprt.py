@@ -489,7 +489,7 @@ class MapRTContext(qtc.QObject):
                                                        )
             name_list = [value for key, value in self.__surface_id_map.items()]
             self.patient_surfaces_updated.emit(name_list)
-            self.update_surface(label)
+            # self.update_surface(label)
         except Exception as e:
             raise ObjFileValidationError(e)
 
