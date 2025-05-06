@@ -38,6 +38,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         print('MainWindow.__init__')
         self.setupUi(self)
 
+        self.w_tw_patient_settings.setCurrentIndex(0)
+        self.w_tw_visualizations.setCurrentIndex(1)
+
         self._file_mode = False
 
         self._load_application_settings()
