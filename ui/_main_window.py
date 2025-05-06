@@ -16,13 +16,12 @@ from PySide6.QtGui import (QAction, QBrush, QColor, QConicalGradient,
     QIcon, QImage, QKeySequence, QLinearGradient,
     QPainter, QPalette, QPixmap, QRadialGradient,
     QTransform)
-from PySide6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDoubleSpinBox,
-    QFormLayout, QFrame, QGridLayout, QGroupBox,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QMainWindow, QPushButton, QRadioButton, QSizePolicy,
-    QSlider, QSpacerItem, QSplitter, QStatusBar,
-    QTabWidget, QTableWidget, QTableWidgetItem, QVBoxLayout,
-    QWidget)
+from PySide6.QtWidgets import (QApplication, QComboBox, QDoubleSpinBox, QFormLayout,
+    QFrame, QGridLayout, QGroupBox, QHBoxLayout,
+    QHeaderView, QLabel, QLineEdit, QMainWindow,
+    QPushButton, QRadioButton, QSizePolicy, QSlider,
+    QSpacerItem, QSplitter, QStatusBar, QTabWidget,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -67,115 +66,85 @@ class Ui_MainWindow(object):
         self.groupBox_6.setObjectName(u"groupBox_6")
         self.gridLayout_4 = QGridLayout(self.groupBox_6)
         self.gridLayout_4.setObjectName(u"gridLayout_4")
-        self.w_gb_dicomrt_files = QGroupBox(self.groupBox_6)
-        self.w_gb_dicomrt_files.setObjectName(u"w_gb_dicomrt_files")
-        self.w_gb_dicomrt_files.setMinimumSize(QSize(0, 0))
-        self.w_gb_dicomrt_files.setCheckable(False)
-        self.gridLayout_2 = QGridLayout(self.w_gb_dicomrt_files)
-        self.gridLayout_2.setObjectName(u"gridLayout_2")
-        self.label = QLabel(self.w_gb_dicomrt_files)
-        self.label.setObjectName(u"label")
+        self.w_cb_plan_id = QComboBox(self.groupBox_6)
+        self.w_cb_plan_id.setObjectName(u"w_cb_plan_id")
 
-        self.gridLayout_2.addWidget(self.label, 1, 0, 1, 1)
-
-        self.w_le_dcm_plan_file = QLineEdit(self.w_gb_dicomrt_files)
-        self.w_le_dcm_plan_file.setObjectName(u"w_le_dcm_plan_file")
-        self.w_le_dcm_plan_file.setEnabled(True)
-        self.w_le_dcm_plan_file.setMinimumSize(QSize(100, 0))
-        self.w_le_dcm_plan_file.setReadOnly(True)
-
-        self.gridLayout_2.addWidget(self.w_le_dcm_plan_file, 0, 1, 1, 1)
-
-        self.label_6 = QLabel(self.w_gb_dicomrt_files)
-        self.label_6.setObjectName(u"label_6")
-
-        self.gridLayout_2.addWidget(self.label_6, 0, 0, 1, 1)
-
-        self.w_pb_dcm_plan_file = QPushButton(self.w_gb_dicomrt_files)
-        self.w_pb_dcm_plan_file.setObjectName(u"w_pb_dcm_plan_file")
-        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Fixed)
-        sizePolicy1.setHorizontalStretch(0)
-        sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.w_pb_dcm_plan_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_dcm_plan_file.setSizePolicy(sizePolicy1)
-        self.w_pb_dcm_plan_file.setMaximumSize(QSize(25, 16777215))
-
-        self.gridLayout_2.addWidget(self.w_pb_dcm_plan_file, 0, 2, 1, 1)
-
-        self.w_pb_dcm_struct_file = QPushButton(self.w_gb_dicomrt_files)
-        self.w_pb_dcm_struct_file.setObjectName(u"w_pb_dcm_struct_file")
-        sizePolicy1.setHeightForWidth(self.w_pb_dcm_struct_file.sizePolicy().hasHeightForWidth())
-        self.w_pb_dcm_struct_file.setSizePolicy(sizePolicy1)
-        self.w_pb_dcm_struct_file.setMaximumSize(QSize(25, 16777215))
-
-        self.gridLayout_2.addWidget(self.w_pb_dcm_struct_file, 1, 2, 1, 1)
-
-        self.w_le_dcm_struct_file = QLineEdit(self.w_gb_dicomrt_files)
-        self.w_le_dcm_struct_file.setObjectName(u"w_le_dcm_struct_file")
-        self.w_le_dcm_struct_file.setEnabled(True)
-        self.w_le_dcm_struct_file.setMinimumSize(QSize(100, 0))
-        self.w_le_dcm_struct_file.setDragEnabled(False)
-        self.w_le_dcm_struct_file.setReadOnly(True)
-
-        self.gridLayout_2.addWidget(self.w_le_dcm_struct_file, 1, 1, 1, 1)
-
-
-        self.gridLayout_4.addWidget(self.w_gb_dicomrt_files, 10, 0, 1, 4)
-
-        self.w_tw_beams = QTableWidget(self.groupBox_6)
-        self.w_tw_beams.setObjectName(u"w_tw_beams")
-        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        sizePolicy2.setHorizontalStretch(0)
-        sizePolicy2.setVerticalStretch(0)
-        sizePolicy2.setHeightForWidth(self.w_tw_beams.sizePolicy().hasHeightForWidth())
-        self.w_tw_beams.setSizePolicy(sizePolicy2)
-
-        self.gridLayout_4.addWidget(self.w_tw_beams, 8, 0, 1, 4)
+        self.gridLayout_4.addWidget(self.w_cb_plan_id, 4, 1, 1, 2)
 
         self.w_pb_esapi_search = QPushButton(self.groupBox_6)
         self.w_pb_esapi_search.setObjectName(u"w_pb_esapi_search")
 
         self.gridLayout_4.addWidget(self.w_pb_esapi_search, 0, 3, 1, 1)
 
-        self.label_11 = QLabel(self.groupBox_6)
-        self.label_11.setObjectName(u"label_11")
+        self.label_15 = QLabel(self.groupBox_6)
+        self.label_15.setObjectName(u"label_15")
 
-        self.gridLayout_4.addWidget(self.label_11, 1, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.label_15, 7, 0, 1, 4)
 
-        self.label_12 = QLabel(self.groupBox_6)
-        self.label_12.setObjectName(u"label_12")
+        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
+        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
 
-        self.gridLayout_4.addWidget(self.label_12, 4, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 5, 1, 1, 3)
 
-        self.w_ch_use_dicomrt = QCheckBox(self.groupBox_6)
-        self.w_ch_use_dicomrt.setObjectName(u"w_ch_use_dicomrt")
+        self.w_cb_body_structure = QComboBox(self.groupBox_6)
+        self.w_cb_body_structure.setObjectName(u"w_cb_body_structure")
 
-        self.gridLayout_4.addWidget(self.w_ch_use_dicomrt, 9, 0, 1, 4)
-
-        self.label_17 = QLabel(self.groupBox_6)
-        self.label_17.setObjectName(u"label_17")
-
-        self.gridLayout_4.addWidget(self.label_17, 5, 0, 1, 1)
+        self.gridLayout_4.addWidget(self.w_cb_body_structure, 6, 1, 1, 2)
 
         self.label_14 = QLabel(self.groupBox_6)
         self.label_14.setObjectName(u"label_14")
 
         self.gridLayout_4.addWidget(self.label_14, 6, 0, 1, 1)
 
-        self.label_15 = QLabel(self.groupBox_6)
-        self.label_15.setObjectName(u"label_15")
+        self.label_12 = QLabel(self.groupBox_6)
+        self.label_12.setObjectName(u"label_12")
 
-        self.gridLayout_4.addWidget(self.label_15, 7, 0, 1, 4)
+        self.gridLayout_4.addWidget(self.label_12, 4, 0, 1, 1)
+
+        self.w_le_patinet_id = QLineEdit(self.groupBox_6)
+        self.w_le_patinet_id.setObjectName(u"w_le_patinet_id")
+
+        self.gridLayout_4.addWidget(self.w_le_patinet_id, 0, 1, 1, 2)
 
         self.label_13 = QLabel(self.groupBox_6)
         self.label_13.setObjectName(u"label_13")
 
         self.gridLayout_4.addWidget(self.label_13, 2, 0, 1, 1)
 
+        self.w_tw_beams = QTableWidget(self.groupBox_6)
+        self.w_tw_beams.setObjectName(u"w_tw_beams")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.w_tw_beams.sizePolicy().hasHeightForWidth())
+        self.w_tw_beams.setSizePolicy(sizePolicy1)
+
+        self.gridLayout_4.addWidget(self.w_tw_beams, 8, 0, 1, 4)
+
+        self.w_l_patient_first_name = QLabel(self.groupBox_6)
+        self.w_l_patient_first_name.setObjectName(u"w_l_patient_first_name")
+
+        self.gridLayout_4.addWidget(self.w_l_patient_first_name, 1, 1, 1, 2)
+
+        self.label_17 = QLabel(self.groupBox_6)
+        self.label_17.setObjectName(u"label_17")
+
+        self.gridLayout_4.addWidget(self.label_17, 5, 0, 1, 1)
+
+        self.label_11 = QLabel(self.groupBox_6)
+        self.label_11.setObjectName(u"label_11")
+
+        self.gridLayout_4.addWidget(self.label_11, 1, 0, 1, 1)
+
         self.label_9 = QLabel(self.groupBox_6)
         self.label_9.setObjectName(u"label_9")
 
         self.gridLayout_4.addWidget(self.label_9, 0, 0, 1, 1)
+
+        self.w_l_patient_last_name = QLabel(self.groupBox_6)
+        self.w_l_patient_last_name.setObjectName(u"w_l_patient_last_name")
+
+        self.gridLayout_4.addWidget(self.w_l_patient_last_name, 2, 1, 1, 2)
 
         self.label_26 = QLabel(self.groupBox_6)
         self.label_26.setObjectName(u"label_26")
@@ -186,36 +155,6 @@ class Ui_MainWindow(object):
         self.w_cb_course_id.setObjectName(u"w_cb_course_id")
 
         self.gridLayout_4.addWidget(self.w_cb_course_id, 3, 1, 1, 2)
-
-        self.w_cb_plan_id = QComboBox(self.groupBox_6)
-        self.w_cb_plan_id.setObjectName(u"w_cb_plan_id")
-
-        self.gridLayout_4.addWidget(self.w_cb_plan_id, 4, 1, 1, 2)
-
-        self.w_cb_body_structure = QComboBox(self.groupBox_6)
-        self.w_cb_body_structure.setObjectName(u"w_cb_body_structure")
-
-        self.gridLayout_4.addWidget(self.w_cb_body_structure, 6, 1, 1, 2)
-
-        self.w_le_patinet_id = QLineEdit(self.groupBox_6)
-        self.w_le_patinet_id.setObjectName(u"w_le_patinet_id")
-
-        self.gridLayout_4.addWidget(self.w_le_patinet_id, 0, 1, 1, 2)
-
-        self.w_l_patient_first_name = QLabel(self.groupBox_6)
-        self.w_l_patient_first_name.setObjectName(u"w_l_patient_first_name")
-
-        self.gridLayout_4.addWidget(self.w_l_patient_first_name, 1, 1, 1, 2)
-
-        self.w_l_patient_last_name = QLabel(self.groupBox_6)
-        self.w_l_patient_last_name.setObjectName(u"w_l_patient_last_name")
-
-        self.gridLayout_4.addWidget(self.w_l_patient_last_name, 2, 1, 1, 2)
-
-        self.w_l_plan_isocenter = QLabel(self.groupBox_6)
-        self.w_l_plan_isocenter.setObjectName(u"w_l_plan_isocenter")
-
-        self.gridLayout_4.addWidget(self.w_l_plan_isocenter, 5, 1, 1, 3)
 
 
         self.verticalLayout.addWidget(self.groupBox_6)
@@ -397,11 +336,11 @@ class Ui_MainWindow(object):
         self.gridLayout_7.setObjectName(u"gridLayout_7")
         self.w_fr_dcm_color = QFrame(self.groupBox_7)
         self.w_fr_dcm_color.setObjectName(u"w_fr_dcm_color")
-        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
-        sizePolicy3.setHorizontalStretch(0)
-        sizePolicy3.setVerticalStretch(0)
-        sizePolicy3.setHeightForWidth(self.w_fr_dcm_color.sizePolicy().hasHeightForWidth())
-        self.w_fr_dcm_color.setSizePolicy(sizePolicy3)
+        sizePolicy2 = QSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Maximum)
+        sizePolicy2.setHorizontalStretch(0)
+        sizePolicy2.setVerticalStretch(0)
+        sizePolicy2.setHeightForWidth(self.w_fr_dcm_color.sizePolicy().hasHeightForWidth())
+        self.w_fr_dcm_color.setSizePolicy(sizePolicy2)
         self.w_fr_dcm_color.setMinimumSize(QSize(25, 25))
         self.w_fr_dcm_color.setMaximumSize(QSize(25, 25))
         self.w_fr_dcm_color.setFrameShape(QFrame.Shape.StyledPanel)
@@ -456,8 +395,8 @@ class Ui_MainWindow(object):
 
         self.w_fr_obj_color = QFrame(self.groupBox_8)
         self.w_fr_obj_color.setObjectName(u"w_fr_obj_color")
-        sizePolicy3.setHeightForWidth(self.w_fr_obj_color.sizePolicy().hasHeightForWidth())
-        self.w_fr_obj_color.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.w_fr_obj_color.sizePolicy().hasHeightForWidth())
+        self.w_fr_obj_color.setSizePolicy(sizePolicy2)
         self.w_fr_obj_color.setMinimumSize(QSize(25, 25))
         self.w_fr_obj_color.setMaximumSize(QSize(25, 25))
         self.w_fr_obj_color.setFrameShape(QFrame.Shape.StyledPanel)
@@ -514,8 +453,8 @@ class Ui_MainWindow(object):
 
         self.w_fr_laser_color = QFrame(self.groupBox_9)
         self.w_fr_laser_color.setObjectName(u"w_fr_laser_color")
-        sizePolicy3.setHeightForWidth(self.w_fr_laser_color.sizePolicy().hasHeightForWidth())
-        self.w_fr_laser_color.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.w_fr_laser_color.sizePolicy().hasHeightForWidth())
+        self.w_fr_laser_color.setSizePolicy(sizePolicy2)
         self.w_fr_laser_color.setMinimumSize(QSize(25, 25))
         self.w_fr_laser_color.setMaximumSize(QSize(25, 25))
         self.w_fr_laser_color.setFrameShape(QFrame.Shape.StyledPanel)
@@ -549,8 +488,8 @@ class Ui_MainWindow(object):
 
         self.w_fr_background_color = QFrame(self.groupBox_9)
         self.w_fr_background_color.setObjectName(u"w_fr_background_color")
-        sizePolicy3.setHeightForWidth(self.w_fr_background_color.sizePolicy().hasHeightForWidth())
-        self.w_fr_background_color.setSizePolicy(sizePolicy3)
+        sizePolicy2.setHeightForWidth(self.w_fr_background_color.sizePolicy().hasHeightForWidth())
+        self.w_fr_background_color.setSizePolicy(sizePolicy2)
         self.w_fr_background_color.setMinimumSize(QSize(25, 25))
         self.w_fr_background_color.setMaximumSize(QSize(25, 25))
         self.w_fr_background_color.setFrameShape(QFrame.Shape.StyledPanel)
@@ -560,11 +499,11 @@ class Ui_MainWindow(object):
 
         self.widget_2 = QWidget(self.groupBox_9)
         self.widget_2.setObjectName(u"widget_2")
-        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy4.setHorizontalStretch(0)
-        sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.widget_2.sizePolicy().hasHeightForWidth())
-        self.widget_2.setSizePolicy(sizePolicy4)
+        sizePolicy3 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        sizePolicy3.setHorizontalStretch(0)
+        sizePolicy3.setVerticalStretch(0)
+        sizePolicy3.setHeightForWidth(self.widget_2.sizePolicy().hasHeightForWidth())
+        self.widget_2.setSizePolicy(sizePolicy3)
         self.horizontalLayout_2 = QHBoxLayout(self.widget_2)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.w_rb_plusX = QRadioButton(self.widget_2)
@@ -607,11 +546,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_3.addItem(self.verticalSpacer)
 
-        self.w_pb_save_image = QPushButton(self.tab_2)
-        self.w_pb_save_image.setObjectName(u"w_pb_save_image")
-
-        self.verticalLayout_3.addWidget(self.w_pb_save_image)
-
         self.w_tw_patient_settings.addTab(self.tab_2, "")
         self.splitter.addWidget(self.w_tw_patient_settings)
         self.w_tw_visualizations = QTabWidget(self.splitter)
@@ -631,11 +565,11 @@ class Ui_MainWindow(object):
 
         self.widget_4 = QWidget(self.w_gb_collision_map)
         self.widget_4.setObjectName(u"widget_4")
-        sizePolicy5 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
-        sizePolicy5.setHorizontalStretch(0)
-        sizePolicy5.setVerticalStretch(0)
-        sizePolicy5.setHeightForWidth(self.widget_4.sizePolicy().hasHeightForWidth())
-        self.widget_4.setSizePolicy(sizePolicy5)
+        sizePolicy4 = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum)
+        sizePolicy4.setHorizontalStretch(0)
+        sizePolicy4.setVerticalStretch(0)
+        sizePolicy4.setHeightForWidth(self.widget_4.sizePolicy().hasHeightForWidth())
+        self.widget_4.setSizePolicy(sizePolicy4)
         self.formLayout = QFormLayout(self.widget_4)
         self.formLayout.setObjectName(u"formLayout")
         self.label_25 = QLabel(self.widget_4)
@@ -665,8 +599,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.vtk_widget = QVTKRenderWindowInteractor(self.groupBox_2)
         self.vtk_widget.setObjectName(u"vtk_widget")
-        sizePolicy2.setHeightForWidth(self.vtk_widget.sizePolicy().hasHeightForWidth())
-        self.vtk_widget.setSizePolicy(sizePolicy2)
+        sizePolicy1.setHeightForWidth(self.vtk_widget.sizePolicy().hasHeightForWidth())
+        self.vtk_widget.setSizePolicy(sizePolicy1)
         self.vtk_widget.setMinimumSize(QSize(600, 600))
         self.vtk_widget.setMaximumSize(QSize(16777215, 16777215))
 
@@ -702,24 +636,18 @@ class Ui_MainWindow(object):
         self.actionCollision_Map.setText(QCoreApplication.translate("MainWindow", u"Collision Map", None))
         self.actionView_From.setText(QCoreApplication.translate("MainWindow", u"View From", None))
         self.groupBox_6.setTitle(QCoreApplication.translate("MainWindow", u"Patient Information", None))
-        self.w_gb_dicomrt_files.setTitle(QCoreApplication.translate("MainWindow", u"DICOM Files", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"Structure Set", None))
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Plan", None))
-        self.w_pb_dcm_plan_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.w_pb_dcm_struct_file.setText(QCoreApplication.translate("MainWindow", u"...", None))
         self.w_pb_esapi_search.setText(QCoreApplication.translate("MainWindow", u"Search", None))
-        self.label_11.setText(QCoreApplication.translate("MainWindow", u"First Name:", None))
-        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Plan ID:", None))
-        self.w_ch_use_dicomrt.setText(QCoreApplication.translate("MainWindow", u"Use Dicom RT Files", None))
-        self.label_17.setText(QCoreApplication.translate("MainWindow", u"Isocenter:", None))
-        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
         self.label_15.setText(QCoreApplication.translate("MainWindow", u"Beams", None))
-        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Last Name:", None))
-        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Patient ID:", None))
-        self.label_26.setText(QCoreApplication.translate("MainWindow", u"Course ID:", None))
-        self.w_l_patient_first_name.setText("")
-        self.w_l_patient_last_name.setText("")
         self.w_l_plan_isocenter.setText("")
+        self.label_14.setText(QCoreApplication.translate("MainWindow", u"Body Structure:", None))
+        self.label_12.setText(QCoreApplication.translate("MainWindow", u"Plan ID:", None))
+        self.label_13.setText(QCoreApplication.translate("MainWindow", u"Last Name:", None))
+        self.w_l_patient_first_name.setText("")
+        self.label_17.setText(QCoreApplication.translate("MainWindow", u"Isocenter:", None))
+        self.label_11.setText(QCoreApplication.translate("MainWindow", u"First Name:", None))
+        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Patient ID:", None))
+        self.w_l_patient_last_name.setText("")
+        self.label_26.setText(QCoreApplication.translate("MainWindow", u"Course ID:", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"MapRT", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.w_l_api_status.setText("")
@@ -765,7 +693,6 @@ class Ui_MainWindow(object):
         self.w_rb_minusY.setText(QCoreApplication.translate("MainWindow", u"-Y", None))
         self.w_rb_plusZ.setText(QCoreApplication.translate("MainWindow", u"+Z", None))
         self.w_rb_minusZ.setText(QCoreApplication.translate("MainWindow", u"-Z", None))
-        self.w_pb_save_image.setText(QCoreApplication.translate("MainWindow", u"Save Render Window Image", None))
         self.w_tw_patient_settings.setTabText(self.w_tw_patient_settings.indexOf(self.tab_2), QCoreApplication.translate("MainWindow", u"3D View Settings", None))
         self.w_gb_collision_map.setTitle(QCoreApplication.translate("MainWindow", u"MapRT Collision Map", None))
         self.label_25.setText(QCoreApplication.translate("MainWindow", u"Current Collision Map:", None))

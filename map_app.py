@@ -25,6 +25,7 @@ from ui._main_window import Ui_MainWindow
 from diag_orient import OrientDialog
 from diag_settings import SettingsDialog
 from diag_maprt_patient import MapRTPatientDialog
+from diag_dicom_files import DicomFileDialog
 from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
 from models.settings import AppSettings
@@ -36,6 +37,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         super().__init__()
         print('MainWindow.__init__')
         self.setupUi(self)
+
+        self._file_mode = False
 
         self._load_application_settings()
 
@@ -61,183 +64,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     # Setup                                                                            #
     ####################################################################################
-    def testing(self):
-        print('MainWindow.ESAPI_Stub')
-
-        polydata = self.maprt_transform_filter.GetOutput()
-        points = vtk_to_numpy(polydata.GetPoints().GetData())
-
-        colors = np.zeros_like(points) + 255
-        pcloud = o3d.geometry.PointCloud()
-        pcloud.points = o3d.utility.Vector3dVector(points)
-        pcloud.colors = o3d.utility.Vector3dVector(colors)
-
-        voxel_size = 5
-        voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcloud, voxel_size=voxel_size)
-
-        bounds_min = voxel_grid.get_min_bound()
-        x_min, y_min, z_min = bounds_min
-        bounds_max = voxel_grid.get_max_bound()
-        x_max, y_max, z_max = bounds_max
-
-        # print(bounds_min)
-        # print(bounds_max)
-        # print(x_min, y_min, z_min, x_max, y_max, z_max)
-
-        # Calculate grid dimensions
-        dimensions = np.ceil((bounds_max - bounds_min) / voxel_grid.voxel_size).astype(int)
-        # print(dimensions)
-
-        # Initialize an empty NumPy array with the calculated dimensions
-        pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
-
-        # Get the voxel data
-        voxels = voxel_grid.get_voxels()
-
-        # Iterate through the voxels and update the NumPy array
-        for voxel in voxels:
-            index = voxel.grid_index
-            # Calculate grayscale value from color (if color exists, otherwise use 255)
-            if voxel.color is not None:
-                gray_value = int(np.mean(voxel.color))
-            else:
-                gray_value = 0
-            pixel_data[index[2], index[1], index[0]] = gray_value
-
-
-
-        dicom_path = None
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            self.settings = AppSettings(**settings_data)
-
-            dicom_path = Path(self.settings.dicom.dicom_data_directory)
-
-        save_path = dicom_path / self.patient_ctx.patient_id
-        save_path.mkdir(parents=True, exist_ok=True)
-
-        dt_object = dt.datetime.now()
-        study = pydicom.uid.generate_uid()
-        series = pydicom.uid.generate_uid()
-        frame_of_ref = pydicom.uid.generate_uid()
-        for i, image in enumerate(pixel_data):
-
-            instance = pydicom.uid.generate_uid()
-
-            file_meta = FileMetaDataset()
-            file_meta.FileMetaInformationGroupLength = 192
-            file_meta.FileMetaInformationVersion = b'\x00\x01'
-            file_meta.MediaStorageSOPClassUID = CTImageStorage
-            file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-            file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-            # Main data elements
-            ds = Dataset()
-            ds.file_meta = file_meta
-            ds.is_implicit_VR = True
-            ds.is_little_endian = True
-
-            ds.PatientName = f"{self.patient_ctx.last_name}^{self.patient_ctx.first_name}"
-            ds.PatientID = self.patient_ctx.patient_id
-
-            ds.SpecificCharacterSet = 'ISO_IR 192'
-            ds.ImageType = ['ORIGINAL', 'PRIMARY', 'AXIAL']
-            ds.InstanceCreationDate = dt_object.strftime("%Y%m%d")
-            ds.InstanceCreationTime = dt_object.strftime("%H%M%S")
-            ds.SOPClassUID = CTImageStorage
-            ds.SOPInstanceUID = instance
-            ds.StudyInstanceUID = study
-            ds.SeriesInstanceUID = series
-            ds.StudyID = '42'
-            ds.SeriesNumber = '1'
-            # ds.AcquisitionNumber = '1'
-            ds.InstanceNumber = str(i + 1)
-            ds.StudyDate = dt_object.strftime("%Y%m%d")
-            ds.SeriesDate = dt_object.strftime("%Y%m%d")
-            ds.AcquisitionDate = dt_object.strftime("%Y%m%d")
-            ds.ContentDate = dt_object.strftime("%Y%m%d")
-            ds.StudyTime = dt_object.strftime("%H%M%S.%f")
-            ds.SeriesTime = dt_object.strftime("%H%M%S.%f")
-            ds.AcquisitionTime = dt_object.strftime("%H%M%S.%f")
-            ds.ContentTime = dt_object.strftime("%H%M%S.%f")
-            ds.AccessionNumber = ''
-            ds.Modality = 'CT'
-            ds.Manufacturer = 'Map App'
-            ds.ReferringPhysicianName = ''
-            ds.StationName = 'Map App'
-            ds.StudyDescription = 'Synthetic Surface CT'
-            ds.PhysiciansOfRecord = 'Physician'
-            ds.OperatorsName = 'DICOM Service'
-            ds.ManufacturerModelName = 'Patient Verification'
-
-            ds.ImagePositionPatient = [x_min, y_min, z_min + (i * voxel_size)]
-            ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-            ds.FrameOfReferenceUID = frame_of_ref
-            ds.PositionReferenceIndicator = ''
-            ds.ImageComments = 'Reconstruction Mode THREE_D\r\nFilter AUTO\r\nRing Suppression MEDIUM\r\n'
-            ds.SamplesPerPixel = 1
-            ds.PhotometricInterpretation = 'MONOCHROME2'
-            ds.Rows = image.shape[0]
-            ds.Columns = image.shape[1]
-            ds.PixelSpacing = [voxel_size, voxel_size]
-            ds.BitsAllocated = 16
-            ds.BitsStored = 16
-            ds.HighBit = 15
-            ds.PixelRepresentation = 0
-            ds.WindowCenter = '37.0'
-            ds.WindowWidth = '468.0'
-            ds.RescaleIntercept = '-1000.0'
-            ds.RescaleSlope = '1.0'
-            ds.RescaleType = 'HU'
-            # ds.PatientSupportAngle = '0'
-            # ds.TableTopLongitudinalPosition = '100'
-            # ds.TableTopLateralPosition = '0'
-            # ds.TableTopPitchAngle = 0
-            # ds.TableTopRollAngle = 0
-
-            # # Create a new DICOM dataset
-            # file_meta = Dataset()
-            # file_meta.MediaStorageSOPClassUID = CTImageStorage
-            # file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-            # file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-            # ds = FileDataset('dummy.dcm', {}, file_meta=file_meta, preamble=b"\0" * 128)
-            #
-            # # Add the required attributes for a CT image
-            # ds.Modality = 'CT'
-            # ds.ContentDate = dt_object.strftime("%Y%m%d")
-            # ds.ContentTime = dt_object.strftime("%H%M%S.%f")
-            # ds.StudyInstanceUID = study
-            # ds.SeriesInstanceUID = series
-            # ds.SOPInstanceUID = instance
-            # ds.SOPClassUID = CTImageStorage
-            # ds.PatientName = f"{self.patient_ctx.last_name}^{self.patient_ctx.first_name}"
-            # ds.PatientID = self.patient_ctx.patient_id
-            # ds.StudyID = '1'
-            # ds.SeriesNumber = '1'
-            # ds.InstanceNumber = str(i + 1)
-            # ds.PhotometricInterpretation = 'MONOCHROME2'
-            # ds.SamplesPerPixel = 1
-            # ds.ImagePositionPatient = [x_min + (i * voxel_size), y_min + (i * voxel_size), z_min + (i * voxel_size)]
-            # ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-            # ds.PixelSpacing = [voxel_size, voxel_size]
-            # ds.SliceThickness = 1
-            # ds.KVP = 120
-            # ds.XRayTubeCurrent = 100
-            # ds.Rows = image.shape[0]
-            # ds.Columns = image.shape[1]
-            # ds.BitsAllocated = 16
-            # ds.BitsStored = 16
-            # ds.HighBit = 15
-            # ds.PixelRepresentation = 0
-            # ds.RescaleIntercept = -1000.0
-            # ds.RescaleSlope = 1
-            # ds.RescaleType = 'HU'
-
-            ds.PixelData = image.tobytes()
-
-            # Save the DICOM file
-            ds.save_as(f'{str(save_path)}\\CT.{instance}.dcm', write_like_original=False)
 
     def _load_application_settings(self):
         print('MainWindow._load_application_settings')
@@ -257,21 +83,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
 
-        self.w_pb_esapi_search.clicked.connect(self.testing)
-
         # PatientContext specific Signals
         self.patient_ctx.patient_id_changed.connect(self.w_le_patinet_id.setText)
         self.patient_ctx.patient_first_name_changed.connect(self.w_l_patient_first_name.setText)
         self.patient_ctx.patient_last_name_changed.connect(self.w_l_patient_last_name.setText)
         self.patient_ctx.courses_updated.connect(self.ui_update_courses)
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
-        self.patient_ctx.plans_updated.connect(self.ui_enable_load_structure_button)
-        self.patient_ctx.invalid_file_loaded.connect(self.ui_show_info_message)
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
 
         # PatientContext.current_plan (PlanContext) specific Signals
         self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
-        self.patient_ctx.current_plan.invalid_file_loaded.connect(self.ui_show_info_message)
         self.patient_ctx.current_plan.beams_changed.connect(self.ui_update_beam_table)
         self.patient_ctx.current_plan.redraw_beams.connect(self.ui_update_beam_plots)
         self.patient_ctx.current_plan.structures_updated.connect(self.ui_update_structures)
@@ -279,12 +100,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         # ui to PatientContext or PlanContext method connections
         self.w_cb_body_structure.currentTextChanged.connect(self.patient_ctx.current_plan.update_current_structure)
-
-        # Set ui to ui connections for DICOM RT file mode
-        self.w_pb_dcm_plan_file.clicked.connect(self.ui_select_dicom_rt_plan_file)
-        self.w_pb_dcm_struct_file.clicked.connect(self.ui_select_dicom_rt_structure_file)
-        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
-        self.w_ch_use_dicomrt.checkStateChanged.connect(self.show_dicomrt_file_input_widgets)
 
     def _connect_api_manager_to_ui(self):
         print('MainWindow._connect_api_manager_to_ui')
@@ -359,9 +174,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def _setup_3d_visualization(self):
         print('MainWindow._setup_3d_visualization')
         self.maprt_actor = None
-        self.maprt_laser_actors = None
+        self.maprt_laser_actors = ()
         self.dicom_actor = None
-        self.dicom_laser_actors = None
+        self.dicom_laser_actors = ()
 
         # 3D Scene Widget Setup
         self.vtk_renderer = vtk.vtkRenderer()
@@ -387,14 +202,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_fr_obj_color.show()
         self.w_hs_obj_opacity.valueChanged.connect(self.maprt_surface_opacity_changed)
 
-        # Setup MapRT obj actor color controls
+        # Setup laser actor color controls
         self.w_pb_laser_color.clicked.connect(self.laser_color_changed)
         self.w_fr_laser_color.setStyleSheet(f"background-color: rgb({255}, {0}, {0});")
         self.w_fr_laser_color.show()
         self.w_hs_laser_opacity.valueChanged.connect(self.laser_opacity_changed)
-
-        # Connect image save button
-        # self.w_pb_save_image.clicked.connect(self.save_3d_image)
 
         self.w_dsb_surface_shift_x.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
         self.w_dsb_surface_shift_y.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
@@ -411,7 +223,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Create axes actor
         axes_actor = vtk.vtkAxesActor()
 
-        # Create orientation marker widget
+        # Create axis orientation marker widget
         self.orientation_widget = vtk.vtkOrientationMarkerWidget()
         self.orientation_widget.SetOutlineColor(0.9300, 0.5700, 0.1300)
         self.orientation_widget.SetOrientationMarker(axes_actor)
@@ -421,6 +233,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.orientation_widget.InteractiveOff()
         self.orientation_widget.On()
 
+        # Create orientation manipulation widget
         self.cam_orient_manipulator = vtk.vtkCameraOrientationWidget(parent_renderer=self.vtk_renderer,
                                                                 interactor=self.vtk_interactor)
         # Enable the widget.
@@ -439,9 +252,15 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         action_clear_current_patient.triggered.connect(self.ui_clear_dicom_3d_scene)
         action_clear_current_patient.triggered.connect(self.ui_clear_maprt_3d_scene)
         action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot)
+        action_clear_current_patient.triggered.connect(self.ui_set_file_mode)
         menu_file.addAction(action_clear_current_patient)
 
         menu_file.addSeparator()
+
+        menu_open = menu_file.addMenu("&Open")
+        action_open_dicom = qtg.QAction("&DICOM", self)
+        action_open_dicom.triggered.connect(self.ui_open_dicom_files)
+        menu_open.addAction(action_open_dicom)
 
         menu_save = menu_file.addMenu("&Save")
 
@@ -452,7 +271,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         menu_export = menu_file.addMenu("&Export")
 
         action_export_surface_to_dicom = qtg.QAction("&MapRT Surface to DICOM", self)
-        action_export_surface_to_dicom.triggered.connect(self.testing)
+        action_export_surface_to_dicom.triggered.connect(self.export_surface_to_dicom)
         menu_export.addAction(action_export_surface_to_dicom)
 
         menu_file.addSeparator()
@@ -470,6 +289,33 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     # PatientContext Connections and Methods                                           #
     ####################################################################################
+
+    def ui_open_dicom_files(self):
+        print('MainWindow.ui_open_dicom_files')
+        dcm_diag = DicomFileDialog()
+        if dcm_diag.exec():
+            plan_path = dcm_diag.w_le_dicom_plan_path.text()
+            if plan_path != '':
+                try:
+                    self.patient_ctx.clear()
+                    self.ui_set_file_mode(True)
+                    self.patient_ctx.load_context_from_dicom_rt_file(plan_path)
+
+                    struct_path = dcm_diag.w_le_dicom_structure_path.text()
+                    if struct_path != '':
+                        self.patient_ctx.current_plan.load_structures_from_dicom_rt_file(struct_path)
+
+                except DicomFileValidationError as e:
+                    self.patient_ctx.clear()
+                    self.ui_set_file_mode(False)
+                    self.ui_show_info_message(str(e))
+
+                except Exception as e:
+                    self.patient_ctx.clear()
+                    self.ui_set_file_mode(False)
+                    self.ui_show_info_message(str(e))
+            else:
+                self.ui_show_info_message("No DICOM RT Plan file selected. You must have a DICOM RT Plan at minimum.")
 
     def ui_update_courses(self, courses):
         print('MainWindow.ui_update_courses')
@@ -578,63 +424,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_body_structure.clear()
                 self.w_cb_body_structure.addItems(structures)
 
-    def show_dicomrt_file_input_widgets(self):
-        print('MainWindow.show_dicomrt_file_input_widgets')
-        self.patient_ctx.clear()
-        self.w_le_dcm_plan_file.clear()
-        self.w_le_dcm_struct_file.clear()
-        self.w_pb_dcm_struct_file.setEnabled(False)
-        self.w_pb_esapi_search.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_le_patinet_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_course_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_cb_plan_id.setEnabled(not self.w_ch_use_dicomrt.isChecked())
-        self.w_gb_dicomrt_files.setVisible(self.w_ch_use_dicomrt.isChecked())
-        # self.ui_clear_dicom_3d_scene()
-
-    def ui_select_dicom_rt_plan_file(self):
-        print('MainWindow.ui_select_dicom_rt_plan_file')
-        file_path, _ = qtw.QFileDialog.getOpenFileName(self,
-                                                      "Select DICOM Structureset File",
-                                                      self.dicom_data_directory,
-                                                      "DICOM Files (*.dcm)"
-                                                      )
-        if file_path:
-            try:
-                self.patient_ctx.load_context_from_dicom_rt_file(file_path)
-                self.w_le_dcm_plan_file.setText(file_path)
-
-            except DicomFileValidationError as e:
-                self.dicomrt_plan_model = None
-                print(e)
-
-    def ui_enable_load_structure_button(self):
-        print('MainWindow.ui_enable_load_structure_button')
-        self.w_pb_dcm_struct_file.setEnabled(True)
-
-    def ui_select_dicom_rt_structure_file(self):
-        print('MainWindow.ui_select_dicom_rt_structure_file')
-        file_path, _ = qtw.QFileDialog.getOpenFileName(self,
-                                                       "Select DICOM Structureset File",
-                                                       self.dicom_data_directory,
-                                                       "DICOM Files (*.dcm)"
-                                                       )
-        if file_path:
-            try:
-                self.patient_ctx.current_plan.load_structures_from_dicom_rt_file(file_path)
-                # self.dicomrt_plan_model.invalid_file_loaded.connect(self.show_info_message)
-                # self.dicomrt_plan_model.file_path_changed.connect(self.w_le_dcm_plan_file.setText)
-                # self.dicomrt_plan_model.plan_model_updated.connect(self.update_patient_context_from_dicom)
-                #
-                # self.dicomrt_plan_model.structure_set.invalid_file_loaded.connect(self.show_info_message)
-                # self.dicomrt_plan_model.structure_set.file_path_changed.connect(self.w_le_dcm_struct_file.setText)
-                # self.dicomrt_plan_model.structure_set.vtk_actor_updated.connect(self.update_dcm_visualization)
-                # self.dicomrt_plan_model.structure_set.structures_loaded.connect(self.update_structure_selections)
-                # self.w_cb_body_structure.currentTextChanged.connect(self.update_dcm_body_structure)
-
-                self.w_le_dcm_struct_file.setText(file_path)
-            except DicomFileValidationError as e:
-                self.dicomrt_plan_model = None
-                print(e)
+    def ui_set_file_mode(self, value=False):
+        print('MainWindow.ui_set_file_mode')
+        self._file_mode = value
+        self.w_pb_esapi_search.setEnabled(not self._file_mode)
+        self.w_le_patinet_id.setEnabled(not self._file_mode)
+        self.w_cb_course_id.setEnabled(not self._file_mode)
+        self.w_cb_plan_id.setEnabled(not self._file_mode)
 
     def update_dicom_visualization(self, model):
         print('MainWindow.update_dicom_visualization')
@@ -716,7 +512,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_renderer.RemoveActor(laser_actor)
             self.vtk_render_window.Render()
             self.dicom_actor = None
-            self.dicom_laser_actors = None
+            self.dicom_laser_actors = ()
 
     ####################################################################################
     # MapRTContext Connections and Methods                                             #
@@ -1007,6 +803,140 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         else:
             pass
 
+    def export_surface_to_dicom(self):
+        print('MainWindow.ESAPI_Stub')
+
+        polydata = self.maprt_transform_filter.GetOutput()
+        points = vtk_to_numpy(polydata.GetPoints().GetData())
+
+        colors = np.zeros_like(points) + 255
+        pcloud = o3d.geometry.PointCloud()
+        pcloud.points = o3d.utility.Vector3dVector(points)
+        pcloud.colors = o3d.utility.Vector3dVector(colors)
+
+        voxel_size = 5
+        voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcloud, voxel_size=voxel_size)
+
+        bounds_min = voxel_grid.get_min_bound()
+        x_min, y_min, z_min = bounds_min
+        bounds_max = voxel_grid.get_max_bound()
+        x_max, y_max, z_max = bounds_max
+
+        # print(bounds_min)
+        # print(bounds_max)
+        # print(x_min, y_min, z_min, x_max, y_max, z_max)
+
+        # Calculate grid dimensions
+        dimensions = np.ceil((bounds_max - bounds_min) / voxel_grid.voxel_size).astype(int)
+        # print(dimensions)
+
+        # Initialize an empty NumPy array with the calculated dimensions
+        pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
+
+        # Get the voxel data
+        voxels = voxel_grid.get_voxels()
+
+        # Iterate through the voxels and update the NumPy array
+        for voxel in voxels:
+            index = voxel.grid_index
+            # Calculate grayscale value from color (if color exists, otherwise use 255)
+            if voxel.color is not None:
+                gray_value = int(np.mean(voxel.color))
+            else:
+                gray_value = 0
+            pixel_data[index[2], index[1], index[0]] = gray_value
+
+
+
+        dicom_path = None
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            self.settings = AppSettings(**settings_data)
+
+            dicom_path = Path(self.settings.dicom.dicom_data_directory)
+
+        save_path = dicom_path / self.patient_ctx.patient_id
+        save_path.mkdir(parents=True, exist_ok=True)
+
+        dt_object = dt.datetime.now()
+        study = pydicom.uid.generate_uid()
+        series = pydicom.uid.generate_uid()
+        frame_of_ref = pydicom.uid.generate_uid()
+        for i, image in enumerate(pixel_data):
+
+            instance = pydicom.uid.generate_uid()
+
+            file_meta = FileMetaDataset()
+            file_meta.FileMetaInformationGroupLength = 192
+            file_meta.FileMetaInformationVersion = b'\x00\x01'
+            file_meta.MediaStorageSOPClassUID = CTImageStorage
+            file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+            file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
+
+            # Main data elements
+            ds = Dataset()
+            ds.file_meta = file_meta
+            ds.is_implicit_VR = True
+            ds.is_little_endian = True
+
+            ds.PatientName = f"{self.patient_ctx.last_name}^{self.patient_ctx.first_name}"
+            ds.PatientID = self.patient_ctx.patient_id
+
+            ds.SpecificCharacterSet = 'ISO_IR 192'
+            ds.ImageType = ['ORIGINAL', 'PRIMARY', 'AXIAL']
+            ds.InstanceCreationDate = dt_object.strftime("%Y%m%d")
+            ds.InstanceCreationTime = dt_object.strftime("%H%M%S")
+            ds.SOPClassUID = CTImageStorage
+            ds.SOPInstanceUID = instance
+            ds.StudyInstanceUID = study
+            ds.SeriesInstanceUID = series
+            ds.StudyID = '42'
+            ds.SeriesNumber = '1'
+            # ds.AcquisitionNumber = '1'
+            ds.InstanceNumber = str(i + 1)
+            ds.StudyDate = dt_object.strftime("%Y%m%d")
+            ds.SeriesDate = dt_object.strftime("%Y%m%d")
+            ds.AcquisitionDate = dt_object.strftime("%Y%m%d")
+            ds.ContentDate = dt_object.strftime("%Y%m%d")
+            ds.StudyTime = dt_object.strftime("%H%M%S.%f")
+            ds.SeriesTime = dt_object.strftime("%H%M%S.%f")
+            ds.AcquisitionTime = dt_object.strftime("%H%M%S.%f")
+            ds.ContentTime = dt_object.strftime("%H%M%S.%f")
+            ds.AccessionNumber = ''
+            ds.Modality = 'CT'
+            ds.Manufacturer = 'Map App'
+            ds.ReferringPhysicianName = ''
+            ds.StationName = 'Map App'
+            ds.StudyDescription = 'Synthetic Surface CT'
+            ds.PhysiciansOfRecord = 'Physician'
+            ds.OperatorsName = 'DICOM Service'
+            ds.ManufacturerModelName = 'Patient Verification'
+
+            ds.ImagePositionPatient = [x_min, y_min, z_min + (i * voxel_size)]
+            ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
+            ds.FrameOfReferenceUID = frame_of_ref
+            ds.PositionReferenceIndicator = ''
+            ds.ImageComments = 'Reconstruction Mode THREE_D\r\nFilter AUTO\r\nRing Suppression MEDIUM\r\n'
+            ds.SamplesPerPixel = 1
+            ds.PhotometricInterpretation = 'MONOCHROME2'
+            ds.Rows = image.shape[0]
+            ds.Columns = image.shape[1]
+            ds.PixelSpacing = [voxel_size, voxel_size]
+            ds.BitsAllocated = 16
+            ds.BitsStored = 16
+            ds.HighBit = 15
+            ds.PixelRepresentation = 0
+            ds.WindowCenter = '37.0'
+            ds.WindowWidth = '468.0'
+            ds.RescaleIntercept = '-1000.0'
+            ds.RescaleSlope = '1.0'
+            ds.RescaleType = 'HU'
+
+            ds.PixelData = image.tobytes()
+
+            # Save the DICOM file
+            ds.save_as(f'{str(save_path)}\\CT.{instance}.dcm', write_like_original=False)
+
     def ui_clear_maprt_3d_scene(self):
         print('MainWindow.ui_clear_maprt_3d_scene')
         if self.maprt_actor is not None:
@@ -1015,7 +945,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_renderer.RemoveActor(laser_actor)
             self.vtk_render_window.Render()
             self.maprt_actor = None
-            self.maprt_laser_actors = None
+            self.maprt_laser_actors = ()
             self.w_dsb_surface_shift_x.setValue(0)
             self.w_dsb_surface_shift_y.setValue(0)
             self.w_dsb_surface_shift_z.setValue(0)
