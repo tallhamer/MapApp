@@ -767,9 +767,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     else:
                         self.maprt_ctx.load_surface_file(file_path, _orientation)
 
-                    # if self.collision_map is not None:
-                    #     self.collision_map_view_box.removeItem(self.collision_map)
-
     def collision_map_mouse_moved(self, event):
         # print('MainWindow.collision_map_mouse_moved')
         pos = event  # using signal proxy turns original event into tuple
@@ -1097,6 +1094,34 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         return (xy_cut_actor, yz_cut_actor, zx_cut_actor)
 
+    def _get_current_color(self, frame):
+        print('MainWindow._get_current_color')
+        palette = frame.palette()
+        background_color = palette.color(qtg.QPalette.ColorRole.Window)
+        return background_color.getRgb()
+
+    def _get_viewing_bounds(self):
+        print('MainWindow._get_viewing_bounds')
+        _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
+
+        actors = self.vtk_renderer.GetActors()
+        actors.InitTraversal()
+        current_actor = actors.GetNextActor()
+        while current_actor is not None:
+            poly = current_actor.GetMapper().GetInput()
+
+            x_min, x_max, y_min, y_max, z_min, z_max = poly.bounds
+            _x_min.append(x_min)
+            _x_max.append(x_max)
+            _y_min.append(y_min)
+            _y_max.append(y_max)
+            _z_min.append(z_min)
+            _z_max.append(z_max)
+
+            current_actor = actors.GetNextActor()
+
+        return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
+
     def laser_color_changed(self):
         print('MainWindow.laser_color_changed')
         _R, _G, _B, _A = self._get_current_color(self.w_fr_laser_color)
@@ -1131,34 +1156,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
                                                (self.w_hs_dcm_opacity.value() / 100.0)
             self.vtk_render_window.Render()
-
-    def _get_current_color(self, frame):
-        print('MainWindow._get_current_color')
-        palette = frame.palette()
-        background_color = palette.color(qtg.QPalette.ColorRole.Window)
-        return background_color.getRgb()
-
-    def _get_viewing_bounds(self):
-        print('MainWindow._get_viewing_bounds')
-        _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
-
-        actors = self.vtk_renderer.GetActors()
-        actors.InitTraversal()
-        current_actor = actors.GetNextActor()
-        while current_actor is not None:
-            poly = current_actor.GetMapper().GetInput()
-
-            x_min, x_max, y_min, y_max, z_min, z_max = poly.bounds
-            _x_min.append(x_min)
-            _x_max.append(x_max)
-            _y_min.append(y_min)
-            _y_max.append(y_max)
-            _z_min.append(z_min)
-            _z_max.append(z_max)
-
-            current_actor = actors.GetNextActor()
-
-        return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def vtk_render_window_background_color_changed(self):
         print('MainWindow.vtk_render_window_background_color_changed')
