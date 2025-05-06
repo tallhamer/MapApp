@@ -21,7 +21,7 @@ import PySide6.QtGui as qtg
 import pyqtgraph as pg
 
 # from ui.test_window import Ui_MainWindow
-from ui._main_window import Ui_MainWindow
+from ui.main_window import Ui_MainWindow
 from diag_orient import OrientDialog
 from diag_settings import SettingsDialog
 from diag_maprt_patient import MapRTPatientDialog
