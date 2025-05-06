@@ -41,7 +41,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
-        self._file_mode = False
+        self.dicom_file_mode = False
+        self.maprt_file_mode = False
 
         self._load_application_settings()
 
@@ -92,7 +93,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.patient_last_name_changed.connect(self.w_l_patient_last_name.setText)
         self.patient_ctx.courses_updated.connect(self.ui_update_courses)
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
-        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
+        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
+        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_ui_components)
 
         # PatientContext.current_plan (PlanContext) specific Signals
         self.patient_ctx.current_plan.isocenter_changed.connect(self.ui_update_isocenter_label)
@@ -130,7 +132,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_dsb_api_couch_buffer.valueChanged.connect(self.maprt_ctx.update_couch_buffer)
         self.w_dsb_api_patient_buffer.valueChanged.connect(self.maprt_ctx.update_patient_buffer)
         self.w_cb_current_map.currentTextChanged.connect(self.maprt_ctx.update_current_map_data)
-        self.w_pb_obj_file.clicked.connect(self.ui_select_maprt_surface_file)
         self.w_cb_surface_for_map.currentTextChanged.connect(self.maprt_ctx.update_surface)
         self.w_cb_treatment_room.currentTextChanged.connect(self.maprt_ctx.update_room)
 
@@ -254,18 +255,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
         action_clear_current_patient = qtg.QAction("&Clear Current Patient", self)
         action_clear_current_patient.triggered.connect(self.patient_ctx.clear)
-        action_clear_current_patient.triggered.connect(self.ui_clear_dicom_3d_scene)
-        action_clear_current_patient.triggered.connect(self.ui_clear_maprt_3d_scene)
-        action_clear_current_patient.triggered.connect(self.ui_clear_collision_map_plot)
-        action_clear_current_patient.triggered.connect(self.ui_set_file_mode)
         menu_file.addAction(action_clear_current_patient)
 
         menu_file.addSeparator()
 
         menu_open = menu_file.addMenu("&Open")
-        action_open_dicom = qtg.QAction("&DICOM", self)
+
+        action_open_dicom = qtg.QAction("&DICOM RT Files", self)
         action_open_dicom.triggered.connect(self.ui_open_dicom_files)
         menu_open.addAction(action_open_dicom)
+
+        action_open_surface = qtg.QAction("Surface File", self)
+        action_open_surface.triggered.connect(self.ui_select_maprt_surface_file)
+        menu_open.addAction(action_open_surface)
 
         menu_save = menu_file.addMenu("&Save")
 
@@ -303,7 +305,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             if plan_path != '':
                 try:
                     self.patient_ctx.clear()
-                    self.ui_set_file_mode(True)
+                    self.ui_set_dicom_file_mode(True)
                     self.patient_ctx.load_context_from_dicom_rt_file(plan_path)
 
                     struct_path = dcm_diag.w_le_dicom_structure_path.text()
@@ -312,12 +314,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
                 except DicomFileValidationError as e:
                     self.patient_ctx.clear()
-                    self.ui_set_file_mode(False)
+                    self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
 
                 except Exception as e:
                     self.patient_ctx.clear()
-                    self.ui_set_file_mode(False)
+                    self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
             else:
                 self.ui_show_info_message("No DICOM RT Plan file selected. You must have a DICOM RT Plan at minimum.")
@@ -428,14 +430,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             else:
                 self.w_cb_body_structure.clear()
                 self.w_cb_body_structure.addItems(structures)
-
-    def ui_set_file_mode(self, value=False):
-        print('MainWindow.ui_set_file_mode')
-        self._file_mode = value
-        self.w_pb_esapi_search.setEnabled(not self._file_mode)
-        self.w_le_patinet_id.setEnabled(not self._file_mode)
-        self.w_cb_course_id.setEnabled(not self._file_mode)
-        self.w_cb_plan_id.setEnabled(not self._file_mode)
 
     def update_dicom_visualization(self, model):
         print('MainWindow.update_dicom_visualization')
@@ -607,80 +601,82 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def ui_update_maprt_3D_surface_visualization(self, surface):
         print('MainWindow.ui_update_map_3D_surface_visualization')
-        if self.maprt_actor is None and self.maprt_ctx.current_surface is not None:
+        if self.maprt_actor is None:
 
-            self.maprt_transform = vtk.vtkTransform()
-            self.maprt_transform.PostMultiply()
-            self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
-                                           self.w_dsb_surface_shift_y.value() * 10,
-                                           self.w_dsb_surface_shift_z.value() * 10
-                                           )
+            if self.maprt_ctx.current_surface is not None:
+                self.maprt_transform = vtk.vtkTransform()
+                self.maprt_transform.PostMultiply()
+                self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
+                                               self.w_dsb_surface_shift_y.value() * 10,
+                                               self.w_dsb_surface_shift_z.value() * 10
+                                               )
 
-            # Create a transform filter
-            self.maprt_transform_filter = vtk.vtkTransformFilter()
-            self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
-            self.maprt_transform_filter.SetTransform(self.maprt_transform)
-            self.maprt_transform_filter.Update()
+                # Create a transform filter
+                self.maprt_transform_filter = vtk.vtkTransformFilter()
+                self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
+                self.maprt_transform_filter.SetTransform(self.maprt_transform)
+                self.maprt_transform_filter.Update()
 
-            self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
-            self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
+                self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
+                self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
 
-            self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
+                self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
 
-            R, G, B, A = self._get_current_color(self.w_fr_obj_color)
-            self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
+                R, G, B, A = self._get_current_color(self.w_fr_obj_color)
+                self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+                self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
-            self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
+                self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
 
-            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
-            for laser_actor in self.maprt_laser_actors:
-                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
-                                               (self.w_hs_obj_opacity.value() / 100.0)
+                laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+                for laser_actor in self.maprt_laser_actors:
+                    laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                    laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                                   (self.w_hs_obj_opacity.value() / 100.0)
 
-            self.vtk_renderer.AddActor(self.maprt_actor)
-            for laser_actor in self.maprt_laser_actors:
-                self.vtk_renderer.AddActor(laser_actor)
+                self.vtk_renderer.AddActor(self.maprt_actor)
+                for laser_actor in self.maprt_laser_actors:
+                    self.vtk_renderer.AddActor(laser_actor)
 
         else:
-            self.vtk_renderer.RemoveActor(self.maprt_actor)
-            for laser_actor in self.maprt_laser_actors:
-                self.vtk_renderer.RemoveActor(laser_actor)
+            if self.maprt_ctx.current_surface is not None:
+                self.vtk_renderer.RemoveActor(self.maprt_actor)
+                for laser_actor in self.maprt_laser_actors:
+                    self.vtk_renderer.RemoveActor(laser_actor)
 
-            self.maprt_transform = vtk.vtkTransform()
-            self.maprt_transform.PostMultiply()
-            self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
-                                           self.w_dsb_surface_shift_y.value() * 10,
-                                           self.w_dsb_surface_shift_z.value() * 10
-                                           )
+                self.maprt_transform = vtk.vtkTransform()
+                self.maprt_transform.PostMultiply()
+                self.maprt_transform.Translate(self.w_dsb_surface_shift_x.value() * 10,
+                                               self.w_dsb_surface_shift_y.value() * 10,
+                                               self.w_dsb_surface_shift_z.value() * 10
+                                               )
 
-            # Create a transform filter
-            self.maprt_transform_filter = vtk.vtkTransformFilter()
-            self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
-            self.maprt_transform_filter.SetTransform(self.maprt_transform)
-            self.maprt_transform_filter.Update()
+                # Create a transform filter
+                self.maprt_transform_filter = vtk.vtkTransformFilter()
+                self.maprt_transform_filter.SetInputData(self.maprt_ctx.current_surface.vtk_polydata)
+                self.maprt_transform_filter.SetTransform(self.maprt_transform)
+                self.maprt_transform_filter.Update()
 
-            self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
-            self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
+                self.maprt_surface_mapper = vtk.vtkPolyDataMapper()
+                self.maprt_surface_mapper.SetInputData(self.maprt_transform_filter.GetOutput())
 
-            self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
+                self.maprt_actor = vtk.vtkActor(mapper=self.maprt_surface_mapper)
 
-            R, G, B, A = self._get_current_color(self.w_fr_obj_color)
-            self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
-            self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
+                R, G, B, A = self._get_current_color(self.w_fr_obj_color)
+                self.maprt_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+                self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
 
-            self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
+                self.maprt_laser_actors = self._get_laser_marks(self.maprt_transform_filter.GetOutput())
 
-            laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
-            for laser_actor in self.maprt_laser_actors:
-                laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
-                laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
-                                               (self.w_hs_obj_opacity.value() / 100.0)
+                laser_R, laser_G, laser_B, laser_A = self._get_current_color(self.w_fr_laser_color)
+                for laser_actor in self.maprt_laser_actors:
+                    laser_actor.GetProperty().SetColor(laser_R / 255.0, laser_G / 255.0, laser_B / 255.0)
+                    laser_actor.property.opacity = (self.w_hs_laser_opacity.value() / 100.0) * \
+                                                   (self.w_hs_obj_opacity.value() / 100.0)
 
-            self.vtk_renderer.AddActor(self.maprt_actor)
-            for laser_actor in self.maprt_laser_actors:
-                self.vtk_renderer.AddActor(laser_actor)
+                self.vtk_renderer.AddActor(self.maprt_actor)
+                for laser_actor in self.maprt_laser_actors:
+                    self.vtk_renderer.AddActor(laser_actor)
 
         # self.vtk_renderer.ResetCamera()
         self.vtk_render_window.Render()
@@ -734,38 +730,48 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                                       "OBJ Files (*.obj)"
                                                       )
         if file_path:
-            if self.patient_ctx.patient_id == '':
-                dialog = MapRTPatientDialog()
-                if dialog.exec():
-                    self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
-                    self.patient_ctx.first_name = 'Preview'
-                    self.patient_ctx.last_name = 'MapRT Patient'
+            get_map_state = self.w_pb_get_map.isEnabled()
 
-                    plan = DicomPlanContext()
-                    plan.plan_id = 'Preview Plan'
-                    plan.frame_of_reference_uid = 'Preview'
-                    plan.patient_orientation = dialog.w_cb_patient_orientation.currentText()
-                    plan.isocenter = np.zeros(3)
-                    plan.beams = []
-                    plans = {plan.plan_id: plan}
+            try:
+                self.ui_set_maprt_file_mode(True)
 
-                    self.patient_ctx._courses['P1'] = plans
-                    self.patient_ctx.courses_updated.emit(self.patient_ctx.courses)
-                    self.patient_ctx.update_current_course('P1')
-                    self.patient_ctx.update_current_plan(plan.plan_id)
+                if self.patient_ctx.patient_id == '':
+                    dialog = MapRTPatientDialog()
+                    if dialog.exec():
+                        self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
+                        self.patient_ctx.first_name = 'Preview'
+                        self.patient_ctx.last_name = 'MapRT Patient'
 
-                    self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
+                        plan = DicomPlanContext()
+                        plan.plan_id = 'Preview Plan'
+                        plan.frame_of_reference_uid = 'Preview'
+                        plan.patient_orientation = dialog.w_cb_patient_orientation.currentText()
+                        plan.isocenter = np.zeros(3)
+                        plan.beams = []
+                        plans = {plan.plan_id: plan}
 
-            else:
+                        self.patient_ctx._courses['P1'] = plans
+                        self.patient_ctx.courses_updated.emit(self.patient_ctx.courses)
+                        self.patient_ctx.update_current_course('P1')
+                        self.patient_ctx.update_current_plan(plan.plan_id)
 
-                dialog = OrientDialog()
-                if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
-                    _orientation = dialog.w_cb_obj_surface_orientation.currentText()
-                    if _orientation == "Current Plan" and self.patient_ctx.current_plan is not None:
                         self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
 
-                    else:
-                        self.maprt_ctx.load_surface_file(file_path, _orientation)
+                else:
+
+                    dialog = OrientDialog()
+                    if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
+                        _orientation = dialog.w_cb_obj_surface_orientation.currentText()
+                        if _orientation == "Current Plan" and self.patient_ctx.current_plan is not None:
+                            self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
+
+                        else:
+                            self.maprt_ctx.load_surface_file(file_path, _orientation)
+
+            except Exception as e:
+                self.ui_set_maprt_file_mode(False)
+                self.w_pb_get_map.setEnabled(get_map_state)
+                self.ui_show_info_message(str(e))
 
     def collision_map_mouse_moved(self, event):
         # print('MainWindow.collision_map_mouse_moved')
@@ -997,6 +1003,31 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def ui_show_info_message(self, message):
         print('MainWindow.ui_show_info_message')
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
+
+    def ui_set_dicom_file_mode(self, value=False):
+        print('MainWindow.ui_set_dicom_file_mode')
+        self.dicom_file_mode = value
+        self.w_pb_esapi_search.setEnabled(not self.dicom_file_mode)
+        self.w_le_patinet_id.setEnabled(not self.dicom_file_mode)
+        self.w_cb_course_id.setEnabled(not self.dicom_file_mode)
+        self.w_cb_plan_id.setEnabled(not self.dicom_file_mode)
+
+    def ui_set_maprt_file_mode(self, value=False):
+        print('MainWindow.ui_set_maprt_file_mode')
+        self.maprt_file_mode = value
+        self.w_pb_fetch_api_data.setEnabled(not self.maprt_file_mode)
+        self.w_cb_treatment_room.setEnabled(not self.maprt_file_mode)
+        self.w_dsb_api_couch_buffer.setEnabled(not self.maprt_file_mode)
+        self.w_dsb_api_patient_buffer.setEnabled(not self.maprt_file_mode)
+        self.w_pb_get_map.setEnabled(not self.maprt_file_mode)
+
+    def ui_clear_ui_components(self):
+        self.ui_clear_dicom_3d_scene()
+        self.ui_clear_maprt_3d_scene()
+        self.ui_clear_collision_map_plot()
+        self.ui_set_dicom_file_mode()
+        self.ui_set_maprt_file_mode()
+        self.w_pb_get_map.setEnabled(False)
 
     def ui_visualize_axis_widget(self):
         if self.w_ch_axis_widget.isChecked():

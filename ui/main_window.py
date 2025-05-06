@@ -258,11 +258,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout_6.addWidget(self.label_27, 7, 0, 1, 1)
 
-        self.w_pb_obj_file = QPushButton(self.groupBox)
-        self.w_pb_obj_file.setObjectName(u"w_pb_obj_file")
-
-        self.gridLayout_6.addWidget(self.w_pb_obj_file, 3, 3, 1, 1)
-
         self.label_7 = QLabel(self.groupBox)
         self.label_7.setObjectName(u"label_7")
 
@@ -644,7 +639,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
-        self.w_tw_patient_settings.setCurrentIndex(1)
+        self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 
 
@@ -684,7 +679,6 @@ class Ui_MainWindow(object):
         self.label_23.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.label_28.setText(QCoreApplication.translate("MainWindow", u"X", None))
         self.label_27.setText(QCoreApplication.translate("MainWindow", u"Correction:", None))
-        self.w_pb_obj_file.setText(QCoreApplication.translate("MainWindow", u"From File", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"cm", None))
         self.label_21.setText(QCoreApplication.translate("MainWindow", u"Couch Buffer:", None))
         self.label_22.setText(QCoreApplication.translate("MainWindow", u"Patient Buffer:", None))
