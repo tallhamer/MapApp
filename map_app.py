@@ -212,6 +212,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_dsb_surface_shift_y.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
         self.w_dsb_surface_shift_z.valueChanged.connect(self.ui_update_maprt_3D_surface_visualization)
 
+        self.w_ch_axis_widget.checkStateChanged.connect(self.ui_visualize_axis_widget)
+        self.w_ch_orientation_widget.checkStateChanged.connect(self.ui_visualize_cam_orientation_widget)
+
         # Connect view manipulation radiobuttons
         self.w_rb_plusX.toggled.connect(self.set_camera_to_plus_x)
         self.w_rb_minusX.toggled.connect(self.set_camera_to_minus_x)
@@ -224,20 +227,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         axes_actor = vtk.vtkAxesActor()
 
         # Create axis orientation marker widget
-        self.orientation_widget = vtk.vtkOrientationMarkerWidget()
-        self.orientation_widget.SetOutlineColor(0.9300, 0.5700, 0.1300)
-        self.orientation_widget.SetOrientationMarker(axes_actor)
-        self.orientation_widget.SetInteractor(self.vtk_interactor)
-        self.orientation_widget.SetViewport(0.0, 0.0, 0.2, 0.2)  # Set size and position
-        self.orientation_widget.EnabledOn()
-        self.orientation_widget.InteractiveOff()
-        self.orientation_widget.On()
+        self.axis_widget = vtk.vtkOrientationMarkerWidget()
+        self.axis_widget.SetOutlineColor(0.9300, 0.5700, 0.1300)
+        self.axis_widget.SetOrientationMarker(axes_actor)
+        self.axis_widget.SetInteractor(self.vtk_interactor)
+        self.axis_widget.SetViewport(0.0, 0.0, 0.2, 0.2)  # Set size and position
+        self.axis_widget.EnabledOn()
+        self.axis_widget.InteractiveOff()
 
         # Create orientation manipulation widget
         self.cam_orient_manipulator = vtk.vtkCameraOrientationWidget(parent_renderer=self.vtk_renderer,
                                                                 interactor=self.vtk_interactor)
         # Enable the widget.
-        self.cam_orient_manipulator.On()
+        self.cam_orient_manipulator.EnabledOn()
 
         self.vtk_interactor.Initialize()
         self.vtk_widget.show()
@@ -995,6 +997,22 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def ui_show_info_message(self, message):
         print('MainWindow.ui_show_info_message')
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
+
+    def ui_visualize_axis_widget(self):
+        if self.w_ch_axis_widget.isChecked():
+            self.axis_widget.EnabledOn()
+        else:
+            self.axis_widget.EnabledOff()
+
+        self.vtk_render_window.Render()
+
+    def ui_visualize_cam_orientation_widget(self):
+        if self.w_ch_orientation_widget.isChecked():
+            self.cam_orient_manipulator.EnabledOn()
+        else:
+            self.cam_orient_manipulator.EnabledOff()
+
+        self.vtk_render_window.Render()
 
     def _get_laser_marks(self, polydata):
         X, Y, Z = self.patient_ctx.current_plan.isocenter
