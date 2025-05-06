@@ -84,6 +84,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def _setup_patient_context(self):
         print('MainWindow._setup_patient_context')
+
+        self.w_pb_esapi_search.clicked.connect(self.ESAPI_STUB)
+
+        
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
 
@@ -296,6 +300,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     # PatientContext Connections and Methods                                           #
     ####################################################################################
+
+    def ESAPI_STUB(self):
+        print('MainWindow.ESAPI_STUB')
 
     def ui_open_dicom_files(self):
         print('MainWindow.ui_open_dicom_files')
@@ -812,7 +819,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def export_surface_to_dicom(self):
-        print('MainWindow.ESAPI_Stub')
+        print('MainWindow.export_surface_to_dicom')
 
         polydata = self.maprt_transform_filter.GetOutput()
         points = vtk_to_numpy(polydata.GetPoints().GetData())
@@ -1022,6 +1029,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_get_map.setEnabled(not self.maprt_file_mode)
 
     def ui_clear_ui_components(self):
+        print('MainWindow.ui_clear_ui_components')
         self.ui_clear_dicom_3d_scene()
         self.ui_clear_maprt_3d_scene()
         self.ui_clear_collision_map_plot()
@@ -1030,6 +1038,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_get_map.setEnabled(False)
 
     def ui_visualize_axis_widget(self):
+        print('MainWindow.ui_visualize_axis_widget')
         if self.w_ch_axis_widget.isChecked():
             self.axis_widget.EnabledOn()
         else:
@@ -1038,6 +1047,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def ui_visualize_cam_orientation_widget(self):
+        print('MainWindow.ui_visualize_cam_orientation_widget')
         if self.w_ch_orientation_widget.isChecked():
             self.cam_orient_manipulator.EnabledOn()
         else:
@@ -1046,6 +1056,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def _get_laser_marks(self, polydata):
+        print('MainWindow._get_laser_marks')
         X, Y, Z = self.patient_ctx.current_plan.isocenter
 
         # Create laser planes
@@ -1174,7 +1185,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def laser_opacity_changed(self):
-        print('MainWindow.laser_transparency_changed')
+        print('MainWindow.laser_opacity_changed')
         self.w_l_laser_opacity.setText(str(self.w_hs_laser_opacity.value()))
         if self.maprt_actor is not None:
             for laser_actor in self.maprt_laser_actors:
