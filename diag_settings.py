@@ -10,6 +10,9 @@ from ui.app_settings_dialog import Ui_SettingsDialog
 from models.maprt import MapRTAPIManager
 from models.settings import AppSettings
 
+import logging
+logger = logging.getLogger('MapApp')
+
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def __init__(self):
         print('SettingsDialog.__init__')

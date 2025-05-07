@@ -5,6 +5,7 @@ import binascii
 from pathlib import Path
 import datetime as dt
 
+
 import pydicom
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage
@@ -35,29 +36,21 @@ import resource_rc
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        print('MainWindow.__init__')
+        logger.debug("Setting up the UI")
         self.setupUi(self)
 
+        self.setWindowTitle("Map App")
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
+
+        self._load_application_settings()
 
         self.dicom_file_mode = False
         self.maprt_file_mode = False
 
-        self._load_application_settings()
-
-        self.setWindowTitle("Map App")
-        # self.w_tw_patient_settings.setCurrentIndex(0)
-        self.w_tw_visualizations.setCurrentIndex(1)
-
         self._setup_patient_context()
 
-        # Setup the global MapRT API connection manager
-        self.maprt_api = MapRTAPIManager(self.maprt_api_url,
-                                         self.maprt_api_token,
-                                         self.maprt_api_user_agent
-                                         )
-        self._connect_api_manager_to_ui()
+        self._setup_api_manager()
 
         self._setup_maprt_context()
         self._setup_collision_map_plot()
@@ -70,7 +63,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def _load_application_settings(self):
-        print('MainWindow._load_application_settings')
+        logger.debug("Load application settings")
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
             self.settings = AppSettings(**settings_data)
@@ -83,11 +76,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.maprt_api_user_agent = self.settings.maprt.api_user_agent
 
     def _setup_patient_context(self):
-        print('MainWindow._setup_patient_context')
+        logger.debug("Setup master PatientContext object")
 
         self.w_pb_esapi_search.clicked.connect(self.ESAPI_STUB)
 
-        
         # Setup the global PatientContext and PlanContext objects
         self.patient_ctx = PatientContext()
 
@@ -105,19 +97,25 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.current_plan.beams_changed.connect(self.ui_update_beam_table)
         self.patient_ctx.current_plan.redraw_beams.connect(self.ui_update_beam_plots)
         self.patient_ctx.current_plan.structures_updated.connect(self.ui_update_structures)
-        self.patient_ctx.current_plan.current_structure_changed.connect(self.update_dicom_visualization)
+        self.patient_ctx.current_plan.current_structure_changed.connect(self.update_3D_dicom_visualization)
 
         # ui to PatientContext or PlanContext method connections
         self.w_cb_body_structure.currentTextChanged.connect(self.patient_ctx.current_plan.update_current_structure)
 
-    def _connect_api_manager_to_ui(self):
-        print('MainWindow._connect_api_manager_to_ui')
+    def _setup_api_manager(self):
+        logger.debug("Setup master MapRT API Manager")
+        # Setup the global MapRT API connection manager
+        self.maprt_api = MapRTAPIManager(self.maprt_api_url,
+                                         self.maprt_api_token,
+                                         self.maprt_api_user_agent
+                                         )
+
         # Connect the ui signals to the MapRTAPIManager objects methods
         self.w_pb_fetch_api_data.clicked.connect(self.fetch_api_data)
         self.w_pb_get_map.clicked.connect(self.get_maprt_collision_maps)
 
     def _setup_maprt_context(self):
-        print('MainWindow._setup_maprt_context')
+        logger.debug("Setup master MapRT Context object")
         # Setup the global MapRTContext object
         self.maprt_ctx = MapRTContext(self.maprt_api)
 
@@ -146,7 +144,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_collision_map_plot)
 
     def _setup_collision_map_plot(self):
-        print('MainWindow._setup_collision_map_plot')
+        logger.debug("Setup MapRT collision map plotter")
         self.collision_map = None
         self.plotted_beams = None
 
@@ -180,7 +178,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         layout.addWidget(self.collision_map_plot_widget)
 
     def _setup_3d_visualization(self):
-        print('MainWindow._setup_3d_visualization')
+        logger.debug("Setup VTK 3D visualization window")
         self.maprt_actor = None
         self.maprt_laser_actors = ()
         self.dicom_actor = None
@@ -253,7 +251,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_widget.show()
 
     def _construct_menu_actions(self):
-        print('MainWindow._construct_menu_actions')
+        logger.debug("Construct Main Menu Bar")
         menu_bar = self.menuBar()
         menu_file = menu_bar.addMenu("&File")
 
@@ -302,10 +300,10 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def ESAPI_STUB(self):
-        print('MainWindow.ESAPI_STUB')
+        logger.debug("MainWindow.ESAPI_STUB")
 
     def ui_open_dicom_files(self):
-        print('MainWindow.ui_open_dicom_files')
+        logger.debug("Open DICOM RT files from MainWindow")
         dcm_diag = DicomFileDialog()
         if dcm_diag.exec():
             plan_path = dcm_diag.w_le_dicom_plan_path.text()
@@ -314,25 +312,30 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(True)
                     self.patient_ctx.load_context_from_dicom_rt_file(plan_path)
+                    logger.info("DICOM RT Plan file successfully loaded")
 
                     struct_path = dcm_diag.w_le_dicom_structure_path.text()
                     if struct_path != '':
                         self.patient_ctx.current_plan.load_structures_from_dicom_rt_file(struct_path)
+                    logger.info("DICOM RT Structure Set file successfully loaded")
 
                 except DicomFileValidationError as e:
+                    logger.error(str(e))
                     self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
 
                 except Exception as e:
+                    logger.error(str(e))
                     self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
             else:
+                logger.info("No DICOM RT Plan file selected. You must have a DICOM RT Plan at minimum.")
                 self.ui_show_info_message("No DICOM RT Plan file selected. You must have a DICOM RT Plan at minimum.")
 
     def ui_update_courses(self, courses):
-        print('MainWindow.ui_update_courses')
+        logger.debug("Updating courses in MainWindow")
         if self.w_cb_course_id.count() == 0:
             self.w_cb_course_id.addItems(courses)
         else:
@@ -347,7 +350,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_course_id.addItems(courses)
 
     def ui_update_plans(self, plans):
-        print('MainWindow.ui_update_plans')
+        logger.debug("Updating plans in MainWindow")
         if self.w_cb_plan_id.count() == 0:
             self.w_cb_plan_id.addItems(plans)
         else:
@@ -362,7 +365,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_plan_id.addItems(plans)
 
     def ui_update_isocenter_label(self, iso):
-        print('MainWindow.ui_update_isocenter_label')
+        logger.debug("Updating isocenter label in MainWindow")
         if len(iso) == 3:
             x, y, z = iso
             x_str = f"<span style='color: #00aaff;'><b>X:</b></span> {x}"
@@ -376,7 +379,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_l_plan_isocenter.setText(f"{x_str} {y_str} {z_str}")
 
     def ui_update_beam_table(self, beams):
-        print('MainWindow.ui_update_beam_table')
+        logger.debug("Updating beam table in MainWindow")
         good_icon = qtg.QIcon(":/icons/good.png")
         bad_icon = qtg.QIcon(":/icons/bad.png")
         if not beams == []: # Need this for refreshes and clearing
@@ -424,7 +427,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_tw_beams.setColumnCount(0)
 
     def ui_update_structures(self, structures):
-        print('MainWindow.ui_update_structures')
+        logger.debug("Updating structures in MainWindow")
         if self.w_cb_body_structure.count() == 0:
             self.w_cb_body_structure.addItems(structures)
         else:
@@ -438,8 +441,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_body_structure.clear()
                 self.w_cb_body_structure.addItems(structures)
 
-    def update_dicom_visualization(self, model):
-        print('MainWindow.update_dicom_visualization')
+    def update_3D_dicom_visualization(self, model):
+        logger.debug("Updating the 3D visualization for the DICOM surface in MainWindow")
         if self.dicom_actor is None:
             self.dicom_actor = self.patient_ctx.current_plan.current_structure
 
@@ -486,7 +489,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def dicom_surface_color_changed(self):
-        print('MainWindow.dicom_surface_color_changed')
+        logger.debug("DICOM surface color changed in MainWindow")
         _R, _G, _B, _A = self._get_current_color(self.w_fr_dcm_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B) , self, "Select Color")
 
@@ -500,7 +503,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def dicom_surface_opacity_changed(self):
-        print('MainWindow.dicom_surface_opacity_changed')
+        logger.debug("DICOM surface opacity changed in MainWindow")
         self.w_l_dcm_opacity.setText(str(self.w_hs_dcm_opacity.value()))
         if self.dicom_actor is not None:
             self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
@@ -511,7 +514,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def ui_clear_dicom_3d_scene(self):
-        print('MainWindow.ui_clear_dicom_3d_scene')
+        logger.debug("Clearing DICOM components from 3D scene in MainWindow")
         if self.dicom_actor is not None:
             self.vtk_renderer.RemoveActor(self.dicom_actor)
             for laser_actor in self.dicom_laser_actors:
@@ -525,11 +528,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def fetch_api_data(self):
-        print('MainWindow.fetch_api_data')
+        logger.debug("Pulling data from MapRT API Manager in MainWindow")
 
         if self.patient_ctx.patient_id == '':
+            logger.info("No patient context found requesting basic patient information from user")
             dialog = MapRTPatientDialog()
             if dialog.exec():
+                logger.info("Constructing Preview Context for Patient, Course and Plan")
                 self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
                 self.patient_ctx.first_name = 'Preview'
                 self.patient_ctx.last_name = 'MapRT Patient'
@@ -547,18 +552,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.patient_ctx.update_current_course('P1')
                 self.patient_ctx.update_current_plan(plan.plan_id)
 
+                logger.info("Attempting to gather MapRT information from API Manager base on user input")
                 self.maprt_api.get_status()
                 self.maprt_api.get_treatment_rooms()
                 self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
                 self.w_pb_get_map.setEnabled(True)
         else:
+            logger.info("Attempting to gather MapRT information from API Manager based on active patient context")
             self.maprt_api.get_status()
             self.maprt_api.get_treatment_rooms()
             self.maprt_api.get_patient_surfaces(self.patient_ctx.patient_id)
             self.w_pb_get_map.setEnabled(True)
 
     def get_maprt_collision_maps(self):
-        print('MainWindow.get_maprt_collision_maps')
+        logger.debug("Requesting collision map data from MapRT API Manager in MainWindow")
         self.maprt_api.get_map(self.maprt_ctx,
                                x_shift=self.w_dsb_surface_shift_x.value(),
                                y_shift=self.w_dsb_surface_shift_y.value(),
@@ -566,7 +573,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                                )
 
     def ui_update_maprt_treatment_rooms(self, rooms):
-        print('MainWindow.ui_update_maprt_treatment_rooms')
+        logger.debug("Updating MapRT treatment room selections in MainWindow")
         if self.w_cb_treatment_room.count() == 0:
             self.w_cb_treatment_room.addItems(rooms)
         else:
@@ -581,7 +588,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_treatment_room.addItems(rooms)
 
     def ui_update_maprt_surfaces(self, surfaces):
-        print('MainWindow.ui_update_maprt_surfaces')
+        logger.debug("Updating MapRT surface selections in MainWindow")
         if self.w_cb_surface_for_map.count() == 0:
             self.w_cb_surface_for_map.addItems(surfaces)
         else:
@@ -596,7 +603,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.w_cb_surface_for_map.addItems(surfaces)
 
     def ui_update_maprt_collision_maps(self, maps):
-        print('MainWindow.ui_update_maprt_collision_maps')
+        logger.debug("Updating MapRT collision map selections in MainWindow")
         if self.w_cb_current_map.count() == 0:
             self.w_cb_current_map.addItems(maps)
         else:
@@ -607,7 +614,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
     def ui_update_maprt_3D_surface_visualization(self, surface):
-        print('MainWindow.ui_update_map_3D_surface_visualization')
+        logger.debug("Updating MapRT 3D surface visualization in MainWindow")
         if self.maprt_actor is None:
 
             if self.maprt_ctx.current_surface is not None:
@@ -689,7 +696,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def ui_update_collision_map_graphics_view(self, current_map_data):
-        print('MainWindow.ui_update_collision_map_graphics_view')
+        logger.debug("Updating MapRT collision map visualization in MainWindow")
         if self.collision_map is not None:
             self.collision_map_plot_widget.removeItem(self.collision_map)
 
@@ -707,7 +714,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_current_map.setCurrentText(self.maprt_ctx.current_map_label)
 
     def ui_update_beam_plots(self, beam_plot_items):
-        print('MainWindow.ui_update_beam_plots')
+        logger.debug("Updating beam plots on MapRT collision map visualization in MainWindow")
         arcs, static_beams = beam_plot_items
 
         if self.plotted_beams is not None:
@@ -726,11 +733,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.plotted_beams = plotted_beams
 
     def ui_notify_connection_error(self, message):
-        print('MainWindow.ui_notify_connection_error')
+        logger.critical("User notified of MapRT API connection error in MainWindow")
         qtw.QMessageBox.critical(self, "MapRT API Error", message, qtw.QMessageBox.Ok)
 
     def ui_select_maprt_surface_file(self):
-        print('MainWindow.ui_select_maprt_surface_file')
+        logger.debug("User request to select .obj file for visualization in MainWindow")
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
                                                       "Select MapRT .obj Surface File",
                                                       ".",
@@ -740,11 +747,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             get_map_state = self.w_pb_get_map.isEnabled()
 
             try:
+                logger.info("Setting application to MapRT file mode")
                 self.ui_set_maprt_file_mode(True)
 
                 if self.patient_ctx.patient_id == '':
+                    logger.info("No active Patient Context found requesting basic patient information from user")
                     dialog = MapRTPatientDialog()
                     if dialog.exec():
+                        logger.info("Setting up Preview Context for Patient, Course and Plan")
                         self.patient_ctx.patient_id = dialog.w_le_patient_id.text()
                         self.patient_ctx.first_name = 'Preview'
                         self.patient_ctx.last_name = 'MapRT Patient'
@@ -762,10 +772,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                         self.patient_ctx.update_current_course('P1')
                         self.patient_ctx.update_current_plan(plan.plan_id)
 
+                        logger.info("Loading surface file for visualization")
                         self.maprt_ctx.load_surface_file(file_path, self.patient_ctx.current_plan.patient_orientation)
 
                 else:
-
+                    logger.info("Patient Context found requesting basic patient orientation information from user")
                     dialog = OrientDialog()
                     if dialog.exec() == qtw.QDialog.DialogCode.Accepted:
                         _orientation = dialog.w_cb_obj_surface_orientation.currentText()
@@ -776,12 +787,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                             self.maprt_ctx.load_surface_file(file_path, _orientation)
 
             except Exception as e:
+                logger.error(str(e))
                 self.ui_set_maprt_file_mode(False)
                 self.w_pb_get_map.setEnabled(get_map_state)
                 self.ui_show_info_message(str(e))
 
     def collision_map_mouse_moved(self, event):
-        # print('MainWindow.collision_map_mouse_moved')
+        # logger.debug("Mouse motion detected over MapRT collision map in MainWindow")
         pos = event  # using signal proxy turns original event into tuple
         if self.collision_map_view_box.sceneBoundingRect().contains(pos):
             mouse_point = self.collision_map_view_box.mapSceneToView(pos)
@@ -793,7 +805,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # print(f"x={mouse_point.x():.2f}, y={mouse_point.y():.2f}")
 
     def maprt_surface_color_changed(self):
-        print('MainWindow.maprt_surface_color_changed')
+        logger.debug("MapRT surface color changed in MainWindow")
         _R, _G, _B, _A = self._get_current_color(self.w_fr_obj_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -807,7 +819,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def maprt_surface_opacity_changed(self):
-        print('MainWindow.maprt_surface_opacity_changed')
+        logger.debug("MapRT surface opacity changed in MainWindow")
         self.w_l_obj_opacity.setText(str(self.w_hs_obj_opacity.value()))
         if self.maprt_actor is not None:
             self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
@@ -819,7 +831,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             pass
 
     def export_surface_to_dicom(self):
-        print('MainWindow.export_surface_to_dicom')
+        logger.debug("Exporting MapRT surface to DICOM in MainWindow")
+        #TODO: Add Exception handling to this function
 
         polydata = self.maprt_transform_filter.GetOutput()
         points = vtk_to_numpy(polydata.GetPoints().GetData())
@@ -953,7 +966,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             ds.save_as(f'{str(save_path)}\\CT.{instance}.dcm', write_like_original=False)
 
     def ui_clear_maprt_3d_scene(self):
-        print('MainWindow.ui_clear_maprt_3d_scene')
+        logger.debug("Clearing MapRT components from 3D visual scene in MainWindow")
         if self.maprt_actor is not None:
             self.vtk_renderer.RemoveActor(self.maprt_actor)
             for laser_actor in self.maprt_laser_actors:
@@ -966,7 +979,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.w_dsb_surface_shift_z.setValue(0)
 
     def ui_clear_collision_map_plot(self):
-        print('MainWindow.ui_clear_collision_map_plot')
+        logger.debug("Clearing MapRT collision map information in MainWindow")
         if self.collision_map is not None:
             self.collision_map_plot_widget.removeItem(self.collision_map)
             self.collision_map = None
@@ -982,7 +995,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
 
     def show_settings_dialog(self):
-        print('MainWindow.show_settings_dialog')
+        logger.debug("Showing application settings dialog in MainWindow")
         settings_dialog = SettingsDialog()
 
         if settings_dialog.exec():
@@ -1008,11 +1021,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             print("ignoring settings changes")
 
     def ui_show_info_message(self, message):
-        print('MainWindow.ui_show_info_message')
+        logger.debug(f"'{message}' message sent to user in MainWindow")
         qtw.QMessageBox.information(self, "Information", message, qtw.QMessageBox.Ok)
 
     def ui_set_dicom_file_mode(self, value=False):
-        print('MainWindow.ui_set_dicom_file_mode')
+        logger.debug(f"Updating UI for DICOM file mode = {value} in MainWindow")
         self.dicom_file_mode = value
         self.w_pb_esapi_search.setEnabled(not self.dicom_file_mode)
         self.w_le_patinet_id.setEnabled(not self.dicom_file_mode)
@@ -1020,7 +1033,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_cb_plan_id.setEnabled(not self.dicom_file_mode)
 
     def ui_set_maprt_file_mode(self, value=False):
-        print('MainWindow.ui_set_maprt_file_mode')
+        logger.debug(f"Updating UI for MapRT file mode = {value} in MainWindow")
         self.maprt_file_mode = value
         self.w_pb_fetch_api_data.setEnabled(not self.maprt_file_mode)
         self.w_cb_treatment_room.setEnabled(not self.maprt_file_mode)
@@ -1029,16 +1042,16 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.w_pb_get_map.setEnabled(not self.maprt_file_mode)
 
     def ui_clear_ui_components(self):
-        print('MainWindow.ui_clear_ui_components')
+        logger.debug("Clearing all UI components in MainWindow")
         self.ui_clear_dicom_3d_scene()
         self.ui_clear_maprt_3d_scene()
         self.ui_clear_collision_map_plot()
-        self.ui_set_dicom_file_mode()
-        self.ui_set_maprt_file_mode()
+        self.ui_set_dicom_file_mode(value=False)
+        self.ui_set_maprt_file_mode(value=False)
         self.w_pb_get_map.setEnabled(False)
 
     def ui_visualize_axis_widget(self):
-        print('MainWindow.ui_visualize_axis_widget')
+        logger.debug("Toggling axis indicator widget visibility in MainWindow")
         if self.w_ch_axis_widget.isChecked():
             self.axis_widget.EnabledOn()
         else:
@@ -1047,7 +1060,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def ui_visualize_cam_orientation_widget(self):
-        print('MainWindow.ui_visualize_cam_orientation_widget')
+        logger.debug("Toggling camera orientation widget visibility in MainWindow")
         if self.w_ch_orientation_widget.isChecked():
             self.cam_orient_manipulator.EnabledOn()
         else:
@@ -1056,7 +1069,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.vtk_render_window.Render()
 
     def _get_laser_marks(self, polydata):
-        print('MainWindow._get_laser_marks')
+        logger.debug("Constructing laser actors for visualization in MainWindow")
         X, Y, Z = self.patient_ctx.current_plan.isocenter
 
         # Create laser planes
@@ -1137,13 +1150,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         return (xy_cut_actor, yz_cut_actor, zx_cut_actor)
 
     def _get_current_color(self, frame):
-        print('MainWindow._get_current_color')
+        logger.debug("Returning current color for supplied example frame in MainWindow")
         palette = frame.palette()
         background_color = palette.color(qtg.QPalette.ColorRole.Window)
         return background_color.getRgb()
 
     def _get_viewing_bounds(self):
-        print('MainWindow._get_viewing_bounds')
+        logger.debug("Determining max bounds for 3D viewing in MainWindow")
         _x_min, _x_max, _y_min, _y_max, _z_min, _z_max = [], [], [], [], [], []
 
         actors = self.vtk_renderer.GetActors()
@@ -1165,7 +1178,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         return (min(_x_min), max(_x_max), min(_y_min), max(_y_max), min(_z_min), max(_z_max))
 
     def laser_color_changed(self):
-        print('MainWindow.laser_color_changed')
+        logger.debug("Laser color changed in MainWindow")
         _R, _G, _B, _A = self._get_current_color(self.w_fr_laser_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -1185,7 +1198,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def laser_opacity_changed(self):
-        print('MainWindow.laser_opacity_changed')
+        logger.debug("Laser opacity changed in MainWindow")
         self.w_l_laser_opacity.setText(str(self.w_hs_laser_opacity.value()))
         if self.maprt_actor is not None:
             for laser_actor in self.maprt_laser_actors:
@@ -1200,7 +1213,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def vtk_render_window_background_color_changed(self):
-        print('MainWindow.vtk_render_window_background_color_changed')
+        logger.debug("Background color for 3D visual scene changed in MainWindow")
         _R, _G, _B, _A = self._get_current_color(self.w_fr_background_color)
         color = qtw.QColorDialog.getColor(qtg.QColor(_R, _G, _B), self, "Select Color")
 
@@ -1213,7 +1226,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def save_3d_image(self):
-        print('MainWindow.save_3d_image')
+        logger.debug("User requested 3D visual scene be saved as static image in MainWindow")
         filename, _ = qtw.QFileDialog.getSaveFileName(self,
                                                       "Save Render Window as Image",
                                                       ".",
@@ -1235,7 +1248,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             writer.Write()
 
     def set_camera_to_plus_x(self):
-        print('MainWindow.set_camera_to_plus_x')
+        logger.debug("Camera position for 3D visual scene set to view from +X in MainWindow")
         if self.w_rb_plusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1255,7 +1268,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_x(self):
-        print('MainWindow.set_camera_to_minus_x')
+        logger.debug("Camera position for 3D visual scene set to view from -X in MainWindow")
         if self.w_rb_minusX.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1275,7 +1288,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_y(self):
-        print('MainWindow.set_camera_to_plus_y')
+        logger.debug("Camera position for 3D visual scene set to view from +Y in MainWindow")
         if self.w_rb_plusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1295,7 +1308,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_y(self):
-        print('MainWindow.set_camera_to_minus_y')
+        logger.debug("Camera position for 3D visual scene set to view from -Y in MainWindow")
         if self.w_rb_minusY.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1315,7 +1328,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_plus_z(self):
-        print('MainWindow.set_camera_to_plus_z')
+        logger.debug("Camera position for 3D visual scene set to view from +Z in MainWindow")
         if self.w_rb_plusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1335,7 +1348,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def set_camera_to_minus_z(self):
-        print('MainWindow.set_camera_to_minus_z')
+        logger.debug("Camera position for 3D visual scene set to view from -Z in MainWindow")
         if self.w_rb_minusZ.isChecked():
             camera = self.vtk_renderer.GetActiveCamera()
             x_min, x_max, y_min, y_max, z_min, z_max = self._get_viewing_bounds()
@@ -1358,6 +1371,18 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         pass
 
 if __name__ == '__main__':
+    import logging
+
+    log_file_name = f".\\logs\\{dt.datetime.now().strftime("%Y%m%d")}.log"
+
+    logger = logging.getLogger('MapApp')
+    logging.basicConfig(
+        format='%(levelname)s (%(process)d) [%(asctime)s]: %(module)s\\%(funcName)s\\%(lineno)d \n\t%(message)s',
+        filename=log_file_name,
+        encoding='utf-8',
+        level=logging.DEBUG
+        )
+
     app = qtw.QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()

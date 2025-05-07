@@ -20,6 +20,9 @@ from models.settings import AppSettings
 import PySide6.QtCore as qtc
 import pyqtgraph as pg
 
+import logging
+logger = logging.getLogger('MapApp')
+
 class DicomFileValidationError(Exception):
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs

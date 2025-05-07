@@ -19,6 +19,9 @@ import PySide6.QtNetwork as qtn
 
 from models.dicom import DicomPlanContext
 
+import logging
+logger = logging.getLogger('MapApp')
+
 # "https://maprtpkr.adventhealth.com:5000"
 # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
 # "VisionRT.Integration.Saturn/1.2.8"

@@ -6,6 +6,9 @@ from ui.dicom_dialog import Ui_DicomDialog
 
 from models.settings import AppSettings
 
+import logging
+logger = logging.getLogger('MapApp')
+
 class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
     def __init__(self):
         print('OrientDialog.__init__')
