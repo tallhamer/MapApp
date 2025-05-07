@@ -125,9 +125,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.maprt_ctx.collision_maps_updated.connect(self.ui_update_maprt_collision_maps)
         self.maprt_ctx.current_surface_changed.connect(self.ui_update_maprt_3D_surface_visualization)
         self.maprt_ctx.current_map_data_changed.connect(self.ui_update_collision_map_graphics_view)
-        self.maprt_ctx.api_connection_error.connect(self.ui_notify_connection_error)
-
         self.maprt_ctx.current_map_data_changed.connect(self.patient_ctx.current_plan.validate_beams)
+        self.maprt_ctx.api_connection_error.connect(self.ui_notify_connection_error)
 
         # Connect the ui signals to the MapRTContext objects methods
         self.w_dsb_api_couch_buffer.valueChanged.connect(self.maprt_ctx.update_couch_buffer)
@@ -139,8 +138,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Connect PatientContext to MapRTContext
         self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
         self.patient_ctx.patient_context_cleared.connect(self.maprt_ctx.clear)
-        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_maprt_3d_scene)
-        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_collision_map_plot)
 
     def _setup_collision_map_plot(self):
         logger.debug("Setup MapRT collision map plotter")
@@ -306,21 +303,23 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         dcm_diag = DicomFileDialog()
         if dcm_diag.exec():
             plan_path = dcm_diag.w_le_dicom_plan_path.text()
+            logger.debug(f'Attempting to load Patient and plan information from file "{plan_path}"')
             if plan_path != '':
                 try:
-                    self.patient_ctx.clear()
+                    # self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(True)
                     self.patient_ctx.load_context_from_dicom_rt_file(plan_path)
                     logger.info("DICOM RT Plan file successfully loaded")
 
                     struct_path = dcm_diag.w_le_dicom_structure_path.text()
+                    logger.debug(f'Attempting to load structure information from file "{struct_path}"')
                     if struct_path != '':
                         self.patient_ctx.current_plan.load_structures_from_dicom_rt_file(struct_path)
                     logger.info("DICOM RT Structure Set file successfully loaded")
 
                 except DicomFileValidationError as e:
                     logger.error(str(e))
-                    self.patient_ctx.clear()
+                    # self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
 

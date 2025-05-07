@@ -678,7 +678,6 @@ class MapRTContext(qtc.QObject):
                 self._collision_maps[map_label] = (map_view, x_ticks, y_ticks)
                 map_labels = [key for key in self._collision_maps.keys()]
                 self.collision_maps_updated.emit(map_labels)
-                self.update_current_map_data(map_label)
         else:
             # Looged in main application
             status_code = reply.attribute(qtn.QNetworkRequest.Attribute.HttpStatusCodeAttribute)
