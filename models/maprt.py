@@ -38,7 +38,8 @@ class MissingDataError(Exception):
 
 class MapRTOrientTransform(object):
     def __init__(self):
-        logger.debug(f'Initializing attributes for MapRTOrientTransform object')
+        self.logger = logging.getLogger('MapApp.models.maprt.MapRTOrientTransform')
+        self.logger.debug(f'Initializing attributes for MapRTOrientTransform object')
         super().__init__()
         self._store = {}
         self._store[None] = self._IDENTITY = np.array([[1, 0, 0],
@@ -72,27 +73,27 @@ class MapRTOrientTransform(object):
                                                   )
 
     def __getitem__(self, item):
-        logger.debug(f'Returning transform for {item} from MapRTOrientTransform object')
+        self.logger.debug(f'Returning transform for {item} from MapRTOrientTransform object')
         return self._store[item]
 
     @property
     def HFS(self):
-        logger.debug(f'Returning HFS transform from MapRTOrientTransform object')
+        self.logger.debug(f'Returning HFS transform from MapRTOrientTransform object')
         return self._HFS
 
     @property
     def HFP(self):
-        logger.debug(f'Returning HFP transform from MapRTOrientTransform object')
+        self.logger.debug(f'Returning HFP transform from MapRTOrientTransform object')
         return self._HFP
 
     @property
     def FFS(self):
-        logger.debug(f'Returning FFS transform from MapRTOrientTransform object')
+        self.logger.debug(f'Returning FFS transform from MapRTOrientTransform object')
         return self._FFS
 
     @property
     def FFP(self):
-        logger.debug(f'Returning FFP transform from MapRTOrientTransform object')
+        self.logger.debug(f'Returning FFP transform from MapRTOrientTransform object')
         return self._FFP
 
 class MapRTAPIManager(qtc.QObject):
@@ -100,14 +101,15 @@ class MapRTAPIManager(qtc.QObject):
     api_connection_error = qtc.Signal(str)
 
     def __init__(self, api_url, token, user_agent):
-        logger.debug(f'Initializing attributes for MapRTAPIManager object')
+        self.logger = logging.getLogger('MapApp.models.maprt.MapRTAPIManager')
+        self.logger.debug(f'Initializing attributes for MapRTAPIManager object')
         super().__init__()
 
         self._api_url = api_url
         self._token = token
         self._user_agent = user_agent
 
-        logger.debug(f'Setting SSL Configuration for MapRTAPIManager')
+        self.logger.debug(f'Setting SSL Configuration for MapRTAPIManager')
         self.ssl_config = qtn.QSslConfiguration.defaultConfiguration()
         self.ssl_config.setPeerVerifyMode(qtn.QSslSocket.PeerVerifyMode.VerifyNone)
         self.ssl_config.setProtocol(qtn.QSsl.SslProtocol.AnyProtocol)
@@ -125,7 +127,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @api_url.setter
     def api_url(self, value):
-        logger.debug(f'Setting api_url to {value} in MapRTAPIManager')
+        self.logger.debug(f'Setting api_url to {value} in MapRTAPIManager')
         self._api_url = str(value)
 
     @property
@@ -134,7 +136,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @token.setter
     def token(self, value):
-        logger.debug(f'Setting token to {value} in MapRTAPIManager')
+        self.logger.debug(f'Setting token to {value} in MapRTAPIManager')
         self._token = str(value)
 
     @property
@@ -143,7 +145,7 @@ class MapRTAPIManager(qtc.QObject):
 
     @user_agent.setter
     def user_agent(self, value):
-        logger.debug(f'Setting user_agent to {value} in MapRTAPIManager')
+        self.logger.debug(f'Setting user_agent to {value} in MapRTAPIManager')
         self._user_agent= str(value)
 
     @property
@@ -155,7 +157,7 @@ class MapRTAPIManager(qtc.QObject):
         return header
 
     def get_status(self):
-        logger.debug(f'Ping call made to "/integration/ping" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Ping call made to "/integration/ping" API endpoint in MapRTAPIManager')
         url = self.api_url + "/integration/ping"
         attributes = f"Ping:"
 
@@ -170,7 +172,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_rooms(self):
-        logger.debug(f'Get Rooms call made to "/integration/rooms" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Get Rooms call made to "/integration/rooms" API endpoint in MapRTAPIManager')
         url = self.api_url + "/integration/rooms"
         attributes = f"Rooms:"
 
@@ -185,7 +187,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_room(self, room_name):
-        logger.debug(f'Get Room call made to "/integration/rooms/{room_name}" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Get Room call made to "/integration/rooms/{room_name}" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/rooms/{room_name}"
         attributes = f"Room:{room_name}"
 
@@ -200,7 +202,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_patient_surfaces(self, patient_id):
-        logger.debug(f'Get Surfaces call made to "/integration/patients/{patient_id}/surfaces" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Get Surfaces call made to "/integration/patients/{patient_id}/surfaces" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/patients/{patient_id}/surfaces"
         attributes = f"Surfaces:{patient_id}"
 
@@ -215,7 +217,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_surface(self, surface_id):
-        logger.debug(f'Get Surfaces call made to "/integration/surfaces/{surface_id}" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Get Surfaces call made to "/integration/surfaces/{surface_id}" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/surfaces/{surface_id}"
         attributes = f"Surface:{surface_id}"
 
@@ -230,7 +232,7 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_map(self, ctx, x_shift=0, y_shift=0, z_shift=0):
-        logger.debug(f'Get Map call made to "/integration/GetMap" API endpoint in MapRTAPIManager')
+        self.logger.debug(f'Get Map call made to "/integration/GetMap" API endpoint in MapRTAPIManager')
         if ctx.plan_context is not None:
             # print('\tPlanContext found')
             if ctx.current_surface is not None:
@@ -282,13 +284,14 @@ class MapRTAPIManager(qtc.QObject):
                     # print(data)
                     self.manager.post(request, data)
             else:
-                logger.debug("No MapRTSurface provided")
+                self.logger.debug("No MapRTSurface provided")
         else:
-            logger.debug("No PlanContext provided")
+            self.logger.debug("No PlanContext provided")
 
 class MapRTSurface(qtc.QObject):
     def __init__(self, data, _id, label, orientation):
-        logger.debug(f'Initializing attributes for MapRTSurface object')
+        self.logger = logging.getLogger('MapApp.models.maprt.MapRTSurface')
+        self.logger.debug(f'Initializing attributes for MapRTSurface object')
         super().__init__()
         self._id = _id
         self._label = label
@@ -312,7 +315,7 @@ class MapRTSurface(qtc.QObject):
         return self._vtk_polydata
 
     def _process_data(self, data):
-        logger.debug(f'Process surface data stream returned from MapRT API in MapRTSurface object')
+        self.logger.debug(f'Process surface data stream returned from MapRT API in MapRTSurface object')
         _mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(data), file_type='obj')
 
         transformer = MapRTOrientTransform()
@@ -352,7 +355,8 @@ class MapRTContext(qtc.QObject):
     plan_context_changed = qtc.Signal(bool)
 
     def __init__(self, api_manager):
-        logger.debug(f'Initializing attributes for MapRTContext object')
+        self.logger = logging.getLogger('MapApp.models.maprt.MapRTContext')
+        self.logger.debug(f'Initializing attributes for MapRTContext object')
         super().__init__()
         self._plan_context = None
 
@@ -420,7 +424,7 @@ class MapRTContext(qtc.QObject):
         return self._current_map_data
 
     def clear(self):
-        logger.debug(f'Clearing attribute values for MapRTContext object')
+        self.logger.debug(f'Clearing attribute values for MapRTContext object')
         self._plan_context = None
 
         self._api_status = None  # str
@@ -443,43 +447,43 @@ class MapRTContext(qtc.QObject):
         self.collision_maps_updated.emit([])
 
     def update_plan_context(self, ctx):
-        logger.debug(f'Updating the plan_context value in MapRTContext')
+        self.logger.debug(f'Updating the plan_context value in MapRTContext')
         if isinstance(ctx, DicomPlanContext):
             self._plan_context = ctx
         else:
             raise TypeError("'_plan_context' attribute must be set to instance of a PlanContext")
 
     def update_couch_buffer(self, value):
-        logger.debug(f'Updating the couch_buffer value to {value} in MapRTContext')
+        self.logger.debug(f'Updating the couch_buffer value to {value} in MapRTContext')
         self._couch_buffer = value
 
     def update_patient_buffer(self, value):
-        logger.debug(f'Updating the patient_buffer value to {value} in MapRTContext')
+        self.logger.debug(f'Updating the patient_buffer value to {value} in MapRTContext')
         self._patient_buffer = value
 
     def update_room(self, room_label):
-        logger.debug(f'Updating the current_room to {room_label} in MapRTContext')
+        self.logger.debug(f'Updating the current_room to {room_label} in MapRTContext')
         if room_label in self._treatment_room_names: # needed for clearing
             self._current_room_label = room_label
             self._current_room_id, self._current_room_scale = self.treatment_rooms[room_label]
             self.current_room_changed.emit()
 
     def update_surface(self, surface_label):
-        logger.debug(f'Updating the current_surface to {surface_label} in MapRTContext')
+        self.logger.debug(f'Updating the current_surface to {surface_label} in MapRTContext')
         for k, v in self.__surface_id_map.items():
             if v == surface_label:
                 self._current_surface = self._patient_surfaces[k]
                 self.current_surface_changed.emit(self._current_surface)
 
     def update_current_map_data(self, map_label):
-        logger.debug(f'Updating the current collision map data to {map_label} in MapRTContext')
+        self.logger.debug(f'Updating the current collision map data to {map_label} in MapRTContext')
         if map_label in self._collision_maps:
             self._current_map_label = map_label
             self._current_map_data = self._collision_maps[map_label]
             self.current_map_data_changed.emit(self._current_map_data)
 
     def load_surface_file(self, file_path, orientation):
-        logger.debug(f'Loading surface from file in MapRTContext')
+        self.logger.debug(f'Loading surface from file in MapRTContext')
         try:
             mesh = trimesh.load(file_path)
             _id = uuid.uuid4().hex
@@ -498,7 +502,7 @@ class MapRTContext(qtc.QObject):
             raise ObjFileValidationError(e)
 
     def generate_map_label(self):
-        logger.debug(f'Generating collision map label from setting used during creation in MapRTContext')
+        self.logger.debug(f'Generating collision map label from setting used during creation in MapRTContext')
         if self._plan_context is not None:
             iso = self.plan_context.isocenter
             couch_buff = self.couch_buffer * 10
@@ -508,28 +512,28 @@ class MapRTContext(qtc.QObject):
             label = f"{room_name} -- {surface} -- {iso} -- CB: {couch_buff} -- PB: {patient_buff}"
             return label
         else:
-            logger.error("Missing PlanContext is required for Isocenter location.")
+            self.logger.error("Missing PlanContext is required for Isocenter location.")
             raise MissingDataError("Missing PlanContext is required for Isocenter location.")
 
     def get_collision_map(self):
-        logger.debug(f'Call MapRT API for collision map in MapRTContext')
+        self.logger.debug(f'Call MapRT API for collision map in MapRTContext')
 
         label = self.generate_map_label()
-        logger.info(f'Looking for cached collision map with current context settings in MapRTContext')
+        self.logger.info(f'Looking for cached collision map with current context settings in MapRTContext')
         if label in self._collision_maps:
-            logger.info(f'Cached collision map found in MapRTContext')
+            self.logger.info(f'Cached collision map found in MapRTContext')
             self._current_map_data = self._collision_maps[label]
             self.current_map_data_changed.emit(self._current_map_data)
         else:
             if self._plan_context is not None:
-                logger.info(f'No cached collision map found calling API for new collision map in MapRTContext')
+                self.logger.info(f'No cached collision map found calling API for new collision map in MapRTContext')
                 self.api_manager.get_map(self)
             else:
-                logger.error("Missing PlanContext is required for Isocenter location.")
+                self.logger.error("Missing PlanContext is required for Isocenter location.")
                 raise MissingDataError("Missing PlanContext is required for Isocenter location.")
 
     def _handle_api_results(self, reply):
-        logger.debug(f'Handling incoming API call results in MapRTContext')
+        self.logger.debug(f'Handling incoming API call results in MapRTContext')
         if reply.error() == qtn.QNetworkReply.NetworkError.NoError:
             attributes = reply.request().attribute(qtn.QNetworkRequest.Attribute.User)
             call_type, args = attributes.split(':')
@@ -541,12 +545,12 @@ class MapRTContext(qtc.QObject):
 
             # Process reply based on call type that was executed
             if call_type == 'Ping':
-                logger.debug(f'Handling incoming "Ping" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Ping" results in MapRTContext')
                 self._api_status = f'HTTP Status Code: {status_code} {responses[status_code]}'
                 self.api_status_changed.emit(self._api_status)
 
             elif call_type == 'Rooms':
-                logger.debug(f'Handling incoming "Rooms" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Rooms" results in MapRTContext')
                 json_data = json.loads(text)
 
                 for room in json_data['data']:
@@ -557,11 +561,11 @@ class MapRTContext(qtc.QObject):
                 self.treatment_rooms_updated.emit(room_names)
 
             elif call_type == 'Room':
-                logger.debug(f'Handling incoming "Room" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Room" results in MapRTContext')
                 json_data = json.loads(text)
 
             elif call_type == 'Surfaces':
-                logger.debug(f'Handling incoming "Surfaces" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Surfaces" results in MapRTContext')
                 json_data = json.loads(text)
 
                 for surface in json_data['data']:
@@ -571,7 +575,7 @@ class MapRTContext(qtc.QObject):
                     self.api_manager.get_surface(_id)
 
             elif call_type == 'Surface':
-                logger.debug(f'Handling incoming "Surface" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Surface" results in MapRTContext')
                 if self._plan_context is not None:
                     _id, = args.split(',')
                     json_data = json.loads(text)
@@ -588,12 +592,12 @@ class MapRTContext(qtc.QObject):
                         name_list = [value for key, value in self.__surface_id_map.items()]
                         self.patient_surfaces_updated.emit(name_list)
                 else:
-                    logger.error("Missing PlanContext is required for patient orientation.")
+                    self.logger.error("Missing PlanContext is required for patient orientation.")
                     raise MissingDataError("Missing PlanContext is required for patient orientation.")
 
 
             elif call_type == 'Map':
-                logger.debug(f'Handling incoming "Map" results in MapRTContext')
+                self.logger.debug(f'Handling incoming "Map" results in MapRTContext')
 
                 lst = text.split()
 
