@@ -89,7 +89,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.patient_ctx.patient_last_name_changed.connect(self.w_l_patient_last_name.setText)
         self.patient_ctx.courses_updated.connect(self.ui_update_courses)
         self.patient_ctx.plans_updated.connect(self.ui_update_plans)
-        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_dicom_3d_scene)
         self.patient_ctx.patient_context_cleared.connect(self.ui_clear_ui_components)
 
         # PatientContext.current_plan (PlanContext) specific Signals
@@ -140,8 +139,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Connect PatientContext to MapRTContext
         self.patient_ctx.current_plan_changed.connect(self.maprt_ctx.update_plan_context)
         self.patient_ctx.patient_context_cleared.connect(self.maprt_ctx.clear)
-        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_maprt_3d_scene)
-        self.patient_ctx.patient_context_cleared.connect(self.ui_clear_collision_map_plot)
+        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_maprt_3d_scene)
+        # self.patient_ctx.patient_context_cleared.connect(self.ui_clear_collision_map_plot)
 
     def _setup_collision_map_plot(self):
         logger.debug("Setup MapRT collision map plotter")
