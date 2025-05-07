@@ -972,9 +972,19 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
             self.maprt_actor = None
             self.maprt_laser_actors = ()
+
+            # You are clearing the UI so block the signals so that downstream method calls are avoided
+            self.w_dsb_surface_shift_x.blockSignals(True)
             self.w_dsb_surface_shift_x.setValue(0)
+            self.w_dsb_surface_shift_x.blockSignals(False)
+
+            self.w_dsb_surface_shift_y.blockSignals(True)
             self.w_dsb_surface_shift_y.setValue(0)
+            self.w_dsb_surface_shift_y.blockSignals(False)
+
+            self.w_dsb_surface_shift_z.blockSignals(True)
             self.w_dsb_surface_shift_z.setValue(0)
+            self.w_dsb_surface_shift_z.blockSignals(False)
 
     def ui_clear_collision_map_plot(self):
         logger.debug("Clearing MapRT collision map information in MainWindow")
