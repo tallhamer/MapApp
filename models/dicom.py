@@ -42,6 +42,7 @@ class DicomPlanContext(qtc.QObject):
     def __init__(self, plan_id='', ref_frame='', isocenter=[], orientation='', beams=[]):
         print('DicomPlanContext.__init__')
         super().__init__()
+        logger.debug("Initializing DicomPlanContext objects attributes")
         self._plan_id = plan_id
         self._frame_of_reference_uid = ref_frame
         self._isocenter = isocenter
@@ -78,7 +79,7 @@ class DicomPlanContext(qtc.QObject):
 
     @isocenter.setter
     def isocenter(self, iter):
-        print('DicomPlanContext.isocenter.setter')
+        logger.debug(f"Setting DicomPlanContext isocenter using {iter}")
         self._isocenter = [float(i) for i in iter]
         self.isocenter_changed.emit(self._isocenter)
 
@@ -88,7 +89,7 @@ class DicomPlanContext(qtc.QObject):
 
     @patient_orientation.setter
     def patient_orientation(self, value):
-        print('DicomPlanContext.patient_orientation.setter')
+        logger.debug(f"Setting DicomPlanContext patient_orientation using {value}")
         self._patient_orientation = str(value)
         self.patient_orientation_changed.emit(self._patient_orientation)
 
@@ -98,7 +99,7 @@ class DicomPlanContext(qtc.QObject):
 
     @beams.setter
     def beams(self, iter):
-        print('DicomPlanContext.beams.setter')
+        logger.debug(f"Setting DicomPlanContext beams using {iter}")
         self._beams = iter
         self.beams_changed.emit(self._beams)
 
@@ -111,7 +112,7 @@ class DicomPlanContext(qtc.QObject):
         return self._current_structure
 
     def update_values(self, plan_ctx):
-        print('DicomPlanContext.update_values')
+        logger.debug(f"Updating DicomPlanContext using anther DicomPlanContext object")
         if isinstance(plan_ctx, DicomPlanContext):
             self.plan_id = plan_ctx.plan_id
             self.frame_of_reference_uid = plan_ctx.frame_of_reference_uid
@@ -125,38 +126,42 @@ class DicomPlanContext(qtc.QObject):
             self._current_structure = None
 
     def update_current_structure(self, structure_id):
-        print('DicomPlanContext.update_current_structure')
+        logger.debug(f"Updating the current structure using it's 'id' in the DicomPlanContext")
         if structure_id in self._structures:
             if self._structures[structure_id] is not None:
-                print("Using cashed mesh")
+                logger.info(f"Structure with id = {structure_id} found in the DicomPlanContext using cached structure")
                 self._current_structure = self._structures[structure_id]
                 self.current_structure_changed.emit(self.current_structure)
             else:
-                print("Generating DICOM surface using marching cubes.")
+                logger.info(f"Structure with id = {structure_id} not found in the DicomPlanContext - Generating new DICOM surface using marching cubes")
                 mesh = self._pcloud_to_mesh(self._raw_structure_points[structure_id], voxel_size=3, iso_level_percentile=3)
-                print('DICOM Surface complete')
+                logger.info(f"Structure with id = {structure_id} surface generation completed")
+                logger.info(f"Structure with id = {structure_id} surface added to the DicomPlanContext")
                 self._structures[structure_id] = self._generate_visual_mesh(mesh)
                 self._current_structure = self._structures[structure_id]
                 self.current_structure_changed.emit(self.current_structure)
         else:
+            logger.info(f"No structure with the id {structure_id} found in the DicomPlanContext")
             self._current_structure = None
 
     def load_structures_from_dicom_rt_file(self, file_path):
-        print('DicomPlanContext.load_structures_from_dicom_rt_file')
+        logger.debug(f"Loading DICOM RT structures from file into the DicomPlanContext")
         ds = pydicom.dcmread(file_path)
         if ds.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
             if ds.FrameOfReferenceUID == self.frame_of_reference_uid:
                 print('Reading in DICOM structures from DICOM file')
                 self._get_structure_point_clouds(ds)
             else:
+                # This is logged in the main app
                 self.invalid_file_loaded.emit(f"{file_path} dose not match the loaded DICOM RT Plan.")
                 raise DicomFileValidationError(f"{file_path} dose not match the loaded DICOM RT Plan.")
         else:
+            # This is logged in the main app
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Structure Set file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
     def validate_beams(self, map_data):
-        print('DicomPlanContext.validate_beams')
+        logger.debug(f"Validating all beams in the DicomPlanContext using MapRT collision map")
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
             settings = AppSettings(**settings_data)
@@ -281,7 +286,7 @@ class DicomPlanContext(qtc.QObject):
         self.redraw_beams.emit((arc_plots, static_plots))
 
     def _get_structure_point_clouds(self, ds):
-        print('DicomPlanContext._get_structure_point_clouds')
+        logger.debug(f"Generating point clouds from DICOM structure points in DicomPlanContext")
         # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}
         for structure in ds.StructureSetROISequence:
@@ -314,7 +319,7 @@ class DicomPlanContext(qtc.QObject):
         self.structures_updated.emit(self.structures)
 
     def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
-        print('DicomPlanContext._pcloud_to_mesh')
+        logger.debug(f"Using marching cubes to generate surface mesh from structure point cloud in DicomPlanContext")
         # Convet Open3D point cloud to numpy array
         points = np.asarray(pcd.points)
 
@@ -332,7 +337,10 @@ class DicomPlanContext(qtc.QObject):
 
         # Compute the scalar field (distance to nearest point)
         grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
+
+        logger.info(f'Using {len(x.ravel())} grid_points for marching cubes')
         print(f'Using {len(x.ravel())} grid_points for marching cubes')
+
         distances, _ = tree.query(grid_points, workers=-1)
         scalar_field = distances.reshape(x.shape)
 
@@ -356,7 +364,7 @@ class DicomPlanContext(qtc.QObject):
         return mesh
 
     def _generate_visual_mesh(self, mesh):
-        print('DicomPlanContext._generate_visual_mesh')
+        logger.info(f'Generating final surface mesh for visualization in DicomPlanContext')
         # Create a polydata object and add the points
         polydata = vtk.vtkPolyData()
         polydata.points = numpy_support.numpy_to_vtk(mesh.vertices)
