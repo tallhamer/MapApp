@@ -11,7 +11,7 @@ logger = logging.getLogger('MapApp')
 
 class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
     def __init__(self):
-        print('OrientDialog.__init__')
+        logger.debug("Setting up the DicomFileDialog UI")
         super().__init__()
         self.setupUi(self)
 
@@ -33,6 +33,7 @@ class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
                                                       )
 
         if file_path:
+            logger.debug("DICOM RT Plan file selected in DicomFileDialog")
             self.w_le_dicom_plan_path.setText(file_path)
 
     def ui_open_dicom_struct_file(self):
@@ -44,4 +45,5 @@ class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
                                                       )
 
         if file_path:
+            logger.debug("DICOM RT Structure Set file selected in DicomFileDialog")
             self.w_le_dicom_structure_path.setText(file_path)

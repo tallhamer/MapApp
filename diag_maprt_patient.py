@@ -7,7 +7,7 @@ logger = logging.getLogger('MapApp')
 
 class MapRTPatientDialog(qtw.QDialog, Ui_MapRTPatientDialog):
     def __init__(self):
-        print('OrientDialog.__init__')
+        logger.debug("Setting up the MapRTPatientDialog UI")
         super().__init__()
         self.setupUi(self)
 
