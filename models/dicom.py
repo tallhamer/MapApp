@@ -40,7 +40,6 @@ class DicomPlanContext(qtc.QObject):
     invalid_file_loaded = qtc.Signal(str)
 
     def __init__(self, plan_id='', ref_frame='', isocenter=[], orientation='', beams=[]):
-        print('DicomPlanContext.__init__')
         super().__init__()
         logger.debug("Initializing DicomPlanContext objects attributes")
         self._plan_id = plan_id

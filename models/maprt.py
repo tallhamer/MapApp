@@ -312,7 +312,7 @@ class MapRTSurface(qtc.QObject):
         return self._vtk_polydata
 
     def _process_data(self, data):
-        logger.debug(f'Process surface data stream returned from MapRT API in MapRTSurfaceobject')
+        logger.debug(f'Process surface data stream returned from MapRT API in MapRTSurface object')
         _mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(data), file_type='obj')
 
         transformer = MapRTOrientTransform()

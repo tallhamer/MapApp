@@ -1,9 +1,6 @@
 from typing import Optional
 from pydantic import BaseModel, Base64Str
 
-import logging
-logger = logging.getLogger('MapApp')
-
 
 class DicomSettings(BaseModel):
     dicom_data_directory: str = '.'

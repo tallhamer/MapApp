@@ -15,43 +15,50 @@ logger = logging.getLogger('MapApp')
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def __init__(self):
-        print('SettingsDialog.__init__')
+        logger.debug("Setting up the SettingsDialog UI")
         super().__init__()
         self.setupUi(self)
 
+        logger.debug("Accessing the setting.json file to load current settings in SettingsDialog")
         with open(r'.\settings.json', 'r') as settings:
             settings_data = json.load(settings)
             self.settings = AppSettings(**settings_data)
 
             dicom_dir = self.settings.dicom.dicom_data_directory
             self.w_le_dicom_directory.setText(dicom_dir)
+            logger.info(f"Current DICOM directory {dicom_dir} loaded in SettingsDialog")
 
             arc_check_resolution = self.settings.dicom.arc_check_resolution
             self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
+            logger.info(f"Current arc validation resolution set to {arc_check_resolution} degree loaded in SettingsDialog")
 
             maprt_api_url = self.settings.maprt.api_url
             self.w_le_api_url.setText(maprt_api_url)
+            logger.info(f"Current MapRT API URL of {maprt_api_url} loaded in SettingsDialog")
 
             maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
             self.w_le_api_token.setText(maprt_api_token)
+            logger.info(f"Current MapRT API token of {maprt_api_token} loaded in SettingsDialog")
 
             maprt_api_user_agent = self.settings.maprt.api_user_agent
             self.w_le_api_user_agent.setText(maprt_api_user_agent)
+            logger.info(f"Current MapRT API User Agent of {maprt_api_user_agent} loaded in SettingsDialog")
 
         self.w_pb_dicom_directory.clicked.connect(self._browse_for_dicom_directory)
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
 
     def _browse_for_dicom_directory(self):
-        print('SettingsDialog._browse_for_dicom_directory')
+        logger.debug("User browsing for new DICOM directory in SettingsDialog")
         dir = qtw.QFileDialog.getExistingDirectory(self,
                                                    "Select location for DICOM RT files",
                                                    "."
                                                    )
 
+        # TODO: Check results before setting
         self.w_le_dicom_directory.setText(dir)
 
     def _test_api_connection(self):
-        print('SettingsDialog._test_api_connection')
+        logger.debug("User testing MapRT API connection in SettingsDialog")
         self.w_te_test_connectio_results.clear()
 
         self.maprt_api = MapRTAPIManager(self.w_le_api_url.text(),
@@ -62,10 +69,10 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.maprt_api.manager.finished.connect(self._handle_test_results)
 
         self.maprt_api.get_status()
-        self.maprt_api.get_treatment_rooms()
+        # self.maprt_api.get_treatment_rooms()
 
     def _handle_test_results(self, reply):
-        print('SettingsDialog._handle_test_results')
+        logger.debug("Handling MapRT API connection test results in SettingsDialog")
         if reply.error() == qtn.QNetworkReply.NetworkError.NoError:
             attributes = reply.request().attribute(qtn.QNetworkRequest.Attribute.User)
             call_type, args = attributes.split(':')
@@ -81,8 +88,21 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
 
             # Process reply based on call type that was executed
             if call_type == 'Ping':
-                print('SettingsDialog._handle_test_results.Ping')
                 json_data = json.loads(text)
+
+                if json_data["success"]:
+                    qtw.QMessageBox.information(self, "Information",
+                                                "MapRT API Ping Successful!",
+                                                qtw.QMessageBox.Ok
+                                                )
+                    logger.debug("MapRT API Ping Successful!")
+                else:
+                    msg = f"MapRT API Ping Failed\nError Code: {json_data["errorCode"]}"
+                    qtw.QMessageBox.critical(self, "Connection Errors Detected",
+                                                msg,
+                                                qtw.QMessageBox.Ok
+                                                )
+                    logger.debug(msg)
 
                 self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
                 for header_name, header_value in reply.rawHeaderPairs():
@@ -94,22 +114,21 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
 
                 self.w_te_test_connectio_results.append('\n')
 
-
-            elif call_type == 'Rooms':
-                print('SettingsDialog._handle_test_results.Rooms')
-                json_data = json.loads(text)
-
-                self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
-                for header_name, header_value in reply.rawHeaderPairs():
-                    self.w_te_test_connectio_results.append(
-                        f'    {header_name.data().decode()} : {header_value.data().decode()}')
-
-                self.w_te_test_connectio_results.append(f'\nData received:')
-                self.w_te_test_connectio_results.append(json.dumps(json_data, indent=2))
-
-                self.w_te_test_connectio_results.append('\n')
-            else:
-                pass
+            # elif call_type == 'Rooms':
+            #     print('SettingsDialog._handle_test_results.Rooms')
+            #     json_data = json.loads(text)
+            #
+            #     self.w_te_test_connectio_results.append('\nHeader {Name: Value} Pairs:')
+            #     for header_name, header_value in reply.rawHeaderPairs():
+            #         self.w_te_test_connectio_results.append(
+            #             f'    {header_name.data().decode()} : {header_value.data().decode()}')
+            #
+            #     self.w_te_test_connectio_results.append(f'\nData received:')
+            #     self.w_te_test_connectio_results.append(json.dumps(json_data, indent=2))
+            #
+            #     self.w_te_test_connectio_results.append('\n')
+            # else:
+            #     pass
 
         else:
             status_code = reply.attribute(qtn.QNetworkRequest.Attribute.HttpStatusCodeAttribute)
@@ -118,7 +137,14 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
             error = f"Error: {reply.errorString()}"
             msg = f'{call}\n{status}\n{error}'
 
+            logger.debug(msg)
+            qtw.QMessageBox.critical(self, "Connection Errors Detected",
+                                     msg,
+                                     qtw.QMessageBox.Ok
+                                     )
+
             self.w_te_test_connectio_results.append(msg)
             self.w_te_test_connectio_results.append('\n')
+
 
         reply.deleteLater()
