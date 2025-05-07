@@ -364,7 +364,7 @@ class DicomPlanContext(qtc.QObject):
         return mesh
 
     def _generate_visual_mesh(self, mesh):
-        logger.info(f'Generating final surface mesh for visualization in DicomPlanContext')
+        logger.debug(f'Generating final surface mesh for visualization in DicomPlanContext')
         # Create a polydata object and add the points
         polydata = vtk.vtkPolyData()
         polydata.points = numpy_support.numpy_to_vtk(mesh.vertices)
@@ -398,7 +398,7 @@ class PatientContext(qtc.QObject):
 
 
     def __init__(self):
-        print('PatientContext.__init__')
+        logger.debug(f'Initializing attributes for PatientContext object')
         super().__init__()
 
         self._patient_id = ''                    # str
@@ -415,7 +415,7 @@ class PatientContext(qtc.QObject):
 
     @patient_id.setter
     def patient_id(self, value):
-        print('PatientContext.patient_id.setter')
+        logger.debug(f'Setting patient_id to {value} in PatientContext')
         self._patient_id = str(value)
         self.patient_id_changed.emit(self._patient_id)
 
@@ -425,7 +425,7 @@ class PatientContext(qtc.QObject):
 
     @first_name.setter
     def first_name(self, value):
-        print('PatientContext.first_name.setter')
+        logger.debug(f'Setting first_name to {value} in PatientContext')
         self._first_name = str(value)
         self.patient_first_name_changed.emit(self._first_name)
 
@@ -435,7 +435,7 @@ class PatientContext(qtc.QObject):
 
     @last_name.setter
     def last_name(self, value):
-        print('PatientContext.last_name.setter')
+        logger.debug(f'Setting last_name to {value} in PatientContext')
         self._last_name = str(value)
         self.patient_last_name_changed.emit(self._last_name)
 
@@ -456,7 +456,7 @@ class PatientContext(qtc.QObject):
         return self._current_plan
 
     def clear(self):
-        print('PatientContext.clear')
+        logger.debug(f'Clearing attributes in PatientContext')
         self.patient_id = ''
         self.first_name = ''
         self.last_name = ''
@@ -469,24 +469,26 @@ class PatientContext(qtc.QObject):
         self.patient_context_cleared.emit()
 
     def update_current_course(self, course_id):
-        print('PatientContext.update_current_course')
+        logger.debug(f'Setting current_course to {course_id} in PatientContext')
         if course_id in self._courses:
             self._current_course = course_id
+            logger.debug(f'Updating available plans for course id = {course_id} in PatientContext')
             self._plans = self._courses[course_id]
             self.plans_updated.emit(self.plans)
         else:
             pass
 
     def update_current_plan(self, plan_id):
-        print('PatientContext.update_current_plan')
+        logger.debug(f'Setting current_plan to {plan_id} in PatientContext')
         if plan_id in self._plans:
             self._current_plan.update_values(self._plans[plan_id])
             self.current_plan_changed.emit(self._current_plan)
 
     def load_context_from_dicom_rt_file(self, file_path):
-        print('PatientContext.load_context_from_dicom_rt_file')
+        logger.debug(f"Loading DICOM RT plan from file into the PatientContext")
         ds = pydicom.dcmread(file_path)
 
+        logger.info(f"Checking for proper DICOM RT file format in PatientContext")
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
             self.patient_id = ds.PatientID
@@ -503,6 +505,7 @@ class PatientContext(qtc.QObject):
                 self.first_name = ds.PatientID
 
             # Plan Data
+            logger.info(f"Generating new DicomPlanContext for DICOM RT plan file in PatientContext")
             plan = DicomPlanContext()
             plan.plan_id = ds.SeriesDescription
             plan.frame_of_reference_uid = ds.FrameOfReferenceUID
@@ -522,6 +525,8 @@ class PatientContext(qtc.QObject):
 
             # Get beams and isocenter
             _isocenter = None
+
+            logger.info(f"Constructing Beams list from DICOM RT plan file in PatientContext")
             _beams = []
             for beam in ds.BeamSequence:
                 _status = ''
@@ -565,55 +570,9 @@ class PatientContext(qtc.QObject):
             self.update_current_course('F1')
             self.update_current_plan(plan.plan_id)
         else:
+            # Logged in main application
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
-
-def convert_3d_surface_to_ct_data(patient_ctx, actor):
-    dt_object = dt.datetime.now()
-
-    # Create a new DICOM dataset
-    file_meta = Dataset()
-    file_meta.MediaStorageSOPClassUID = CTImageStorage
-    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-    file_meta.TransferSyntaxUID = ExplicitVRLittleEndian
-
-    ds = FileDataset('dummy.dcm', {}, file_meta=file_meta, preamble=b"\0" * 128)
-
-    # Add the required attributes for a CT image
-    ds.Modality = 'CT'
-    ds.ContentDate = dt_object.strftime("%Y%m%d")
-    ds.ContentTime = dt_object.strftime()
-    ds.StudyInstanceUID = pydicom.uid.generate_uid()
-    ds.SeriesInstanceUID = pydicom.uid.generate_uid()
-    ds.SOPInstanceUID = pydicom.uid.generate_uid()
-    ds.SOPClassUID = CTImageStorage
-    ds.PatientName = f"{patient_ctx.last_name}^{patient_ctx.first_name}"
-    ds.PatientID = patient_ctx.patient_id
-    ds.StudyID = '1'
-    ds.SeriesNumber = '1'
-    ds.InstanceNumber = '1'
-    ds.ImagePositionPatient = [0, 0, 0]
-    ds.ImageOrientationPatient = [1, 0, 0, 0, 1, 0]
-    ds.PixelSpacing = [1, 1]
-    ds.SliceThickness = 1
-    ds.KVP = 120
-    ds.XRayTubeCurrent = 100
-    ds.Rows = 512
-    ds.Columns = 512
-    ds.BitsAllocated = 16
-    ds.BitsStored = 16
-    ds.HighBit = 15
-    ds.PixelRepresentation = 0
-    ds.RescaleIntercept = -1024
-    ds.RescaleSlope = 1
-
-    # Create dummy pixel data (replace with actual CT data)
-    pixel_data = np.random.randint(-1024, 3071, size=(512, 512), dtype=np.int16)
-    ds.PixelData = pixel_data.tobytes()
-
-    # Save the DICOM file
-    ds.save_as('ct_slice.dcm', write_like_original=False)
-
 
 if __name__ == '__main__':
 
