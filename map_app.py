@@ -542,7 +542,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def dicom_surface_opacity_changed(self):
-        self.logger.debug("DICOM surface opacity changed in MainWindow")
+        # self.logger.debug("DICOM surface opacity changed in MainWindow")
         self.w_l_dcm_opacity.setText(str(self.w_hs_dcm_opacity.value()))
         if self.dicom_actor is not None:
             self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
@@ -858,7 +858,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 self.vtk_render_window.Render()
 
     def maprt_surface_opacity_changed(self):
-        self.logger.debug("MapRT surface opacity changed in MainWindow")
+        # self.logger.debug("MapRT surface opacity changed in MainWindow")
         self.w_l_obj_opacity.setText(str(self.w_hs_obj_opacity.value()))
         if self.maprt_actor is not None:
             self.maprt_actor.property.opacity = self.w_hs_obj_opacity.value() / 100.0
@@ -1247,7 +1247,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.vtk_render_window.Render()
 
     def laser_opacity_changed(self):
-        self.logger.debug("Laser opacity changed in MainWindow")
+        # self.logger.debug("Laser opacity changed in MainWindow")
         self.w_l_laser_opacity.setText(str(self.w_hs_laser_opacity.value()))
         if self.maprt_actor is not None:
             for laser_actor in self.maprt_laser_actors:
