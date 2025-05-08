@@ -1,14 +1,12 @@
 import json
-import datetime as dt
+import logging
+
 import numpy as np
 from skimage import measure
 from scipy.spatial import cKDTree
 
 import pydicom
-from pydicom.dataset import Dataset, FileDataset
-from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage, RTPlanStorage, RTStructureSetStorage
-
-# from pynetdicom.sop_class import RTPlanStorage, RTStructureSetStorage
+from pydicom.uid import RTPlanStorage, RTStructureSetStorage
 
 import open3d as o3d
 
@@ -19,9 +17,6 @@ from models.settings import AppSettings
 
 import PySide6.QtCore as qtc
 import pyqtgraph as pg
-
-import logging
-logger = logging.getLogger('MapApp')
 
 class DicomFileValidationError(Exception):
     def __init__(self, message):
@@ -38,6 +33,9 @@ class DicomPlanContext(qtc.QObject):
     structures_updated = qtc.Signal(list)
     current_structure_changed = qtc.Signal(vtk.vtkActor)
     invalid_file_loaded = qtc.Signal(str)
+    status_bar_coms = qtc.Signal(str)
+    status_bar_clear = qtc.Signal()
+    progress_coms = qtc.Signal(int)
 
     def __init__(self, plan_id='', ref_frame='', isocenter=[], orientation='', beams=[]):
         self.logger = logging.getLogger('MapApp.models.dicom.DicomPlanContext')
@@ -60,7 +58,7 @@ class DicomPlanContext(qtc.QObject):
 
     @plan_id.setter
     def plan_id(self, value):
-        print('DicomPlanContext.plan_id.setter')
+        self.logger.debug(f"Setting DicomPlanContext plan_id using '{value}'")
         self._plan_id = str(value)
         self.plan_id_changed.emit(self._plan_id)
 
@@ -70,7 +68,7 @@ class DicomPlanContext(qtc.QObject):
 
     @frame_of_reference_uid.setter
     def frame_of_reference_uid(self, value):
-        print('DicomPlanContext.frame_of_reference_uid.setter')
+        self.logger.debug(f"Setting DicomPlanContext frame_of_reference_uid using '{value}'")
         self._frame_of_reference_uid = str(value)
         self.frame_of_reference_uid_changed.emit(self._frame_of_reference_uid)
 
@@ -148,9 +146,10 @@ class DicomPlanContext(qtc.QObject):
     def load_structures_from_dicom_rt_file(self, file_path):
         self.logger.debug(f"Loading DICOM RT structures from file into the DicomPlanContext")
         ds = pydicom.dcmread(file_path)
+
         if ds.file_meta.MediaStorageSOPClassUID == RTStructureSetStorage:
             if ds.FrameOfReferenceUID == self.frame_of_reference_uid:
-                print('Reading in DICOM structures from DICOM file')
+                self.logger.debug('Reading in DICOM structures from DICOM file')
                 self._get_structure_point_clouds(ds)
             else:
                 # This is logged in the main app
@@ -158,6 +157,8 @@ class DicomPlanContext(qtc.QObject):
                 raise DicomFileValidationError(f"{file_path} dose not match the loaded DICOM RT Plan.")
         else:
             # This is logged in the main app
+            self.status_bar_clear.emit()
+            self.progress_coms.emit(0)
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Structure Set file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Structure Set file.")
 
@@ -266,12 +267,19 @@ class DicomPlanContext(qtc.QObject):
     def _get_structure_point_clouds(self, ds):
         self.logger.debug(f"Generating point clouds from DICOM structure points in DicomPlanContext")
         # Generate ROI Look Up Table using the ROI Number as the key
+
+        self.status_bar_coms.emit("Loading DICOM RT Structures from file")
+        progress_inc = int(100 / len(ds.StructureSetROISequence))
+        progress = 0
+
         roi_lut = {}
         for structure in ds.StructureSetROISequence:
             roi_lut[structure.ROINumber] = structure.ROIName.lower()
 
         # Grab the Body structure points
         for roi in ds.ROIContourSequence:
+            progress += progress_inc
+            self.progress_coms.emit(progress)
             contours = []
             if hasattr(roi, "ContourSequence"):
                 for contour in roi.ContourSequence:
@@ -294,10 +302,18 @@ class DicomPlanContext(qtc.QObject):
                 self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
                 self._structures[roi_lut[roi.ReferencedROINumber]] = None
 
+        self.progress_coms.emit(100)
+        self.progress_coms.emit(0)
+        self.status_bar_clear.emit()
         self.structures_updated.emit(self.structures)
 
     def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
         self.logger.debug(f"Using marching cubes to generate surface mesh from structure point cloud in DicomPlanContext")
+
+        # Update Progress
+        self.status_bar_coms.emit("Using marching cubes to generate surface mesh")
+        self.progress_coms.emit(25)
+
         # Convet Open3D point cloud to numpy array
         points = np.asarray(pcd.points)
 
@@ -317,7 +333,10 @@ class DicomPlanContext(qtc.QObject):
         grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
 
         self.logger.info(f'Using {len(x.ravel())} grid_points for marching cubes')
-        print(f'Using {len(x.ravel())} grid_points for marching cubes')
+
+        # Update Progress
+        self.status_bar_coms.emit(f'Using {len(x.ravel())} grid_points for marching cubes')
+        self.progress_coms.emit(50)
 
         distances, _ = tree.query(grid_points, workers=-1)
         scalar_field = distances.reshape(x.shape)
@@ -331,6 +350,10 @@ class DicomPlanContext(qtc.QObject):
         # Scale and translate vertices back to original coordinate system
         verts = verts * voxel_size + mins
 
+        # Update Progress
+        self.status_bar_coms.emit(f'Surface mesh complete')
+        self.progress_coms.emit(100)
+
         # Create the mesh
         mesh = o3d.geometry.TriangleMesh()
         mesh.vertices = o3d.utility.Vector3dVector(verts)
@@ -338,6 +361,10 @@ class DicomPlanContext(qtc.QObject):
 
         mesh.compute_vertex_normals()
         mesh.compute_triangle_normals()
+
+        # Update Progress
+        self.status_bar_clear.emit()
+        self.progress_coms.emit(0)
 
         return mesh
 
@@ -373,7 +400,9 @@ class PatientContext(qtc.QObject):
     current_plan_changed = qtc.Signal(DicomPlanContext)
     invalid_file_loaded = qtc.Signal(str)
     patient_context_cleared = qtc.Signal()
-
+    status_bar_coms = qtc.Signal(str)
+    status_bar_clear = qtc.Signal()
+    progress_coms = qtc.Signal(int)
 
     def __init__(self):
         self.logger = logging.getLogger('MapApp.models.dicom.PatientContext')
@@ -467,10 +496,20 @@ class PatientContext(qtc.QObject):
         self.logger.debug(f"Loading DICOM RT plan from file into the PatientContext")
         ds = pydicom.dcmread(file_path)
 
+        # Update Progress
+        progress = 0
+        progress += 5 # 5
+        self.progress_coms.emit(progress)
+
         self.logger.info(f"Checking for proper DICOM RT file format in PatientContext")
+        self.status_bar_coms.emit("Generating new DicomPlanContext for DICOM RT Plan file")
         if ds.file_meta.MediaStorageSOPClassUID == RTPlanStorage:
             # Patient Data
             self.patient_id = ds.PatientID
+
+            # Update Progress
+            progress += 5  # 10
+            self.progress_coms.emit(progress)
 
             name = str(ds.PatientName).split('^')
             if len(name) == 1:
@@ -483,11 +522,19 @@ class PatientContext(qtc.QObject):
             else:
                 self.first_name = ds.PatientID
 
+            # Update Progress
+            progress += 10 # 20
+            self.progress_coms.emit(progress)
+
             # Plan Data
             self.logger.info(f"Generating new DicomPlanContext for DICOM RT plan file in PatientContext")
             plan = DicomPlanContext()
             plan.plan_id = ds.SeriesDescription
             plan.frame_of_reference_uid = ds.FrameOfReferenceUID
+
+            # Update Progress
+            progress += 5  # 25
+            self.progress_coms.emit(progress)
 
             # Get Orientation from PatientSetupSequence
             _orientation = None
@@ -502,10 +549,15 @@ class PatientContext(qtc.QObject):
                     pass
             plan.patient_orientation = _orientation
 
+            # Update Progress
+            progress += 5  # 30
+            self.progress_coms.emit(progress)
+
             # Get beams and isocenter
             _isocenter = None
 
             self.logger.info(f"Constructing Beams list from DICOM RT plan file in PatientContext")
+            progress_inc = int((100 - progress) / len(ds.BeamSequence))
             _beams = []
             for beam in ds.BeamSequence:
                 _status = ''
@@ -540,6 +592,10 @@ class PatientContext(qtc.QObject):
                                ]
                               )
 
+                # Update Progress
+                progress += progress_inc
+                self.progress_coms.emit(progress)
+
             plan.isocenter = _isocenter
             plan.beams = _beams
             plans = {plan.plan_id: plan}
@@ -548,8 +604,18 @@ class PatientContext(qtc.QObject):
             self.courses_updated.emit(self.courses)
             self.update_current_course('F1')
             self.update_current_plan(plan.plan_id)
+
+            # Update Progress
+            self.progress_coms.emit(100)
+            self.progress_coms.emit(0)
+            self.status_bar_clear.emit()
         else:
             # Logged in main application
+
+            # Update Progress
+            self.progress_coms.emit(0)
+            self.status_bar_clear.emit()
+
             self.invalid_file_loaded.emit(f"{file_path} is not a valid DICOM RT Plan file.")
             raise DicomFileValidationError(f"{file_path} is not a valid DICOM RT Plan file.")
 

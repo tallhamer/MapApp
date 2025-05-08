@@ -20,7 +20,7 @@ import PySide6.QtNetwork as qtn
 from models.dicom import DicomPlanContext
 
 import logging
-logger = logging.getLogger('MapApp')
+# logger = logging.getLogger('MapApp')
 
 # "https://maprtpkr.adventhealth.com:5000"
 # "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
@@ -99,6 +99,9 @@ class MapRTOrientTransform(object):
 class MapRTAPIManager(qtc.QObject):
     status_returned = qtc.Signal(str)
     api_connection_error = qtc.Signal(str)
+    status_bar_coms = qtc.Signal(str)
+    status_bar_clear = qtc.Signal()
+    progress_coms = qtc.Signal(int)
 
     def __init__(self, api_url, token, user_agent):
         self.logger = logging.getLogger('MapApp.models.maprt.MapRTAPIManager')
@@ -238,10 +241,18 @@ class MapRTAPIManager(qtc.QObject):
             if ctx.current_surface is not None:
                 # print('\tMapRT Surfact found')
                 url = self.api_url + f"/integration/GetMap"
+
+                # Perform Isocenter manipulation for any correction applied in the interface
                 X, Y, Z = ctx.plan_context.isocenter
-                X += (-10 * x_shift)    # * -1 to change the direction - * 10 to change from cm to mm
-                Y += (-10 * y_shift)    # * -1 to change the direction - * 10 to change from cm to mm
-                Z += (-10 * z_shift)    # * -1 to change the direction - * 10 to change from cm to mm
+
+                x_shift *= -10 # Multiply by -10 to change direction (surface shift) and to convert cm to mm
+                y_shift *= -10 # Multiply by -10 to change direction (surface shift) and to convert cm to mm
+                z_shift *= -10 # Multiply by -10 to change direction (surface shift) and to convert cm to mm
+
+                X += x_shift # Shifted Isocenter X
+                Y += y_shift # Shifted Isocenter Y
+                Z += z_shift # Shifted Isocenter Z
+
                 isocenter = [round(X,2), round(Y,2), round(Z,2)]
                 couch_buff = ctx.couch_buffer * 10
                 patient_buff = ctx.patient_buffer * 10
@@ -249,17 +260,18 @@ class MapRTAPIManager(qtc.QObject):
                 room_id, room_scale = ctx.treatment_rooms[ctx.current_room] # Room scale is ignored for now
                 attributes = f"Map:{isocenter};{couch_buff};{patient_buff};{surface_id};{room_id};{room_scale}"
 
-                X, Y, Z = isocenter
-
-                X += (-1 * x_shift)
-                Y += (-1 * y_shift)
-                Z += (-1 * z_shift)
+                self.logger.debug(f'Isocenter being explored: {ctx.plan_context.isocenter}')
+                self.logger.debug(f'Isocenter shifts')
+                self.logger.debug(f'\t"X Shift": {x_shift}')
+                self.logger.debug(f'\t"Y Shift": {y_shift}')
+                self.logger.debug(f'\t"Z Shift": {z_shift}')
 
                 for res in (False, True):
                     body = {
                         "CouchBuffer": couch_buff,
                         "PatientBuffer": patient_buff,
                         "HighResolution": res,
+                        "PatientPosition": ctx.plan_context.patient_orientation,
                         "PatientSurfaceId": f"{surface_id}",
                         "TreatmentRoomId": f"{room_id}",
                         "Isocenter": {
@@ -269,6 +281,18 @@ class MapRTAPIManager(qtc.QObject):
                             "CoordinateSystem": "IEC_61217",
                         }
                     }
+
+                    self.logger.debug(f'Get Map call parameters:')
+                    self.logger.debug(f'\t"CouchBuffer": {couch_buff}')
+                    self.logger.debug(f'\t"PatientBuffer": {patient_buff}')
+                    self.logger.debug(f'\t"HighResolution": {res}')
+                    self.logger.debug(f'\t"PatientPosition": {ctx.plan_context.patient_orientation}')
+                    self.logger.debug(f'\t"PatientSurfaceId": {surface_id}')
+                    self.logger.debug(f'\t"TreatmentRoomId": {room_id}')
+                    self.logger.debug(f'\t"Isocenter"')
+                    self.logger.debug(f'\t\t"X": {X}')
+                    self.logger.debug(f'\t\t"Y": {Y}')
+                    self.logger.debug(f'\t\t"Z": {Z}')
 
                     request = qtn.QNetworkRequest(qtc.QUrl(url))
                     request.setHeaders(self.header)
@@ -353,6 +377,9 @@ class MapRTContext(qtc.QObject):
     current_room_changed = qtc.Signal()
     current_map_data_changed = qtc.Signal(tuple)
     plan_context_changed = qtc.Signal(bool)
+    status_bar_coms = qtc.Signal(str)
+    status_bar_clear = qtc.Signal()
+    progress_coms = qtc.Signal(int)
 
     def __init__(self, api_manager):
         self.logger = logging.getLogger('MapApp.models.maprt.MapRTContext')

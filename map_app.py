@@ -24,10 +24,10 @@ import pyqtgraph as pg
 
 # from ui.test_window import Ui_MainWindow
 from ui.main_window import Ui_MainWindow
-from diag_orient import OrientDialog
-from diag_settings import SettingsDialog
-from diag_maprt_patient import MapRTPatientDialog
-from diag_dicom_files import DicomFileDialog
+from dlg_orient import OrientDialog
+from dlg_settings import SettingsDialog
+from dlg_maprt_patient import MapRTPatientDialog
+from dlg_dicom_files import DicomFileDialog
 from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
 from models.settings import AppSettings
@@ -38,7 +38,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
         self.logger = logging.getLogger('MapApp.map_app.MainWindow')
 
-        self.logger.debug("Setting up the UI")
+        self.logger.debug("Initializing the attributes of main application")
         super().__init__()
 
         self.setupUi(self)
@@ -61,6 +61,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self._setup_3d_visualization()
 
         self._construct_menu_actions()
+
+        self._construct_status_bar_widgets()
 
     ####################################################################################
     # Setup                                                                            #
@@ -295,6 +297,41 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         action_settings.triggered.connect(self.show_settings_dialog)
         menu_options.addAction(action_settings)
 
+    def _construct_status_bar_widgets(self):
+        self.logger.debug("Construct MainWindow Status Bar")
+        self.status_bar = qtw.QStatusBar()
+        self.setStatusBar(self.status_bar)
+        self.statusBar().showMessage("Ready")
+
+        self.progress_bar = qtw.QProgressBar()
+        self.progress_bar.setAlignment(qtc.Qt.AlignmentFlag.AlignRight)
+        self.progress_bar.setFixedWidth(200)
+        self.status_bar.addPermanentWidget(self.progress_bar)
+        self.progress_bar.setRange(0, 100)
+        # self.progress_bar.setValue(50)
+
+        # Connect models so that they can communicate with the MainWindow
+        self.patient_ctx.status_bar_coms.connect(self.status_bar.showMessage)
+        self.patient_ctx.status_bar_clear.connect(self.status_bar.clearMessage)
+        self.patient_ctx.progress_coms.connect(self.progress_bar.setValue)
+
+        self.patient_ctx.current_plan.status_bar_coms.connect(self.status_bar.showMessage)
+        self.patient_ctx.current_plan.status_bar_clear.connect(self.status_bar.clearMessage)
+        self.patient_ctx.current_plan.progress_coms.connect(self.progress_bar.setValue)
+
+        self.maprt_api.status_bar_coms.connect(self.status_bar.showMessage)
+        self.maprt_api.status_bar_clear.connect(self.status_bar.clearMessage)
+        self.maprt_api.progress_coms.connect(self.progress_bar.setValue)
+
+        self.maprt_ctx.status_bar_coms.connect(self.status_bar.showMessage)
+        self.maprt_ctx.status_bar_clear.connect(self.status_bar.clearMessage)
+        self.maprt_ctx.progress_coms.connect(self.progress_bar.setValue)
+
+
+
+        status_bar_coms = qtc.Signal(str)
+        progress_coms = qtc.Signal(int)
+
     ####################################################################################
     # PatientContext Connections and Methods                                           #
     ####################################################################################
@@ -310,7 +347,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             self.logger.debug(f'Attempting to load Patient and plan information from file "{plan_path}"')
             if plan_path != '':
                 try:
-                    # self.patient_ctx.clear()
+                    self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(True)
                     self.patient_ctx.load_context_from_dicom_rt_file(plan_path)
                     self.logger.info("DICOM RT Plan file successfully loaded")
@@ -323,7 +360,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
                 except DicomFileValidationError as e:
                     self.logger.error(str(e))
-                    # self.patient_ctx.clear()
+                    self.patient_ctx.clear()
                     self.ui_set_dicom_file_mode(False)
                     self.ui_show_info_message(str(e))
 
@@ -1408,14 +1445,12 @@ if __name__ == '__main__':
 
     logger.info("Starting the MapApp Application")
 
-    # logging.basicConfig(
-    #     format='%(levelname)s %(asctime)s - [%(process)10d] - (%(module)15s , %(funcName)s , %(lineno)d) -  %(message)s',
-    #     filename=log_file_name,
-    #     encoding='utf-8',
-    #     level=logging.DEBUG
-    #     )
+    # from qt_material import apply_stylesheet
 
     app = qtw.QApplication(sys.argv)
     main_window = MainWindow()
+
+    # apply_stylesheet(app, theme='dark_blue.xml')
+
     main_window.show()
     sys.exit(app.exec())

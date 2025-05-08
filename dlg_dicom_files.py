@@ -1,4 +1,5 @@
 import json
+import logging
 
 import PySide6.QtWidgets as qtw
 
@@ -6,12 +7,10 @@ from ui.dicom_dialog import Ui_DicomDialog
 
 from models.settings import AppSettings
 
-import logging
-logger = logging.getLogger('MapApp')
-
 class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
     def __init__(self):
-        logger.debug("Setting up the DicomFileDialog UI")
+        self.logger = logging.getLogger('MapApp.dlg_dicom_files.DicomFileDialog')
+        self.logger.debug("Setting up the DicomFileDialog UI")
         super().__init__()
         self.setupUi(self)
 
@@ -25,25 +24,25 @@ class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
         self.w_pb_dicom_structure_path.clicked.connect(self.ui_open_dicom_struct_file)
 
     def ui_open_dicom_plan_file(self):
-        print('MapRTPatientDialog.ui_open_dicom_plan_files')
+        self.logger.debug("Select DICOM RT Plan File")
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
-                                                      "Select DICOM Plan File",
+                                                      "Select DICOM RT Plan File",
                                                        self.dicom_data_directory,
                                                       "DICOM Files (*.dcm)"
                                                       )
 
         if file_path:
-            logger.debug("DICOM RT Plan file selected in DicomFileDialog")
+            self.logger.debug(f"'{file_path}' plan file selected in DicomFileDialog")
             self.w_le_dicom_plan_path.setText(file_path)
 
     def ui_open_dicom_struct_file(self):
-        print('MapRTPatientDialog.ui_open_dicom_plan_files')
+        self.logger.debug("Select DICOM RT Structure Set File")
         file_path, _ = qtw.QFileDialog.getOpenFileName(self,
-                                                      "Select DICOM Structure Set File",
+                                                      "Select DICOM RT Structure Set File",
                                                        self.dicom_data_directory,
                                                       "DICOM Files (*.dcm)"
                                                       )
 
         if file_path:
-            logger.debug("DICOM RT Structure Set file selected in DicomFileDialog")
+            self.logger.debug(f"'{file_path}' structure file selected in DicomFileDialog")
             self.w_le_dicom_structure_path.setText(file_path)

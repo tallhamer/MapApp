@@ -198,6 +198,7 @@ class Ui_MainWindow(object):
 
         self.w_dsb_surface_shift_y = QDoubleSpinBox(self.groupBox)
         self.w_dsb_surface_shift_y.setObjectName(u"w_dsb_surface_shift_y")
+        self.w_dsb_surface_shift_y.setDecimals(1)
         self.w_dsb_surface_shift_y.setMinimum(-100.000000000000000)
         self.w_dsb_surface_shift_y.setMaximum(100.000000000000000)
         self.w_dsb_surface_shift_y.setSingleStep(0.500000000000000)
@@ -265,6 +266,7 @@ class Ui_MainWindow(object):
 
         self.w_dsb_surface_shift_z = QDoubleSpinBox(self.groupBox)
         self.w_dsb_surface_shift_z.setObjectName(u"w_dsb_surface_shift_z")
+        self.w_dsb_surface_shift_z.setDecimals(1)
         self.w_dsb_surface_shift_z.setMinimum(-100.000000000000000)
         self.w_dsb_surface_shift_z.setMaximum(100.000000000000000)
         self.w_dsb_surface_shift_z.setSingleStep(0.500000000000000)
@@ -295,7 +297,9 @@ class Ui_MainWindow(object):
 
         self.w_dsb_surface_shift_x = QDoubleSpinBox(self.groupBox)
         self.w_dsb_surface_shift_x.setObjectName(u"w_dsb_surface_shift_x")
+        self.w_dsb_surface_shift_x.setDecimals(1)
         self.w_dsb_surface_shift_x.setMinimum(-100.000000000000000)
+        self.w_dsb_surface_shift_x.setMaximum(100.000000000000000)
         self.w_dsb_surface_shift_x.setSingleStep(0.500000000000000)
         self.w_dsb_surface_shift_x.setValue(0.000000000000000)
 

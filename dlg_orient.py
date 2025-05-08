@@ -7,6 +7,7 @@ logger = logging.getLogger('MapApp')
 
 class OrientDialog(qtw.QDialog, Ui_OrientationDialog):
     def __init__(self):
+        self.logger = logging.getLogger('MapApp.dlg_orient.OrientDialog')
         logger.debug("Setting up the OrientDialog UI")
         super().__init__()
         self.setupUi(self)
