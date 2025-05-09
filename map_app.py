@@ -643,9 +643,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def ui_update_maprt_collision_maps(self, maps):
         self.logger.debug("Updating MapRT collision map selections in MainWindow")
+
         if self.w_cb_current_map.count() == 0:
             self.w_cb_current_map.addItems(maps)
         else:
+
             self.w_cb_current_map.blockSignals(True)
             self.w_cb_current_map.clear()
             self.w_cb_current_map.blockSignals(False)
