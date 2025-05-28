@@ -886,7 +886,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             # polydata = self.maprt_transform_filter.GetOutput()
             points = vtk_to_numpy(polydata.GetPoints().GetData())
 
-            colors = np.zeros_like(points) + 1000
+            colors = np.zeros_like(points) + 2000
             pcloud = o3d.geometry.PointCloud()
             pcloud.points = o3d.utility.Vector3dVector(points)
             pcloud.colors = o3d.utility.Vector3dVector(colors)
@@ -920,10 +920,17 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                     gray_value = int(np.mean(voxel.color))
                 else:
                     gray_value = 0
-                # pixel_data[index[2], index[1], index[0]] = gray_value
-                pixel_data[index[2], index[1]::, index[0]] = gray_value
 
-            smoothed_pixel_data = gaussian_filter(pixel_data, sigma=2)
+                if export_dialog.w_ch_fill_down.isChecked():
+                    pixel_data[index[2], index[1]::, index[0]] = gray_value
+                else:
+                    pixel_data[index[2], index[1], index[0]] = gray_value
+
+            if export_dialog.w_ch_smooth.isChecked():
+                sigma = export_dialog.w_dsb_sigma.value()
+                smoothed_pixel_data = gaussian_filter(pixel_data, sigma=sigma)
+            else:
+                smoothed_pixel_data = pixel_data
 
             dicom_path = None
             with open(r'.\settings.json', 'r') as settings:
@@ -1009,9 +1016,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
                 ds.BitsStored = 16
                 ds.HighBit = 15
                 ds.PixelRepresentation = 0
-                ds.WindowCenter = '37.0'
-                ds.WindowWidth = '468.0'
-                ds.RescaleIntercept = '-1000'
+                ds.WindowCenter = '500'
+                ds.WindowWidth = '1000'
+                ds.RescaleIntercept = '0'
                 ds.RescaleSlope = '1.0'
                 ds.RescaleType = 'HU'
 

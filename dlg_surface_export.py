@@ -23,6 +23,8 @@ class SurfaceExportDialog(qtw.QDialog, Ui_SurfaceExportDialog):
 
         self.w_tw_visualizations.setCurrentIndex(0)
         self.w_tw_visualizations.setTabEnabled(1, False)
+        self.w_dsb_voxel_size.setValue(1.0)
+        self.w_ch_smooth.checkStateChanged.connect(self.enable_smooth_sigma)
 
         self._construct_3D_surface_view()
         # self._construct_3D_volume_view()
@@ -94,6 +96,9 @@ class SurfaceExportDialog(qtw.QDialog, Ui_SurfaceExportDialog):
 
         self.vtk_surface_interactor.Initialize()
         self.vtk_polydata_render_widget.show()
+
+    def enable_smooth_sigma(self):
+        self.w_dsb_sigma.setEnabled(self.w_ch_smooth.isChecked())
 
     def update_clipping_box(self):
         x_min = self.w_dsb_x_bounds_min.value()

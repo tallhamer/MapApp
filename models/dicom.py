@@ -196,7 +196,7 @@ class DicomPlanContext(qtc.QObject):
             if _gantry_rot_direction == 'NONE':
 
                 g_start_idx = y_map[str(round(float(_gantry_start)))]
-                c_pos_idx = x_map[_couch]
+                c_pos_idx = x_map[str(round(float(_couch)))]
                 is_ok = np.all(collision_map.image[g_start_idx, c_pos_idx])
                 beam[0] = True if is_ok else False
 
@@ -580,17 +580,18 @@ class PatientContext(qtc.QObject):
                 if hasattr(last_cp, 'GantryAngle'):
                     _gantry_stop = str(last_cp.GantryAngle)
 
-                _beams.append([_status,
-                               _num,
-                               _id,
-                               _name,
-                               _couch,
-                               _gantry_start,
-                               _gantry_stop,
-                               _gantry_rot_direction,
-                               _type
-                               ]
-                              )
+                if _type not in ('TRMT_PORTFILM', 'OPEN_PORTFILM'):
+                    _beams.append([_status,
+                                   _num,
+                                   _id,
+                                   _name,
+                                   _couch,
+                                   _gantry_start,
+                                   _gantry_stop,
+                                   _gantry_rot_direction,
+                                   _type
+                                   ]
+                                  )
 
                 # Update Progress
                 progress += progress_inc

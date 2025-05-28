@@ -15,10 +15,10 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QAbstractButton, QApplication, QDialog, QDialogButtonBox,
-    QDoubleSpinBox, QGridLayout, QGroupBox, QHBoxLayout,
-    QLabel, QSizePolicy, QSpacerItem, QTabWidget,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractButton, QApplication, QCheckBox, QDialog,
+    QDialogButtonBox, QDoubleSpinBox, QGridLayout, QGroupBox,
+    QHBoxLayout, QLabel, QSizePolicy, QSpacerItem,
+    QTabWidget, QVBoxLayout, QWidget)
 
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
@@ -41,20 +41,47 @@ class Ui_SurfaceExportDialog(object):
         self.widget_2.setObjectName(u"widget_2")
         self.gridLayout_2 = QGridLayout(self.widget_2)
         self.gridLayout_2.setObjectName(u"gridLayout_2")
+        self.label_2 = QLabel(self.widget_2)
+        self.label_2.setObjectName(u"label_2")
+
+        self.gridLayout_2.addWidget(self.label_2, 0, 2, 1, 1)
+
+        self.w_ch_smooth = QCheckBox(self.widget_2)
+        self.w_ch_smooth.setObjectName(u"w_ch_smooth")
+
+        self.gridLayout_2.addWidget(self.w_ch_smooth, 3, 1, 1, 1)
+
+        self.label_9 = QLabel(self.widget_2)
+        self.label_9.setObjectName(u"label_9")
+
+        self.gridLayout_2.addWidget(self.label_9, 1, 0, 1, 1)
+
+        self.w_dsb_voxel_size = QDoubleSpinBox(self.widget_2)
+        self.w_dsb_voxel_size.setObjectName(u"w_dsb_voxel_size")
+        self.w_dsb_voxel_size.setMinimum(0.100000000000000)
+
+        self.gridLayout_2.addWidget(self.w_dsb_voxel_size, 0, 1, 1, 1)
+
+        self.w_ch_fill_down = QCheckBox(self.widget_2)
+        self.w_ch_fill_down.setObjectName(u"w_ch_fill_down")
+
+        self.gridLayout_2.addWidget(self.w_ch_fill_down, 1, 1, 1, 1)
+
         self.label = QLabel(self.widget_2)
         self.label.setObjectName(u"label")
 
         self.gridLayout_2.addWidget(self.label, 0, 0, 1, 1)
 
-        self.w_dsb_voxel_size = QDoubleSpinBox(self.widget_2)
-        self.w_dsb_voxel_size.setObjectName(u"w_dsb_voxel_size")
+        self.label_10 = QLabel(self.widget_2)
+        self.label_10.setObjectName(u"label_10")
 
-        self.gridLayout_2.addWidget(self.w_dsb_voxel_size, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.label_10, 3, 0, 1, 1)
 
-        self.label_2 = QLabel(self.widget_2)
-        self.label_2.setObjectName(u"label_2")
+        self.w_dsb_sigma = QDoubleSpinBox(self.widget_2)
+        self.w_dsb_sigma.setObjectName(u"w_dsb_sigma")
+        self.w_dsb_sigma.setEnabled(False)
 
-        self.gridLayout_2.addWidget(self.label_2, 0, 2, 1, 1)
+        self.gridLayout_2.addWidget(self.w_dsb_sigma, 4, 1, 1, 1)
 
 
         self.verticalLayout_4.addWidget(self.widget_2)
@@ -207,8 +234,12 @@ class Ui_SurfaceExportDialog(object):
     def retranslateUi(self, SurfaceExportDialog):
         SurfaceExportDialog.setWindowTitle(QCoreApplication.translate("SurfaceExportDialog", u"Export Surface Data to DICOM", None))
         self.groupBox.setTitle(QCoreApplication.translate("SurfaceExportDialog", u"Export Settings", None))
-        self.label.setText(QCoreApplication.translate("SurfaceExportDialog", u"Voxel Size", None))
         self.label_2.setText(QCoreApplication.translate("SurfaceExportDialog", u"mm", None))
+        self.w_ch_smooth.setText("")
+        self.label_9.setText(QCoreApplication.translate("SurfaceExportDialog", u"Fill Down:", None))
+        self.w_ch_fill_down.setText("")
+        self.label.setText(QCoreApplication.translate("SurfaceExportDialog", u"Voxel Size:", None))
+        self.label_10.setText(QCoreApplication.translate("SurfaceExportDialog", u"Gaussian Smooth:", None))
         self.groupBox_2.setTitle(QCoreApplication.translate("SurfaceExportDialog", u"Bounds", None))
         self.label_3.setText(QCoreApplication.translate("SurfaceExportDialog", u"Axis", None))
         self.label_4.setText(QCoreApplication.translate("SurfaceExportDialog", u"Min", None))
