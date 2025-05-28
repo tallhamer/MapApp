@@ -512,13 +512,15 @@ class PatientContext(qtc.QObject):
             self.progress_coms.emit(progress)
 
             name = str(ds.PatientName).split('^')
+            print(name)
             if len(name) == 1:
                 self.first_name, = name
             elif len(name) == 2:
-                self.last_name, self._first_name = name
+                self.last_name, self.first_name = name
             elif len(name) == 3:
-                self.last_name = name[0]
-                self.first_name = name[1]
+                self.last_name, self.first_name, _ = name
+                # self.last_name = name[0]
+                # self.first_name = name[1]
             else:
                 self.first_name = ds.PatientID
 
