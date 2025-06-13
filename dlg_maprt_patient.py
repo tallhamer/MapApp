@@ -12,6 +12,6 @@ class MapRTPatientDialog(qtw.QDialog, Ui_MapRTPatientDialog):
         self.setupUi(self)
 
         # TODO: For demo purposes hide the MRN. Remove this later.
-        self.w_le_patient_id.setEchoMode(qtw.QLineEdit.EchoMode.Password)
+        # self.w_le_patient_id.setEchoMode(qtw.QLineEdit.EchoMode.Password)
 
         self.w_cb_patient_orientation.addItems(["HFS", "HFP", "FFS", "FFP"])

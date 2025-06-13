@@ -87,7 +87,7 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.logger.debug("Setup master PatientContext object")
 
         #TODO: For demo purposes hide the MRN. Remove this later.
-        self.w_le_patinet_id.setEchoMode(qtw.QLineEdit.EchoMode.Password)
+        # self.w_le_patinet_id.setEchoMode(qtw.QLineEdit.EchoMode.Password)
 
         self.w_pb_esapi_search.clicked.connect(self.ESAPI_STUB)
 

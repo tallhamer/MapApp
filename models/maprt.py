@@ -271,8 +271,7 @@ class MapRTAPIManager(qtc.QObject):
                         "CouchBuffer": couch_buff,
                         "PatientBuffer": patient_buff,
                         "HighResolution": res,
-                        # TODO: For demo purposes. Remove this comment later.
-                        #"PatientPosition": ctx.plan_context.patient_orientation,
+                        "PatientPosition": ctx.plan_context.patient_orientation,
                         "PatientSurfaceId": f"{surface_id}",
                         "TreatmentRoomId": f"{room_id}",
                         "Isocenter": {
