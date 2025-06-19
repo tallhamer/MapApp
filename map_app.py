@@ -23,7 +23,6 @@ import PySide6.QtWidgets as qtw
 import PySide6.QtGui as qtg
 import pyqtgraph as pg
 
-# from ui.test_window import Ui_MainWindow
 from ui.main_window import Ui_MainWindow
 from dlg_orient import OrientDialog
 from dlg_settings import SettingsDialog
