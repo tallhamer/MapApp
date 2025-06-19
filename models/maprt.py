@@ -10,7 +10,7 @@ import numpy as np
 import trimesh
 import open3d as o3d
 import vtk
-from vtkmodules.util import numpy_support
+from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
 import pyqtgraph as pg
 
@@ -340,32 +340,47 @@ class MapRTSurface(qtc.QObject):
 
     def _process_data(self, data):
         self.logger.debug(f'Process surface data stream returned from MapRT API in MapRTSurface object')
-        _mesh = trimesh.load(file_obj=trimesh.util.wrap_as_stream(data), file_type='obj')
 
+        # Setup a MemoryResourceStream to hold the decoded data from the api payload
+        obj_stream = vtk.vtkMemoryResourceStream()
+
+        # Set the buffer for the stream to the decoded data from the api payload
+        obj_stream.SetBuffer(data, len(data))
+
+        # Create an OBJ reader
+        reader = vtk.vtkOBJReader()
+
+        # Set the stream as the input for the reader
+        reader.SetStream(obj_stream)
+
+        # Update the reader to process the data
+        reader.Update()
+        polydata = reader.GetOutput()
+
+        # Grab the vertices in the obj file stream
+        points = vtk_to_numpy(polydata.GetPoints().GetData())
+
+        # Make sure the cells are triangles
+        cell_type = vtk.VTK_TRIANGLE
+
+        # Iterate through the cells and determine their types
+        for i in range(polydata.GetNumberOfCells()):
+            if polydata.GetCellType(i) != vtk.VTK_TRIANGLE:
+                raise Exception("Cell types not a triangle")
+
+        # Store the cells
+        cells = polydata.GetPolys()
+
+        # Transform the obj coordinates in the proper DICOM orientation
         transformer = MapRTOrientTransform()
-        points = _mesh.vertices
         oriented_points = (transformer[self._orientation] @ points.T).T
 
-        pcloud = o3d.geometry.PointCloud()
-        pcloud.points = o3d.utility.Vector3dVector(oriented_points)
+        # Construct a new VTK PolyData using the transformed vertices and the cells from the original .obj
+        oriented_polydata = vtk.vtkPolyData()
+        oriented_polydata.points = numpy_to_vtk(oriented_points)
+        oriented_polydata.polys = cells
 
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.vertices = o3d.utility.Vector3dVector(oriented_points)
-        mesh.triangles = o3d.utility.Vector3iVector(_mesh.faces)
-
-        mesh.compute_vertex_normals()
-        mesh.compute_triangle_normals()
-
-        polydata = vtk.vtkPolyData()
-        polydata.points = numpy_support.numpy_to_vtk(oriented_points)
-
-        cells = vtk.vtkCellArray()
-
-        for i in range(len(mesh.triangles)):
-            cells.InsertNextCell(3, mesh.triangles[i])
-        polydata.polys = cells
-
-        return polydata
+        return oriented_polydata
 
 class MapRTContext(qtc.QObject):
     api_status_changed = qtc.Signal(str)
