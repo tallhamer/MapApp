@@ -2,29 +2,21 @@ import sys
 import json
 import uuid
 import base64
+import logging
 import datetime as dt
 from http.client import responses
 
 import numpy as np
 
-import trimesh
-import open3d as o3d
 import vtk
 from vtkmodules.util.numpy_support import vtk_to_numpy, numpy_to_vtk
 
-import pyqtgraph as pg
-
 import PySide6.QtCore as qtc
 import PySide6.QtNetwork as qtn
+import pyqtgraph as pg
 
 from models.dicom import DicomPlanContext
 
-import logging
-# logger = logging.getLogger('MapApp')
-
-# "https://maprtpkr.adventhealth.com:5000"
-# "82212e3b-7edb-40e4-b346-c4fe806a1a0b"
-# "VisionRT.Integration.Saturn/1.2.8"
 
 class ObjFileValidationError(Exception):
     def __init__(self, message):
@@ -527,7 +519,6 @@ class MapRTContext(qtc.QObject):
     def load_surface_file(self, file_path, orientation):
         self.logger.debug(f'Loading surface from file in MapRTContext')
         try:
-            mesh = trimesh.load(file_path)
             _id = uuid.uuid4().hex
             label = dt.datetime.strftime(dt.datetime.now(), '%Y%m%d %H%M%S') + " <- File"
             self.__surface_id_map[_id] = label
