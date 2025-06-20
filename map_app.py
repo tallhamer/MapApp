@@ -883,50 +883,97 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         export_dialog = SurfaceExportDialog(self)
         if export_dialog.exec():
             polydata = export_dialog.clipper.GetOutput()
+            points = vtk_to_numpy(polydata.GetPoints().GetData())
             voxel_size = export_dialog.w_dsb_voxel_size.value()
 
-            # polydata = self.maprt_transform_filter.GetOutput()
-            points = vtk_to_numpy(polydata.GetPoints().GetData())
+            # TODO: Make this a configuration widget in the UI
+            pixel_value = 2000
 
-            colors = np.zeros_like(points) + 2000
-            pcloud = o3d.geometry.PointCloud()
-            pcloud.points = o3d.utility.Vector3dVector(points)
-            pcloud.colors = o3d.utility.Vector3dVector(colors)
-
-            voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcloud, voxel_size=voxel_size)
-
-            bounds_min = voxel_grid.get_min_bound()
-            x_min, y_min, z_min = bounds_min
-            bounds_max = voxel_grid.get_max_bound()
-            x_max, y_max, z_max = bounds_max
-
-            # print(bounds_min)
-            # print(bounds_max)
-            # print(x_min, y_min, z_min, x_max, y_max, z_max)
+            # Grab the bounding coordinates for the surface in DICOM orientation
+            x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
+            bounds_min = np.array([x_min, y_min, z_min])
+            bounds_max = np.array([x_max, y_max, z_max])
 
             # Calculate grid dimensions
-            dimensions = np.ceil((bounds_max - bounds_min) / voxel_grid.voxel_size).astype(int)
-            # print(dimensions)
+            dimensions = np.ceil((bounds_max - bounds_min) / voxel_size).astype(int)
+
+            # Construct the Pixel to Coordinate transform matrix
+            pixel_to_coord = np.eye(4, dtype=np.float64)
+            pixel_to_coord *= voxel_size
+            pixel_to_coord[0,-1] = x_min
+            pixel_to_coord[1,-1] = y_min
+            pixel_to_coord[2,-1] = z_min
+            pixel_to_coord[3, -1] = 1
+
+            # Take the inverse to get the Coordinate to Pixel index transform used to find the grid values
+            coord_to_pixel = np.linalg.inv(pixel_to_coord)
 
             # Initialize an empty NumPy array with the calculated dimensions
             pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
 
-            # Get the voxel data
-            voxels = voxel_grid.get_voxels()
+            # Convert the point coords to pixel indexes
+            affine_coords = np.vstack((points.T, np.ones(len(points))))
+            pixel_idxs = np.floor(coord_to_pixel @ affine_coords).astype(int)
+            i, j, k, _ = pixel_idxs
 
-            # Iterate through the voxels and update the NumPy array
-            for voxel in voxels:
-                index = voxel.grid_index
-                # Calculate grayscale value from color (if color exists, otherwise use 255)
-                if voxel.color is not None:
-                    gray_value = int(np.mean(voxel.color))
-                else:
-                    gray_value = 0
+            # Use the pixel indexes to set all occupied pixels in the grid to the pixel value
+            pixel_data[(k, j, i)] = pixel_value
 
-                if export_dialog.w_ch_fill_down.isChecked():
-                    pixel_data[index[2], index[1]::, index[0]] = gray_value
-                else:
-                    pixel_data[index[2], index[1], index[0]] = gray_value
+            # TODO: Add the filldown capabilities to the new code currently only supports surface shell
+
+            ################################################################################################
+            # START: Old Open3D code - Working to remove external library dependancies in favor of raw VTK #
+            ################################################################################################
+
+            # polydata = export_dialog.clipper.GetOutput()
+            # voxel_size = export_dialog.w_dsb_voxel_size.value()
+            #
+            # # polydata = self.maprt_transform_filter.GetOutput()
+            # points = vtk_to_numpy(polydata.GetPoints().GetData())
+            #
+            # colors = np.zeros_like(points) + 2000
+            # pcloud = o3d.geometry.PointCloud()
+            # pcloud.points = o3d.utility.Vector3dVector(points)
+            # pcloud.colors = o3d.utility.Vector3dVector(colors)
+            #
+            # voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(pcloud, voxel_size=voxel_size)
+            #
+            # bounds_min = voxel_grid.get_min_bound()
+            # x_min, y_min, z_min = bounds_min
+            # bounds_max = voxel_grid.get_max_bound()
+            # x_max, y_max, z_max = bounds_max
+            #
+            # # print(bounds_min)
+            # # print(bounds_max)
+            # # print(x_min, y_min, z_min, x_max, y_max, z_max)
+            #
+            # # Calculate grid dimensions
+            # dimensions = np.ceil((bounds_max - bounds_min) / voxel_grid.voxel_size).astype(int)
+            # # print(dimensions)
+            #
+            # # Initialize an empty NumPy array with the calculated dimensions
+            # pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
+            #
+            # # Get the voxel data
+            # voxels = voxel_grid.get_voxels()
+            #
+            # # Iterate through the voxels and update the NumPy array
+            # for voxel in voxels:
+            #     index = voxel.grid_index
+            #     # Calculate grayscale value from color (if color exists, otherwise use 255)
+            #     if voxel.color is not None:
+            #         gray_value = int(np.mean(voxel.color))
+            #     else:
+            #         gray_value = 0
+            #
+            #     if export_dialog.w_ch_fill_down.isChecked():
+            #         pixel_data[index[2], index[1]::, index[0]] = gray_value
+            #     else:
+            #         pixel_data[index[2], index[1], index[0]] = gray_value
+
+            ##############################################################################################
+            # END: Old Open3D code - Working to remove external library dependancies in favor of raw VTK #
+            ##############################################################################################
 
             if export_dialog.w_ch_smooth.isChecked():
                 sigma = export_dialog.w_dsb_sigma.value()
