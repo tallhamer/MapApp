@@ -13,7 +13,6 @@ from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage
 
 import numpy as np
 from scipy.ndimage import gaussian_filter
-import open3d as o3d
 
 import vtk
 from vtkmodules.util.numpy_support import  vtk_to_numpy
