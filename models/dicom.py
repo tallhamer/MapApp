@@ -11,7 +11,7 @@ from pydicom.uid import RTPlanStorage, RTStructureSetStorage
 import open3d as o3d
 
 import vtk
-from vtkmodules.util import numpy_support
+from vtkmodules.util.numpy_support import numpy_to_vtk
 
 from models.settings import AppSettings
 
@@ -372,7 +372,7 @@ class DicomPlanContext(qtc.QObject):
         self.logger.debug(f'Generating final surface mesh for visualization in DicomPlanContext')
         # Create a polydata object and add the points
         polydata = vtk.vtkPolyData()
-        polydata.points = numpy_support.numpy_to_vtk(mesh.vertices)
+        polydata.points = numpy_to_vtk(mesh.vertices)
 
         # Create a vertex cell array to hold the triagles
         triangles = vtk.vtkCellArray()
