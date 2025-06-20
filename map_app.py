@@ -6,7 +6,6 @@ import binascii
 from pathlib import Path
 import datetime as dt
 
-
 import pydicom
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.uid import ExplicitVRLittleEndian, CTImageStorage

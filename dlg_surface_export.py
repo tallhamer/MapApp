@@ -1,11 +1,6 @@
-import numpy as np
-import open3d as o3d
-from scipy.ndimage import gaussian_filter
-
 import PySide6.QtWidgets as qtw
 
 import vtk
-from vtkmodules.util.numpy_support import numpy_to_vtk, vtk_to_numpy
 
 from ui.surface_export_dialog import Ui_SurfaceExportDialog
 
