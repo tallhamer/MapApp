@@ -1,3 +1,4 @@
+import json
 from typing import Optional
 from pydantic import BaseModel, Base64Str
 
@@ -20,3 +21,6 @@ class AppSettings(BaseModel):
     dicom: DicomSettings
     maprt: MapRTSettings
 
+settings_file = open(r'./settings.json', 'r')
+settings_data = json.load(settings_file)
+app_settings = AppSettings(**settings_data)

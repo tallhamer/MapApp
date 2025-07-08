@@ -10,7 +10,7 @@ from pydicom.uid import RTPlanStorage, RTStructureSetStorage
 import vtk
 from vtkmodules.util.numpy_support import numpy_to_vtk
 
-from models.settings import AppSettings
+from models.settings import app_settings
 
 import PySide6.QtCore as qtc
 import pyqtgraph as pg
@@ -162,12 +162,8 @@ class DicomPlanContext(qtc.QObject):
 
     def validate_beams(self, map_data):
         self.logger.debug(f"Validating all beams in the DicomPlanContext using MapRT collision map")
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            settings = AppSettings(**settings_data)
 
-            arc_check_resolution = settings.dicom.arc_check_resolution
-
+        arc_check_resolution = app_settings.dicom.arc_check_resolution
         collision_map, x_ticks, y_ticks = map_data
 
         # construct couch index positions for resampled map
@@ -297,13 +293,7 @@ class DicomPlanContext(qtc.QObject):
     def _get_structure_point_clouds(self, ds):
         self.logger.debug(f"Generating point clouds from DICOM structure points in DicomPlanContext")
 
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            settings = AppSettings(**settings_data)
-
-            contours_to_keep = settings.dicom.contours_to_keep
-
-
+        contours_to_keep = app_settings.dicom.contours_to_keep
 
         self.status_bar_coms.emit("Loading DICOM RT Structures from file")
         progress_inc = int(100 / len(ds.StructureSetROISequence))
@@ -330,25 +320,6 @@ class DicomPlanContext(qtc.QObject):
 
                     if (contours_to_keep == 'ALL') or (self._get_contour_orientation(points) == contours_to_keep):
                         contours.append(points)
-
-                    # contours.append([[float(contour.ContourData[i]),
-                    #                   float(contour.ContourData[i + 1]),
-                    #                   float(contour.ContourData[i + 2])
-                    #                   ] for i in range(0,
-                    #                                    len(contour.ContourData),
-                    #                                    3
-                    #                                    )
-                    #                  ]
-                    #                 )
-
-                # dcm_points = np.array([point for contour in contours for point in contour])
-                #
-                # dcm_pcloud = o3d.geometry.PointCloud()
-                # dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
-                # dcm_pcloud.estimate_normals()
-                #
-                # self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
-                # self._structures[roi_lut[roi.ReferencedROINumber]] = None
 
                 self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = contours
                 self._structures[roi_lut[roi.ReferencedROINumber]] = None
@@ -471,12 +442,8 @@ class DicomPlanContext(qtc.QObject):
     def _marching_cubes_isosurface(self, structure_contours):
         self.logger.debug(f"Using marching cubes to generate surface mesh from structure point cloud in DicomPlanContext")
 
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            settings = AppSettings(**settings_data)
-
-            x_spacing = settings.dicom.pixel_spacing_x
-            y_spacing = settings.dicom.pixel_spacing_y
+        x_spacing = app_settings.dicom.pixel_spacing_x
+        y_spacing = app_settings.dicom.pixel_spacing_y
 
         structure_points = np.vstack(structure_contours)
 
@@ -539,12 +506,8 @@ class DicomPlanContext(qtc.QObject):
     def _contour_isosurface(self, structure_contours):
         self.logger.debug(f"Using contour filter to generate isosurface mesh from structure point cloud in DicomPlanContext")
 
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            settings = AppSettings(**settings_data)
-
-            x_spacing = settings.dicom.pixel_spacing_x
-            y_spacing = settings.dicom.pixel_spacing_y
+        x_spacing = app_settings.dicom.pixel_spacing_x
+        y_spacing = app_settings.dicom.pixel_spacing_y
 
         structure_points = np.vstack(structure_contours)
 
@@ -613,84 +576,14 @@ class DicomPlanContext(qtc.QObject):
                          'Contour Isosurface': self._contour_isosurface
                          }
 
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            settings = AppSettings(**settings_data)
-
-            surface_recon_method = settings.dicom.surface_recon_method
+        surface_recon_method = app_settings.dicom.surface_recon_method
 
         recon = recon_methods[surface_recon_method]
         mesh = recon(contours)
-
-        # # Update Progress
-        # self.status_bar_coms.emit("Using marching cubes to generate surface mesh")
-        # self.progress_coms.emit(25)
-        #
-        # # Convet Open3D point cloud to numpy array
-        # points = np.asarray(pcd.points)
-        #
-        # # Compute the bounds of the point cloud
-        # mins = pcd.get_min_bound()
-        # maxs = pcd.get_max_bound()
-        #
-        # x = np.arange(mins[0], maxs[0], voxel_size)
-        # y = np.arange(mins[1], maxs[1], voxel_size)
-        # z = np.arange(mins[2], maxs[2], voxel_size)
-        # x, y, z = np.meshgrid(x, y, z, indexing='ij')
-        #
-        # # Create a KD-tree for efficient nearest neighbor search
-        # tree = cKDTree(points)
-        #
-        # # Compute the scalar field (distance to nearest point)
-        # grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
-        #
-        # self.logger.info(f'Using {len(x.ravel())} grid_points for marching cubes')
-        #
-        # # Update Progress
-        # self.status_bar_coms.emit(f'Using {len(x.ravel())} grid_points for marching cubes')
-        # self.progress_coms.emit(50)
-        #
-        # distances, _ = tree.query(grid_points, workers=-1)
-        # scalar_field = distances.reshape(x.shape)
-        #
-        # # Determine the iso_level based on the percentile of distance
-        # iso_level = np.percentile(distances, iso_level_percentile)
-        #
-        # # Apply Marching Cubes
-        # verts, faces, _, _ = measure.marching_cubes(scalar_field, level=iso_level)
-        #
-        # # Scale and translate vertices back to original coordinate system
-        # verts = verts * voxel_size + mins
-        #
-        # # Update Progress
-        # self.status_bar_coms.emit(f'Surface mesh complete')
-        # self.progress_coms.emit(100)
-        #
-        # # Create the mesh
-        # mesh = o3d.geometry.TriangleMesh()
-        # mesh.vertices = o3d.utility.Vector3dVector(verts)
-        # mesh.triangles = o3d.utility.Vector3iVector(faces)
-        #
-        # mesh.compute_vertex_normals()
-        # mesh.compute_triangle_normals()
-        #
-        # # Update Progress
-        # self.status_bar_clear.emit()
-        # self.progress_coms.emit(0)
-
         return mesh
 
     def _generate_visual_mesh(self, mesh):
         self.logger.debug(f'Generating final surface mesh for visualization in DicomPlanContext')
-        # # Create a polydata object and add the points
-        # polydata = vtk.vtkPolyData()
-        # polydata.points = numpy_to_vtk(mesh.vertices)
-        #
-        # # Create a vertex cell array to hold the triagles
-        # triangles = vtk.vtkCellArray()
-        # for i in range(len(mesh.triangles)):
-        #     triangles.InsertNextCell(3, mesh.triangles[i])
-        # polydata.polys = triangles
 
         # Create a mapper and actor
         mapper = vtk.vtkPolyDataMapper()

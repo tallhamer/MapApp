@@ -1,5 +1,4 @@
 import sys
-import json
 import base64
 import logging
 import binascii
@@ -29,8 +28,9 @@ from ui.dlg_dicom_files import DicomFileDialog
 from ui.dlg_surface_export import SurfaceExportDialog
 from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
-from models.settings import AppSettings
+from models.settings import app_settings
 
+import resource_rc
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -44,8 +44,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.setWindowTitle("Map App")
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
-
-        self._load_application_settings()
 
         self.dicom_file_mode = False
         self.maprt_file_mode = False
@@ -65,19 +63,6 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     ####################################################################################
     # Setup                                                                            #
     ####################################################################################
-
-    def _load_application_settings(self):
-        self.logger.debug("Load application settings")
-        with open(r'.\settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            self.settings = AppSettings(**settings_data)
-
-            self.dicom_data_directory = self.settings.dicom.dicom_data_directory
-            self.arc_check_resolution = self.settings.dicom.arc_check_resolution
-
-            self.maprt_api_url = self.settings.maprt.api_url
-            self.maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
-            self.maprt_api_user_agent = self.settings.maprt.api_user_agent
 
     def _setup_patient_context(self):
         self.logger.debug("Setup master PatientContext object")
@@ -110,10 +95,12 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
     def _setup_api_manager(self):
         self.logger.debug("Setup master MapRT API Manager")
+
         # Setup the global MapRT API connection manager
-        self.maprt_api = MapRTAPIManager(self.maprt_api_url,
-                                         self.maprt_api_token,
-                                         self.maprt_api_user_agent
+        token = binascii.unhexlify(base64.b64decode(app_settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+        self.maprt_api = MapRTAPIManager(app_settings.maprt.api_url,
+                                         token,
+                                         app_settings.maprt.api_user_agent
                                          )
 
         # Connect the ui signals to the MapRTAPIManager objects methods
@@ -930,13 +917,14 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             else:
                 smoothed_pixel_data = pixel_data
 
-            dicom_path = None
-            with open(r'.\settings.json', 'r') as settings:
-                settings_data = json.load(settings)
-                self.settings = AppSettings(**settings_data)
+            # dicom_path = None
+            # with open(r'resources/settings.json', 'r') as settings:
+            #     settings_data = json.load(settings)
+            #     self.settings = AppSettings(**settings_data)
+            #
+            #     dicom_path = Path(self.settings.dicom.dicom_data_directory)
 
-                dicom_path = Path(self.settings.dicom.dicom_data_directory)
-
+            dicom_path = Path(app_settings.dicom.dicom_data_directory)
             save_path = dicom_path / f"{self.patient_ctx.patient_id}-{voxel_size}"
             save_path.mkdir(parents=True, exist_ok=True)
 
@@ -1073,30 +1061,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         if settings_dialog.exec():
             print("writing settings")
 
-            self.dicom_data_directory = settings_dialog.w_le_dicom_directory.text()
-            self.arc_check_resolution = settings_dialog.w_sb_arc_check_resolution.value()
-            self.surface_recon_method = settings_dialog.w_cb_recon_method.currentText()
-            self.pixel_spacing_x = settings_dialog.w_dsb_pixel_spacing_x.value()
-            self.pixel_spacing_y = settings_dialog.w_dsb_pixel_spacing_y.value()
-            self.contours_to_keep = settings_dialog.w_cb_contours_to_keep.currentText()
-            self.maprt_api.api_url = settings_dialog.w_le_api_url.text()
-            self.maprt_api.token = settings_dialog.w_le_api_token.text()
-            self.maprt_api.user_agent = settings_dialog.w_le_api_user_agent.text()
+            app_settings.dicom.dicom_data_directory = settings_dialog.w_le_dicom_directory.text()
+            app_settings.dicom.arc_check_resolution = settings_dialog.w_sb_arc_check_resolution.value()
+            app_settings.dicom.surface_recon_method = settings_dialog.w_cb_recon_method.currentText()
+            app_settings.dicom.pixel_spacing_x = settings_dialog.w_dsb_pixel_spacing_x.value()
+            app_settings.dicom.pixel_spacing_y = settings_dialog.w_dsb_pixel_spacing_y.value()
+            app_settings.dicom.contours_to_keep = settings_dialog.w_cb_contours_to_keep.currentText()
 
-            self.settings.dicom.dicom_data_directory = self.dicom_data_directory
-            self.settings.dicom.arc_check_resolution = self.arc_check_resolution
-            self.settings.dicom.surface_recon_method = self.surface_recon_method
-            self.settings.dicom.pixel_spacing_x = self.pixel_spacing_x
-            self.settings.dicom.pixel_spacing_y = self.pixel_spacing_y
-            self.settings.dicom.contours_to_keep = self.contours_to_keep
-
-            self.settings.maprt.api_url =  self.maprt_api.api_url
+            app_settings.maprt.api_url = settings_dialog.w_le_api_url.text()
             hidden_token = base64.b64encode(binascii.hexlify(self.maprt_api.token.encode('utf-8'))).decode('utf-8')
-            self.settings.maprt.api_token = hidden_token
-            self.settings.maprt.api_user_agent =  self.maprt_api.user_agent
+            app_settings.maprt.api_token = hidden_token
+            app_settings.maprt.api_user_agent = settings_dialog.w_le_api_user_agent.text()
 
             with open('settings.json', 'w') as settings:
-                settings.write(self.settings.model_dump_json(indent=4))
+                settings.write(app_settings.model_dump_json(indent=4))
         else:
             print("ignoring settings changes")
 

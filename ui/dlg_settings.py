@@ -9,7 +9,7 @@ import PySide6.QtNetwork as qtn
 
 from ui.app_settings_dialog import Ui_SettingsDialog
 from models.maprt import MapRTAPIManager
-from models.settings import AppSettings
+from models.settings import app_settings
 
 class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
     def __init__(self):
@@ -19,56 +19,54 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.setupUi(self)
 
         self.logger.debug("Accessing the setting.json file to load current settings in SettingsDialog")
-        with open(r'../settings.json', 'r') as settings:
-            settings_data = json.load(settings)
-            self.settings = AppSettings(**settings_data)
 
-            dicom_dir = self.settings.dicom.dicom_data_directory
-            self.w_le_dicom_directory.setText(dicom_dir)
-            self.logger.info(f"Current DICOM directory {dicom_dir} loaded in SettingsDialog")
 
-            arc_check_resolution = self.settings.dicom.arc_check_resolution
-            self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
-            self.logger.info(f"Current arc validation resolution set to {arc_check_resolution} degree loaded in SettingsDialog")
+        dicom_dir = app_settings.dicom.dicom_data_directory
+        self.w_le_dicom_directory.setText(dicom_dir)
+        self.logger.info(f"Current DICOM directory {dicom_dir} loaded in SettingsDialog")
 
-            self.w_cb_recon_method.addItems(['Zero-Crossing',
-                                             'Marching Cubes',
-                                             'Contour Isosurface'
-                                             ])
-            surface_recon_method = self.settings.dicom.surface_recon_method
-            self.logger.info(
-                f"Current surface reconstruction method for DICOM contours is set to {surface_recon_method} in SettingsDialog")
-            self.w_cb_recon_method.currentIndexChanged.connect(self._surface_recon_method_changed)
-            self.w_cb_recon_method.setCurrentText(surface_recon_method)
-            self._surface_recon_method_changed()
+        arc_check_resolution = app_settings.dicom.arc_check_resolution
+        self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
+        self.logger.info(f"Current arc validation resolution set to {arc_check_resolution} degree loaded in SettingsDialog")
 
-            pixel_spacing_x = self.settings.dicom.pixel_spacing_x
-            self.logger.info(
-                f"Current pixel spacing 'x' is set to {pixel_spacing_x} for surface reconstruction in SettingsDialog")
-            self.w_dsb_pixel_spacing_x.setValue(pixel_spacing_x)
+        self.w_cb_recon_method.addItems(['Zero-Crossing',
+                                         'Marching Cubes',
+                                         'Contour Isosurface'
+                                         ])
+        surface_recon_method = app_settings.dicom.surface_recon_method
+        self.logger.info(
+            f"Current surface reconstruction method for DICOM contours is set to {surface_recon_method} in SettingsDialog")
+        self.w_cb_recon_method.currentIndexChanged.connect(self._surface_recon_method_changed)
+        self.w_cb_recon_method.setCurrentText(surface_recon_method)
+        self._surface_recon_method_changed()
 
-            pixel_spacing_y = self.settings.dicom.pixel_spacing_y
-            self.logger.info(
-                f"Current pixel spacing 'y' is set to {pixel_spacing_y} for surface reconstruction in SettingsDialog")
-            self.w_dsb_pixel_spacing_y.setValue(pixel_spacing_y)
+        pixel_spacing_x = app_settings.dicom.pixel_spacing_x
+        self.logger.info(
+            f"Current pixel spacing 'x' is set to {pixel_spacing_x} for surface reconstruction in SettingsDialog")
+        self.w_dsb_pixel_spacing_x.setValue(pixel_spacing_x)
 
-            self.w_cb_contours_to_keep.addItems(['ALL', 'CCW', 'CW'])
-            contours_to_keep = self.settings.dicom.contours_to_keep
-            self.w_cb_contours_to_keep.setCurrentText(contours_to_keep)
-            self.logger.info(
-                f"Contours to keep from DICOM RT Structure File is set to {contours_to_keep} in SettingsDialog")
+        pixel_spacing_y = app_settings.dicom.pixel_spacing_y
+        self.logger.info(
+            f"Current pixel spacing 'y' is set to {pixel_spacing_y} for surface reconstruction in SettingsDialog")
+        self.w_dsb_pixel_spacing_y.setValue(pixel_spacing_y)
 
-            maprt_api_url = self.settings.maprt.api_url
-            self.w_le_api_url.setText(maprt_api_url)
-            self.logger.info(f"Current MapRT API URL of {maprt_api_url} loaded in SettingsDialog")
+        self.w_cb_contours_to_keep.addItems(['ALL', 'CCW', 'CW'])
+        contours_to_keep = app_settings.dicom.contours_to_keep
+        self.w_cb_contours_to_keep.setCurrentText(contours_to_keep)
+        self.logger.info(
+            f"Contours to keep from DICOM RT Structure File is set to {contours_to_keep} in SettingsDialog")
 
-            maprt_api_token = binascii.unhexlify(base64.b64decode(self.settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
-            self.w_le_api_token.setText(maprt_api_token)
-            self.logger.info(f"Current MapRT API token of {maprt_api_token} loaded in SettingsDialog")
+        maprt_api_url = app_settings.maprt.api_url
+        self.w_le_api_url.setText(maprt_api_url)
+        self.logger.info(f"Current MapRT API URL of {maprt_api_url} loaded in SettingsDialog")
 
-            maprt_api_user_agent = self.settings.maprt.api_user_agent
-            self.w_le_api_user_agent.setText(maprt_api_user_agent)
-            self.logger.info(f"Current MapRT API User Agent of {maprt_api_user_agent} loaded in SettingsDialog")
+        maprt_api_token = binascii.unhexlify(base64.b64decode(app_settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+        self.w_le_api_token.setText(maprt_api_token)
+        self.logger.info(f"Current MapRT API token of {maprt_api_token} loaded in SettingsDialog")
+
+        maprt_api_user_agent = app_settings.maprt.api_user_agent
+        self.w_le_api_user_agent.setText(maprt_api_user_agent)
+        self.logger.info(f"Current MapRT API User Agent of {maprt_api_user_agent} loaded in SettingsDialog")
 
         self.w_pb_dicom_directory.clicked.connect(self._browse_for_dicom_directory)
         self.w_pb_test_connection.clicked.connect(self._test_api_connection)
