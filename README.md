@@ -32,13 +32,13 @@
 <h3 align="center">MapApp</h3>
 
   <p align="center">
-    An example project to illustrate some of the [MapRT API](https://visionrt.com/our-solutions/maprt-api) integration possibilities. The application is a standalone 
+    An example project to illustrate some of the <a href="https://visionrt.com/our-solutions/maprt-api/">MapRT API</a> integration possibilities. The application is a standalone 
     python application that connects to the MapRT API and provides DICOM plan validation and clearance map visualization.
     <br /> 
     <br />
     While the application seeks to simply show integration strategies with MapRT's API it does provide some useful 
     clinical features that users may find useful in clinical practice. The application is provided MIT license and 
-    should be used in clinical practice at the users own risk.  
+    should be used in clinical practice at the user's own risk.  
     <br />
     <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
     <br />
@@ -66,8 +66,7 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#creating-a-binary-application">Creating a Binary Application</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -102,38 +101,65 @@
 
 <!-- GETTING STARTED -->
 ## Getting Started
-If you don't already have it installed, install Python. I recommend version 3.12 but any version 3.10 or above should work 
+1. If you don't already have it installed, install [Python](https://www.python.org/downloads/). I recommend version 3.12 but any version 3.10 or above should work 
+    
 
-To use the application you will need to have either a 
+2. Navigate to a root folder where you would like to store the virtual environment. Create a virtual python environment
+   by executing the following command. (Replace *myenv* with the name of your virtual environment)
+    ```sh
+      python -m venv myenv
+    ```
+3. Navigate the the new *Scripts* folder and activate the new virtual environment using the proper active script.
+   ### Windows (Command prompt):
+    ```sh
+      myenv\Scripts\activate.bat
+    ```
+   ### On Windows (PowerShell):
+    ```sh
+      myenv\Scripts\Activate.ps1
+    ```
+   ### On macOS/Linux:
+    ```sh
+      source myenv/bin/activate
+    ```
+   
+4. Clone the github repo for this project.
+    ```sh
+      git clone https://github.com/tallhamer/MapApp.git
+    ```
+5. With the virtual python environment activated, navigate to the location of the cloned git repo and install the project 
+   dependencies using the requirement.txt file.
+    ```sh
+      pip install -r requirements.txt
+    ```
+After all of the python libraries have been successfully installed, you should be able to simply type the following from 
+the activated virtual python environment to launch the application.
+```sh
+   python map_app.py
+```
 
-### Prerequisites
+### Creating a Binary Application
+If you don't want to have to activate the virtual python environment each time you want to run the application you can 
+generate a standalone executable (.exe) file on windows.
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+1. Activating the virtual python environment using the steps above.
 
-### Installation
+2. Navigate to the location where you cloned the MapApp repo
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/github_username/repo_name.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
-5. Change git remote url to avoid accidental pushes to base project
-   ```sh
-   git remote set-url origin github_username/repo_name
-   git remote -v # confirm the changes
-   ```
+3. Verify that the *map_app.spec* file is located in the root directory
+
+4. Run the following command
+    ```sh
+      pyinstaller map_app.spec
+    ```
+5. If you are missing the *map_app.spec* file you can run the following command replacing *FullPathToRepoFolder* with the 
+   path to the cloned repository on your machine.
+    ```sh
+      pyinstaller map_app.py --paths=FullPathToRepoFolder -D --hidden-import=skimage._shared.geometry 
+    ```
+The result should be a *dist* folder with a subfolder named *map_app*. You can move the *map_app* folder to any location 
+and run the map_app.exe from that folder to use the application without needing to activate a virtual python environment 
+in the future
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
