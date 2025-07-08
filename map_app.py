@@ -1,3 +1,4 @@
+import os
 import sys
 import base64
 import logging
@@ -1432,7 +1433,8 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         pass
 
 if __name__ == '__main__':
-
+    if not os.path.exists(r'.\logs'):
+        os.mkdir(r'.\logs', 777)
 
     logger = logging.getLogger('MapApp')
     logger.setLevel(logging.DEBUG)
