@@ -29,6 +29,44 @@
       <string>DICOM</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Arc Check Resolution:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="3">
+       <widget class="QDoubleSpinBox" name="w_dsb_pixel_spacing_y">
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Surface Recon Method:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="0">
+       <widget class="QLabel" name="w_l_pixel_spacing_x">
+        <property name="text">
+         <string>Pixel X (mm):</string>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Contours to keep:</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
@@ -36,10 +74,31 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="w_le_dicom_directory"/>
+      <item row="4" column="2">
+       <widget class="QLabel" name="w_l_pixel_spacing_y">
+        <property name="text">
+         <string>Pixel Y (mm):</string>
+        </property>
+       </widget>
       </item>
-      <item row="0" column="2">
+      <item row="4" column="1">
+       <widget class="QDoubleSpinBox" name="w_dsb_pixel_spacing_x">
+        <property name="minimum">
+         <double>1.000000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+       </widget>
+      </item>
+      <item row="4" column="4">
+       <widget class="QLabel" name="label_11">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
        <widget class="QPushButton" name="w_pb_dicom_directory">
         <property name="minimumSize">
          <size>
@@ -58,14 +117,14 @@
         </property>
        </widget>
       </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
+      <item row="2" column="4">
+       <widget class="QLabel" name="label_10">
         <property name="text">
-         <string>Arc Check Resolution:</string>
+         <string>degrees</string>
         </property>
        </widget>
       </item>
-      <item row="1" column="1">
+      <item row="2" column="1" colspan="3">
        <widget class="QSpinBox" name="w_sb_arc_check_resolution">
         <property name="alignment">
          <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
@@ -77,6 +136,15 @@
          <number>10</number>
         </property>
        </widget>
+      </item>
+      <item row="0" column="1" colspan="3">
+       <widget class="QLineEdit" name="w_le_dicom_directory"/>
+      </item>
+      <item row="3" column="1" colspan="3">
+       <widget class="QComboBox" name="w_cb_recon_method"/>
+      </item>
+      <item row="5" column="1" colspan="3">
+       <widget class="QComboBox" name="w_cb_contours_to_keep"/>
       </item>
      </layout>
     </widget>

@@ -31,6 +31,33 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
             self.w_sb_arc_check_resolution.setValue(arc_check_resolution)
             self.logger.info(f"Current arc validation resolution set to {arc_check_resolution} degree loaded in SettingsDialog")
 
+            self.w_cb_recon_method.addItems(['Zero-Crossing',
+                                             'Marching Cubes',
+                                             'Contour Isosurface'
+                                             ])
+            surface_recon_method = self.settings.dicom.surface_recon_method
+            self.logger.info(
+                f"Current surface reconstruction method for DICOM contours is set to {surface_recon_method} in SettingsDialog")
+            self.w_cb_recon_method.currentIndexChanged.connect(self._surface_recon_method_changed)
+            self.w_cb_recon_method.setCurrentText(surface_recon_method)
+            self._surface_recon_method_changed()
+
+            pixel_spacing_x = self.settings.dicom.pixel_spacing_x
+            self.logger.info(
+                f"Current pixel spacing 'x' is set to {pixel_spacing_x} for surface reconstruction in SettingsDialog")
+            self.w_dsb_pixel_spacing_x.setValue(pixel_spacing_x)
+
+            pixel_spacing_y = self.settings.dicom.pixel_spacing_y
+            self.logger.info(
+                f"Current pixel spacing 'y' is set to {pixel_spacing_y} for surface reconstruction in SettingsDialog")
+            self.w_dsb_pixel_spacing_y.setValue(pixel_spacing_y)
+
+            self.w_cb_contours_to_keep.addItems(['ALL', 'CCW', 'CW'])
+            contours_to_keep = self.settings.dicom.contours_to_keep
+            self.w_cb_contours_to_keep.setCurrentText(contours_to_keep)
+            self.logger.info(
+                f"Contours to keep from DICOM RT Structure File is set to {contours_to_keep} in SettingsDialog")
+
             maprt_api_url = self.settings.maprt.api_url
             self.w_le_api_url.setText(maprt_api_url)
             self.logger.info(f"Current MapRT API URL of {maprt_api_url} loaded in SettingsDialog")
@@ -55,6 +82,18 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
 
         # TODO: Check results before setting
         self.w_le_dicom_directory.setText(dir)
+
+    def _surface_recon_method_changed(self):
+        if self.w_cb_recon_method.currentText() in ["Marching Cubes", "Contour Isosurface"]:
+            self.w_l_pixel_spacing_x.setVisible(True)
+            self.w_dsb_pixel_spacing_x.setVisible(True)
+            self.w_l_pixel_spacing_y.setVisible(True)
+            self.w_dsb_pixel_spacing_y.setVisible(True)
+        else:
+            self.w_l_pixel_spacing_x.setVisible(False)
+            self.w_dsb_pixel_spacing_x.setVisible(False)
+            self.w_l_pixel_spacing_y.setVisible(False)
+            self.w_dsb_pixel_spacing_y.setVisible(False)
 
     def _test_api_connection(self):
         self.logger.debug("User testing MapRT API connection in SettingsDialog")

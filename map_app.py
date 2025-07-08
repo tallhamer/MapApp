@@ -485,10 +485,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def update_3D_dicom_visualization(self, model):
         self.logger.debug("Updating the 3D visualization for the DICOM surface in MainWindow")
         if self.dicom_actor is None:
+            print("In new dicom actor code")
             self.dicom_actor = self.patient_ctx.current_plan.current_structure
 
             R, G, B, A = self._get_current_color(self.w_fr_dcm_color)
-            self.dicom_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+            print(R, G, B, A)
+            # self.dicom_actor.GetProperty().SetColor(R / 255.0, G / 255.0, B / 255.0)
+            self.dicom_actor.property.color = (R / 255.0, G / 255.0, B / 255.0)
             self.dicom_actor.property.opacity = self.w_hs_dcm_opacity.value() / 100.0
 
             self.dicom_laser_actors = self._get_laser_marks(self.dicom_actor.GetMapper().GetInput())
@@ -1073,12 +1076,20 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
 
             self.dicom_data_directory = settings_dialog.w_le_dicom_directory.text()
             self.arc_check_resolution = settings_dialog.w_sb_arc_check_resolution.value()
+            self.surface_recon_method = settings_dialog.w_cb_recon_method.currentText()
+            self.pixel_spacing_x = settings_dialog.w_dsb_pixel_spacing_x.value()
+            self.pixel_spacing_y = settings_dialog.w_dsb_pixel_spacing_y.value()
+            self.contours_to_keep = settings_dialog.w_cb_contours_to_keep.currentText()
             self.maprt_api.api_url = settings_dialog.w_le_api_url.text()
             self.maprt_api.token = settings_dialog.w_le_api_token.text()
             self.maprt_api.user_agent = settings_dialog.w_le_api_user_agent.text()
 
             self.settings.dicom.dicom_data_directory = self.dicom_data_directory
             self.settings.dicom.arc_check_resolution = self.arc_check_resolution
+            self.settings.dicom.surface_recon_method = self.surface_recon_method
+            self.settings.dicom.pixel_spacing_x = self.pixel_spacing_x
+            self.settings.dicom.pixel_spacing_y = self.pixel_spacing_y
+            self.settings.dicom.contours_to_keep = self.contours_to_keep
 
             self.settings.maprt.api_url =  self.maprt_api.api_url
             hidden_token = base64.b64encode(binascii.hexlify(self.maprt_api.token.encode('utf-8'))).decode('utf-8')
@@ -1201,18 +1212,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         # Create a mapper and actor for the cut surface
         xy_cut_mapper = vtk.vtkPolyDataMapper()
         xy_cut_mapper.SetInputData(xy_glyphFilter.GetOutput())
+        xy_cut_mapper.ScalarVisibilityOff()
         xy_cut_actor = vtk.vtkActor()
         xy_cut_actor.SetMapper(xy_cut_mapper)
         xy_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface
 
         yz_cut_mapper = vtk.vtkPolyDataMapper()
         yz_cut_mapper.SetInputData(yz_glyphFilter.GetOutput())
+        yz_cut_mapper.ScalarVisibilityOff()
         yz_cut_actor = vtk.vtkActor()
         yz_cut_actor.SetMapper(yz_cut_mapper)
         yz_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface
 
         zx_cut_mapper = vtk.vtkPolyDataMapper()
         zx_cut_mapper.SetInputData(zx_glyphFilter.GetOutput())
+        zx_cut_mapper.ScalarVisibilityOff()
         zx_cut_actor = vtk.vtkActor()
         zx_cut_actor.SetMapper(zx_cut_mapper)
         zx_cut_actor.GetProperty().SetColor(1, 0, 0)  # Red color for the cut surface

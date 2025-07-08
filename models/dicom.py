@@ -4,6 +4,7 @@ import logging
 import numpy as np
 from skimage import measure
 from scipy.spatial import cKDTree
+from skimage.draw import polygon
 
 import pydicom
 from pydicom.uid import RTPlanStorage, RTStructureSetStorage
@@ -133,7 +134,8 @@ class DicomPlanContext(qtc.QObject):
                 self.current_structure_changed.emit(self.current_structure)
             else:
                 self.logger.info(f"Structure with id = '{structure_id}' not found in the DicomPlanContext - Generating new DICOM surface using marching cubes")
-                mesh = self._pcloud_to_mesh(self._raw_structure_points[structure_id], voxel_size=3, iso_level_percentile=3)
+                # mesh = self._pcloud_to_mesh(self._raw_structure_points[structure_id], voxel_size=3, iso_level_percentile=3)
+                mesh = self._pcloud_to_mesh(self._raw_structure_points[structure_id])
                 self.logger.info(f"Structure with id = '{structure_id}' surface generation completed")
                 self.logger.info(f"Structure with id = '{structure_id}' surface added to the DicomPlanContext")
                 self._structures[structure_id] = self._generate_visual_mesh(mesh)
@@ -264,14 +266,54 @@ class DicomPlanContext(qtc.QObject):
         self.beams_changed.emit(self._beams)
         self.redraw_beams.emit((arc_plots, static_plots))
 
+    def _get_contour_orientation(self, points):
+        """
+            Determines if a sequence of 3D coplanar points forming a closed loop is clockwise or counter-clockwise.
+
+            Args:
+                points: A list of tuples or lists, where each inner element represents
+                        a point (x, y). The points should be ordered sequentially
+                        along the perimeter of the loop.
+
+            Returns:
+                "CCW" if the points are ordered counter-clockwise.
+                "CW" if the points are ordered clockwise.
+                "CL" if the points are effectively collinear (signed area is close to zero).
+        """
+        n = len(points)
+        if n < 3:
+            raise Exception("Not a polygon (requires at least 3 points)")
+
+        signed_area = 0.0
+        for i in range(n):
+            x1, y1, z1 = points[i]
+            x2, y2, z2 = points[(i + 1) % n]  # Connects last point to first
+            signed_area += (x1 * y2 - x2 * y1)
+
+        # A small tolerance for floating-point comparisons
+        if signed_area > 1e-9:
+            return "CCW"
+        elif signed_area < -1e-9:
+            return "CW"
+        else:
+            return "CL"  # Or effectively collinear/degenerate
+
     def _get_structure_point_clouds(self, ds):
         self.logger.debug(f"Generating point clouds from DICOM structure points in DicomPlanContext")
-        # Generate ROI Look Up Table using the ROI Number as the key
+
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            settings = AppSettings(**settings_data)
+
+            contours_to_keep = settings.dicom.contours_to_keep
+
+
 
         self.status_bar_coms.emit("Loading DICOM RT Structures from file")
         progress_inc = int(100 / len(ds.StructureSetROISequence))
         progress = 0
 
+        # Generate ROI Look Up Table using the ROI Number as the key
         roi_lut = {}
         for structure in ds.StructureSetROISequence:
             roi_lut[structure.ROINumber] = structure.ROIName.lower()
@@ -283,23 +325,36 @@ class DicomPlanContext(qtc.QObject):
             contours = []
             if hasattr(roi, "ContourSequence"):
                 for contour in roi.ContourSequence:
-                    contours.append([[float(contour.ContourData[i]),
-                                      float(contour.ContourData[i + 1]),
-                                      float(contour.ContourData[i + 2])
-                                      ] for i in range(0,
-                                                       len(contour.ContourData),
-                                                       3
-                                                       )
-                                     ]
-                                    )
+                    if contour.ContourGeometricType != 'CLOSED_PLANAR':
+                        continue
 
-                dcm_points = np.array([point for contour in contours for point in contour])
+                    points = np.array(contour.ContourData).reshape((-1, 3))
+                    z = float(round(points[0][2], 2))
+                    points[:, 2] = z
 
-                dcm_pcloud = o3d.geometry.PointCloud()
-                dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
-                dcm_pcloud.estimate_normals()
+                    if (contours_to_keep == 'ALL') or (self._get_contour_orientation(points) == contours_to_keep):
+                        contours.append(points)
 
-                self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
+                    # contours.append([[float(contour.ContourData[i]),
+                    #                   float(contour.ContourData[i + 1]),
+                    #                   float(contour.ContourData[i + 2])
+                    #                   ] for i in range(0,
+                    #                                    len(contour.ContourData),
+                    #                                    3
+                    #                                    )
+                    #                  ]
+                    #                 )
+
+                # dcm_points = np.array([point for contour in contours for point in contour])
+                #
+                # dcm_pcloud = o3d.geometry.PointCloud()
+                # dcm_pcloud.points = o3d.utility.Vector3dVector(dcm_points)
+                # dcm_pcloud.estimate_normals()
+                #
+                # self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = dcm_pcloud
+                # self._structures[roi_lut[roi.ReferencedROINumber]] = None
+
+                self._raw_structure_points[roi_lut[roi.ReferencedROINumber]] = contours
                 self._structures[roi_lut[roi.ReferencedROINumber]] = None
 
         self.progress_coms.emit(100)
@@ -307,82 +362,373 @@ class DicomPlanContext(qtc.QObject):
         self.status_bar_clear.emit()
         self.structures_updated.emit(self.structures)
 
-    def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
+    def _numpy3d_to_vtk_image(self, _3darray, origin, spacing):
+        self.logger.debug(f"Generating vtkImageData from 3D numpy array")
+        """
+        Convert binary 3D NumPy volume to VTK surface mesh using Marching Cubes.
+        """
+        # Convert NumPy array to VTK array
+        # flat_data_array = volume.ravel(order='F')  # For VTK's column-major order
+        flat_data_array = _3darray.ravel()  # For VTK's column-major order
+        vtk_data_array = numpy_to_vtk(num_array=flat_data_array, deep=True, array_type=vtk.VTK_FLOAT)
+
+        # Create vtkImageData
+        image_data = vtk.vtkImageData()
+        image_data.SetDimensions(_3darray.shape[2], _3darray.shape[1], _3darray.shape[0])  # (x, y, z)
+        image_data.SetSpacing(spacing)
+        image_data.SetOrigin(origin[0], origin[1], origin[2])  # Optionally set origin
+
+        # Attach data
+        image_data.GetPointData().SetScalars(vtk_data_array)
+
+        return image_data
+
+    def _zero_crossing_isosurface(self, structure_contours):
+        self.logger.debug(f"Extracting zero-crossing isosurface to generate surface mesh from structure point cloud in DicomPlanContext")
+        structure_points = np.vstack(structure_contours)
+
+        # Construct VTK PolyData object from structure points
+        polydata = vtk.vtkPolyData()
+        # print(type(numpy_to_vtk(structure_points)))
+        polydata.points = numpy_to_vtk(structure_points)
+        # print(f'Number of points: {polydata.number_of_points}')
+
+        # Grab the bounding coordinates for the contour points in DICOM orientation
+        x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
+        bounds_min = np.array([x_min, y_min, z_min])
+        bounds_max = np.array([x_max, y_max, z_max])
+        # print(f'x min: {x_min:10} x max: {x_max:10}')
+        # print(f'y min: {y_min:10} y max: {y_max:10}')
+        # print(f'z min: {z_min:10} z max: {z_max:10}')
+
+        # Compute the extents of the point cloud data
+        extents = bounds_max - bounds_min
+        print(f'Data Extents: {extents}')
+
+        sample_size = int(polydata.GetNumberOfPoints() * 0.00005)
+        if sample_size < 10:
+            sample_size = 10
+        # print(f'Sample size is: {sample_size}')
+
+        # Do we need to estimate normals?
+        distance = vtk.vtkSignedDistance()
+
+        #  --- Compute Signed distance 3D Image ---
+        #
+        # The vtkSignedDistance class uses the following key methods:
+        #
+        # SetInputData(vtkPolyData)	- Input point cloud (must be vtkPolyData)
+        # SetRadius(float)	- Influence radius for distance computation
+        # SetBounds((xmin, xmax, ymin, ymax, zmin, zmax)) - Spatial domain for output grid
+        # SetDimensions(nx, ny, nz) - Output grid resolution
+        # SetAdjustBounds(True/False) - Automatically pad bounds slightly
+        # SetBoundaryModeToClosestSurface() - Choose how signed distance is computed at the edges
+        # SetPoints(vtkPoints) - Use if setting raw points instead of polydata
+        # SetNormals(vtkDataArray) - Optionally provide oriented normals
+
+        dimensions = 512
+        radius = (max(extents[:-1]) / dimensions) * 3.0  # ~4 voxels
+
+        distance.SetRadius(radius)
+        distance.SetDimensions(dimensions, dimensions, dimensions)
+        # distance.SetDimensions(dimensions[0], dimensions[1], dimensions[2])
+        distance.SetBounds(x_min - extents[0] * 0.1, x_max + extents[0] * 0.1,
+                           y_min - extents[1] * 0.1, y_max + extents[1] * 0.1,
+                           z_min - extents[2] * 0.1, z_max + extents[2] * 0.1)
+
+        #  --- Estimate Normals for the Signed Distance---
+        #
+        # vtk.vtkPCANormalEstimation()
+        #
+        # SetInputData(vtkPolyData)	–	Input point cloud or mesh (vtkPolyData)
+        # SetSampleSize(int) - Number of nearest neighbors to use for PCA (typically 10–50)
+        # SetNormalOrientationToGraphTraversal() – Default. Tries to orient normals consistently using a spanning tree
+        # SetNormalOrientationToNone() – Disables automatic orientation (normals may be inconsistent)
+        # SetNormalOrientationToPoint(), SetOrientationPoint(x, y, z) - Orients all normals to face toward or away from a fixed point
+        # FlipNormalsOn() / FlipNormalsOff() - Invert the computed normals
+        # GetOutput() - Returns vtkPolyData	new point cloud with Normals array in GetPointData()
+
+        normals = None
+        if polydata.point_data.normals:
+            # print('Using normals from the input file')
+            distance.SetInputData(polydata)
+        else:
+            # print('Estimating normals using PCANormalEstimation')
+            normals = vtk.vtkPCANormalEstimation()
+            normals.SetInputData(polydata)
+            normals.SetSampleSize(sample_size)
+            normals.FlipNormalsOn()
+            normals.SetNormalOrientationToGraphTraversal()
+            normals >> distance
+
+        #  --- Construct the surface ---
+        #
+        # vtkExtractSurface Parameters
+        #
+        # SetInputData(vtkPolyData)	– Input point cloud with normals
+        # SetRadius(float) - Radius to search for neighboring points; influences surface smoothness/detail
+        # SetSampleSpacing(float) - Grid resolution (spacing); lower values → higher detail, more compute
+        # SetSmoothingIterations(int) - Number of Laplacian smoothing passes after surface is generated
+        # SetHoleFilling(bool) - Fill small topological holes in the output mesh
+        # SetNormalWeighting(bool) - Use normals to guide the surface orientation (improves quality if normals are reliable)
+        # SetOutputNormals(bool) - Whether to compute and output normals on the resulting mesh
+        # GetOutput() - Returns the reconstructed surface (vtkPolyData)
+
+        surface = vtk.vtkExtractSurface()
+        surface.SetRadius(radius * 0.99)
+        surface.SetHoleFilling(True)
+        distance >> surface
+        surface.Update()
+
+        return surface.GetOutput()
+
+    def _marching_cubes_isosurface(self, structure_contours):
         self.logger.debug(f"Using marching cubes to generate surface mesh from structure point cloud in DicomPlanContext")
 
-        # Update Progress
-        self.status_bar_coms.emit("Using marching cubes to generate surface mesh")
-        self.progress_coms.emit(25)
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            settings = AppSettings(**settings_data)
 
-        # Convet Open3D point cloud to numpy array
-        points = np.asarray(pcd.points)
+            x_spacing = settings.dicom.pixel_spacing_x
+            y_spacing = settings.dicom.pixel_spacing_y
 
-        # Compute the bounds of the point cloud
-        mins = pcd.get_min_bound()
-        maxs = pcd.get_max_bound()
+        structure_points = np.vstack(structure_contours)
 
-        x = np.arange(mins[0], maxs[0], voxel_size)
-        y = np.arange(mins[1], maxs[1], voxel_size)
-        z = np.arange(mins[2], maxs[2], voxel_size)
-        x, y, z = np.meshgrid(x, y, z, indexing='ij')
+        z_diffs = structure_points[::, -1][1:] - structure_points[::, -1][0:-1]
+        z_spacing = z_diffs[np.where(z_diffs != 0)]
+        if not np.all(z_spacing - z_spacing[0] == 0):
+            z_spacing = z_spacing[0]
+        # print(z_spacing)
 
-        # Create a KD-tree for efficient nearest neighbor search
-        tree = cKDTree(points)
+        voxel_size = np.array([x_spacing, y_spacing, z_spacing])
 
-        # Compute the scalar field (distance to nearest point)
-        grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
+        # Construct VTK PolyData object from structure points
+        polydata = vtk.vtkPolyData()
+        # print(type(numpy_to_vtk(structure_points)))
+        polydata.points = numpy_to_vtk(structure_points)
+        # print(f'Number of points: {polydata.number_of_points}')
 
-        self.logger.info(f'Using {len(x.ravel())} grid_points for marching cubes')
+        # Grab the bounding coordinates for the contour points in DICOM orientation
+        x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
+        bounds_min = np.array([x_min, y_min, z_min]) - (2.0 * voxel_size)
+        bounds_max = np.array([x_max, y_max, z_max]) + (2.0 * voxel_size)
+        # print(f'x min: {x_min:10} x max: {x_max:10}')
+        # print(f'y min: {y_min:10} y max: {y_max:10}')
+        # print(f'z min: {z_min:10} z max: {z_max:10}')
 
-        # Update Progress
-        self.status_bar_coms.emit(f'Using {len(x.ravel())} grid_points for marching cubes')
-        self.progress_coms.emit(50)
+        # COmpute the extents of the point cloud data
+        extents = bounds_max - bounds_min
+        # print(f'Data Extents: {extents}')
 
-        distances, _ = tree.query(grid_points, workers=-1)
-        scalar_field = distances.reshape(x.shape)
+        # Calculate grid dimensions
+        dimensions = np.ceil((bounds_max - bounds_min) / voxel_size).astype(int)
+        # print(f'Dimensions: {dimensions}')
 
-        # Determine the iso_level based on the percentile of distance
-        iso_level = np.percentile(distances, iso_level_percentile)
+        # Construct the Pixel to Coordinate transform matrix
+        pixel_to_coord = np.eye(4, dtype=np.float64)
+        pixel_to_coord[0:3, 0:3] *= voxel_size.reshape((-1, 3))
+        pixel_to_coord[0, -1] = bounds_min[0]
+        pixel_to_coord[1, -1] = bounds_min[1]
+        pixel_to_coord[2, -1] = bounds_min[2]
+        pixel_to_coord[3, -1] = 1
 
-        # Apply Marching Cubes
-        verts, faces, _, _ = measure.marching_cubes(scalar_field, level=iso_level)
+        # Take the inverse to get the Coordinate to Pixel index transform used to find the grid values
+        coord_to_pixel = np.linalg.inv(pixel_to_coord)
 
-        # Scale and translate vertices back to original coordinate system
-        verts = verts * voxel_size + mins
+        # Initialize an empty NumPy array with the calculated dimensions
+        pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
 
-        # Update Progress
-        self.status_bar_coms.emit(f'Surface mesh complete')
-        self.progress_coms.emit(100)
+        for contour in structure_contours:
+            # contour_plane = np.zeros(dimensions[1::-1], dtype=np.uint16)
+            # Convert the point coords to pixel indexes
+            affine_coords = np.vstack((contour.T, np.ones(len(contour))))
+            pixel_idxs = np.floor(coord_to_pixel @ affine_coords).astype(int)
+            i, j, k, _ = pixel_idxs
 
-        # Create the mesh
-        mesh = o3d.geometry.TriangleMesh()
-        mesh.vertices = o3d.utility.Vector3dVector(verts)
-        mesh.triangles = o3d.utility.Vector3iVector(faces)
+            rv, cv = polygon(j, i)
 
-        mesh.compute_vertex_normals()
-        mesh.compute_triangle_normals()
+            pixel_data[k[0], rv, cv] = 1
 
-        # Update Progress
-        self.status_bar_clear.emit()
-        self.progress_coms.emit(0)
+        image_data = self._numpy3d_to_vtk_image(pixel_data, bounds_min, voxel_size)
+
+        # Extract surface
+        mc = vtk.vtkMarchingCubes()
+        mc.SetInputData(image_data)
+        mc.SetValue(0, 1)
+        mc.Update()
+
+        return mc.GetOutput()
+
+    def _contour_isosurface(self, structure_contours):
+        self.logger.debug(f"Using contour filter to generate isosurface mesh from structure point cloud in DicomPlanContext")
+
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            settings = AppSettings(**settings_data)
+
+            x_spacing = settings.dicom.pixel_spacing_x
+            y_spacing = settings.dicom.pixel_spacing_y
+
+        structure_points = np.vstack(structure_contours)
+
+        z_diffs = structure_points[::, -1][1:] - structure_points[::, -1][0:-1]
+        z_spacing = z_diffs[np.where(z_diffs != 0)]
+        if not np.all(z_spacing - z_spacing[0] == 0):
+            z_spacing = z_spacing[0]
+        # print(z_spacing)
+
+        voxel_size = np.array([x_spacing, y_spacing, z_spacing])
+
+        # Construct VTK PolyData object from structure points
+        polydata = vtk.vtkPolyData()
+        # print(type(numpy_to_vtk(structure_points)))
+        polydata.points = numpy_to_vtk(structure_points)
+        # print(f'Number of points: {polydata.number_of_points}')
+
+        # Grab the bounding coordinates for the contour points in DICOM orientation
+        x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
+        bounds_min = np.array([x_min, y_min, z_min]) - (2.0 * voxel_size)
+        bounds_max = np.array([x_max, y_max, z_max]) + (2.0 * voxel_size)
+        # print(f'x min: {x_min:10} x max: {x_max:10}')
+        # print(f'y min: {y_min:10} y max: {y_max:10}')
+        # print(f'z min: {z_min:10} z max: {z_max:10}')
+
+        # COmpute the extents of the point cloud data
+        extents = bounds_max - bounds_min
+        # print(f'Data Extents: {extents}')
+
+        # Calculate grid dimensions
+        dimensions = np.ceil((bounds_max - bounds_min) / voxel_size).astype(int)
+        # print(f'Dimensions: {dimensions}')
+
+        # Construct the Pixel to Coordinate transform matrix
+        pixel_to_coord = np.eye(4, dtype=np.float64)
+        pixel_to_coord[0:3, 0:3] *= voxel_size.reshape((-1, 3))
+        pixel_to_coord[0, -1] = bounds_min[0]
+        pixel_to_coord[1, -1] = bounds_min[1]
+        pixel_to_coord[2, -1] = bounds_min[2]
+        pixel_to_coord[3, -1] = 1
+
+        # Take the inverse to get the Coordinate to Pixel index transform used to find the grid values
+        coord_to_pixel = np.linalg.inv(pixel_to_coord)
+
+        # Initialize an empty NumPy array with the calculated dimensions
+        pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
+
+        for contour in structure_contours:
+            # contour_plane = np.zeros(dimensions[1::-1], dtype=np.uint16)
+            # Convert the point coords to pixel indexes
+            affine_coords = np.vstack((contour.T, np.ones(len(contour))))
+            pixel_idxs = np.floor(coord_to_pixel @ affine_coords).astype(int)
+            i, j, k, _ = pixel_idxs
+
+            rv, cv = polygon(j, i)
+
+            pixel_data[k[0], rv, cv] = 1
+
+        image_data = self._numpy3d_to_vtk_image(pixel_data, bounds_min, voxel_size)
+
+        # Extract surface
+        cf = vtk.vtkContourFilter()
+        cf.SetInputData(image_data)
+        cf.SetValue(0, 1)  # isovalue
+        cf.Update()
+
+        return cf.GetOutput()
+
+    # def _pcloud_to_mesh(self, pcd, voxel_size=3, iso_level_percentile=5):
+    def _pcloud_to_mesh(self, contours):
+        self.logger.debug(f"Determining surface reconstruction method for point cloud in DicomPlanContext")
+
+        recon_methods = {'Zero-Crossing': self._zero_crossing_isosurface,
+                         'Marching Cubes': self._marching_cubes_isosurface,
+                         'Contour Isosurface': self._contour_isosurface
+                         }
+
+        with open(r'.\settings.json', 'r') as settings:
+            settings_data = json.load(settings)
+            settings = AppSettings(**settings_data)
+
+            surface_recon_method = settings.dicom.surface_recon_method
+
+        recon = recon_methods[surface_recon_method]
+        mesh = recon(contours)
+
+        # # Update Progress
+        # self.status_bar_coms.emit("Using marching cubes to generate surface mesh")
+        # self.progress_coms.emit(25)
+        #
+        # # Convet Open3D point cloud to numpy array
+        # points = np.asarray(pcd.points)
+        #
+        # # Compute the bounds of the point cloud
+        # mins = pcd.get_min_bound()
+        # maxs = pcd.get_max_bound()
+        #
+        # x = np.arange(mins[0], maxs[0], voxel_size)
+        # y = np.arange(mins[1], maxs[1], voxel_size)
+        # z = np.arange(mins[2], maxs[2], voxel_size)
+        # x, y, z = np.meshgrid(x, y, z, indexing='ij')
+        #
+        # # Create a KD-tree for efficient nearest neighbor search
+        # tree = cKDTree(points)
+        #
+        # # Compute the scalar field (distance to nearest point)
+        # grid_points = np.vstack([x.ravel(), y.ravel(), z.ravel()]).T
+        #
+        # self.logger.info(f'Using {len(x.ravel())} grid_points for marching cubes')
+        #
+        # # Update Progress
+        # self.status_bar_coms.emit(f'Using {len(x.ravel())} grid_points for marching cubes')
+        # self.progress_coms.emit(50)
+        #
+        # distances, _ = tree.query(grid_points, workers=-1)
+        # scalar_field = distances.reshape(x.shape)
+        #
+        # # Determine the iso_level based on the percentile of distance
+        # iso_level = np.percentile(distances, iso_level_percentile)
+        #
+        # # Apply Marching Cubes
+        # verts, faces, _, _ = measure.marching_cubes(scalar_field, level=iso_level)
+        #
+        # # Scale and translate vertices back to original coordinate system
+        # verts = verts * voxel_size + mins
+        #
+        # # Update Progress
+        # self.status_bar_coms.emit(f'Surface mesh complete')
+        # self.progress_coms.emit(100)
+        #
+        # # Create the mesh
+        # mesh = o3d.geometry.TriangleMesh()
+        # mesh.vertices = o3d.utility.Vector3dVector(verts)
+        # mesh.triangles = o3d.utility.Vector3iVector(faces)
+        #
+        # mesh.compute_vertex_normals()
+        # mesh.compute_triangle_normals()
+        #
+        # # Update Progress
+        # self.status_bar_clear.emit()
+        # self.progress_coms.emit(0)
 
         return mesh
 
     def _generate_visual_mesh(self, mesh):
         self.logger.debug(f'Generating final surface mesh for visualization in DicomPlanContext')
-        # Create a polydata object and add the points
-        polydata = vtk.vtkPolyData()
-        polydata.points = numpy_to_vtk(mesh.vertices)
-
-        # Create a vertex cell array to hold the triagles
-        triangles = vtk.vtkCellArray()
-        for i in range(len(mesh.triangles)):
-            triangles.InsertNextCell(3, mesh.triangles[i])
-        polydata.polys = triangles
+        # # Create a polydata object and add the points
+        # polydata = vtk.vtkPolyData()
+        # polydata.points = numpy_to_vtk(mesh.vertices)
+        #
+        # # Create a vertex cell array to hold the triagles
+        # triangles = vtk.vtkCellArray()
+        # for i in range(len(mesh.triangles)):
+        #     triangles.InsertNextCell(3, mesh.triangles[i])
+        # polydata.polys = triangles
 
         # Create a mapper and actor
         mapper = vtk.vtkPolyDataMapper()
-        polydata >> mapper
+        mapper.ScalarVisibilityOff()
+        # polydata >> mapper
+        mesh >> mapper
 
         # Create the scene actor that represents the point cloud
         actor = vtk.vtkActor(mapper=mapper)
