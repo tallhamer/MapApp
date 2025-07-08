@@ -92,10 +92,9 @@
 
 ### Built With
 
-* ![Python]
-* ![PySide6]
-* ![VTK]
-
+[![Python 3.12.9](https://img.shields.io/badge/Python-3.12.9-blue?logo=python&logoColor=white)](https://www.python.org)
+[![PySide6](https://img.shields.io/badge/PySide6-Qt%20for%20Python-41cd52?logo=qt&logoColor=white)](https://doc.qt.io/qtforpython/)
+[![VTK](https://img.shields.io/badge/VTK-Visualization%20Toolkit-ff6600?style=flat)](https://vtk.org)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -103,6 +102,7 @@
 
 <!-- GETTING STARTED -->
 ## Getting Started
+If you don't already have it installed, install Python. I recommend version 3.12 but any version 3.10 or above should work 
 
 To use the application you will need to have either a 
 
@@ -226,5 +226,4 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 [Python-url]: https://www.python.org/
 [PySide6]: https://img.shields.io/badge/PySide6-Qt%20for%20Python-41cd52?logo=qt&logoColor=white
 [PySide6-url]: https://doc.qt.io/qtforpython-6/
-[VTK]: https://img.shields.io/badge/VTK-Visualization%20Toolkit-ff6600?logo=vtk&logoColor=white
-[VTK-url]: https://vtk.org/
+

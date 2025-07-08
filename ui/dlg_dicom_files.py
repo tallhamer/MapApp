@@ -14,7 +14,7 @@ class DicomFileDialog(qtw.QDialog, Ui_DicomDialog):
         super().__init__()
         self.setupUi(self)
 
-        with open(r'.\settings.json', 'r') as settings:
+        with open(r'../settings.json', 'r') as settings:
             settings_data = json.load(settings)
             self.settings = AppSettings(**settings_data)
 

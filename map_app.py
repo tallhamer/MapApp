@@ -22,16 +22,15 @@ import PySide6.QtGui as qtg
 import pyqtgraph as pg
 
 from ui.main_window import Ui_MainWindow
-from dlg_orient import OrientDialog
-from dlg_settings import SettingsDialog
-from dlg_maprt_patient import MapRTPatientDialog
-from dlg_dicom_files import DicomFileDialog
-from dlg_surface_export import SurfaceExportDialog
+from ui.dlg_orient import OrientDialog
+from ui.dlg_settings import SettingsDialog
+from ui.dlg_maprt_patient import MapRTPatientDialog
+from ui.dlg_dicom_files import DicomFileDialog
+from ui.dlg_surface_export import SurfaceExportDialog
 from models.maprt import MapRTAPIManager, MapRTContext
 from models.dicom import PatientContext, DicomPlanContext, DicomFileValidationError
 from models.settings import AppSettings
 
-import resource_rc
 
 class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def __init__(self):

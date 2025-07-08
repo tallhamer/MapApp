@@ -19,7 +19,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.setupUi(self)
 
         self.logger.debug("Accessing the setting.json file to load current settings in SettingsDialog")
-        with open(r'.\settings.json', 'r') as settings:
+        with open(r'../settings.json', 'r') as settings:
             settings_data = json.load(settings)
             self.settings = AppSettings(**settings_data)
 
@@ -77,7 +77,7 @@ class SettingsDialog(qtw.QDialog, Ui_SettingsDialog):
         self.logger.debug("User browsing for new DICOM directory in SettingsDialog")
         dir = qtw.QFileDialog.getExistingDirectory(self,
                                                    "Select location for DICOM RT files",
-                                                   "."
+                                                   ".."
                                                    )
 
         # TODO: Check results before setting
