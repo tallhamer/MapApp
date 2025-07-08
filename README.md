@@ -92,9 +92,9 @@
 
 ### Built With
 
-* [![Python] [Python]][Python-url]
-* [![PySide6] [PySide6]][PySide6-url]
-* [![VTK] [VTK]][VTK-url]
+* ![Python]
+* ![PySide6]
+* ![VTK]
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
