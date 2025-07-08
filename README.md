@@ -32,7 +32,7 @@
 <h3 align="center">MapApp</h3>
 
   <p align="center">
-    An example project to illustrate some of the [MapRT API](https://visionrt.com/our-solutions/maprt-api/) integration possibilities. The application is a standalone 
+    An example project to illustrate some of the [MapRT API](https://visionrt.com/our-solutions/maprt-api) integration possibilities. The application is a standalone 
     python application that connects to the MapRT API and provides DICOM plan validation and clearance map visualization.
     <br /> 
     <br />
