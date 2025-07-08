@@ -2,14 +2,10 @@ import json
 import logging
 
 import numpy as np
-from skimage import measure
-from scipy.spatial import cKDTree
 from skimage.draw import polygon
 
 import pydicom
 from pydicom.uid import RTPlanStorage, RTStructureSetStorage
-
-import open3d as o3d
 
 import vtk
 from vtkmodules.util.numpy_support import numpy_to_vtk
@@ -389,26 +385,19 @@ class DicomPlanContext(qtc.QObject):
 
         # Construct VTK PolyData object from structure points
         polydata = vtk.vtkPolyData()
-        # print(type(numpy_to_vtk(structure_points)))
         polydata.points = numpy_to_vtk(structure_points)
-        # print(f'Number of points: {polydata.number_of_points}')
 
         # Grab the bounding coordinates for the contour points in DICOM orientation
         x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
         bounds_min = np.array([x_min, y_min, z_min])
         bounds_max = np.array([x_max, y_max, z_max])
-        # print(f'x min: {x_min:10} x max: {x_max:10}')
-        # print(f'y min: {y_min:10} y max: {y_max:10}')
-        # print(f'z min: {z_min:10} z max: {z_max:10}')
 
         # Compute the extents of the point cloud data
         extents = bounds_max - bounds_min
-        print(f'Data Extents: {extents}')
 
         sample_size = int(polydata.GetNumberOfPoints() * 0.00005)
         if sample_size < 10:
             sample_size = 10
-        # print(f'Sample size is: {sample_size}')
 
         # Do we need to estimate normals?
         distance = vtk.vtkSignedDistance()
@@ -426,12 +415,11 @@ class DicomPlanContext(qtc.QObject):
         # SetPoints(vtkPoints) - Use if setting raw points instead of polydata
         # SetNormals(vtkDataArray) - Optionally provide oriented normals
 
-        dimensions = 512
+        dimensions = 255
         radius = (max(extents[:-1]) / dimensions) * 3.0  # ~4 voxels
 
         distance.SetRadius(radius)
         distance.SetDimensions(dimensions, dimensions, dimensions)
-        # distance.SetDimensions(dimensions[0], dimensions[1], dimensions[2])
         distance.SetBounds(x_min - extents[0] * 0.1, x_max + extents[0] * 0.1,
                            y_min - extents[1] * 0.1, y_max + extents[1] * 0.1,
                            z_min - extents[2] * 0.1, z_max + extents[2] * 0.1)
@@ -450,10 +438,8 @@ class DicomPlanContext(qtc.QObject):
 
         normals = None
         if polydata.point_data.normals:
-            # print('Using normals from the input file')
             distance.SetInputData(polydata)
         else:
-            # print('Estimating normals using PCANormalEstimation')
             normals = vtk.vtkPCANormalEstimation()
             normals.SetInputData(polydata)
             normals.SetSampleSize(sample_size)
@@ -495,34 +481,26 @@ class DicomPlanContext(qtc.QObject):
         structure_points = np.vstack(structure_contours)
 
         z_diffs = structure_points[::, -1][1:] - structure_points[::, -1][0:-1]
-        z_spacing = z_diffs[np.where(z_diffs != 0)]
-        if not np.all(z_spacing - z_spacing[0] == 0):
+        z_spacing = np.round(z_diffs[np.where(z_diffs != 0)], 2)
+        if np.all((z_spacing - z_spacing[0]) == 0):
             z_spacing = z_spacing[0]
-        # print(z_spacing)
 
         voxel_size = np.array([x_spacing, y_spacing, z_spacing])
 
         # Construct VTK PolyData object from structure points
         polydata = vtk.vtkPolyData()
-        # print(type(numpy_to_vtk(structure_points)))
         polydata.points = numpy_to_vtk(structure_points)
-        # print(f'Number of points: {polydata.number_of_points}')
 
         # Grab the bounding coordinates for the contour points in DICOM orientation
         x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
         bounds_min = np.array([x_min, y_min, z_min]) - (2.0 * voxel_size)
         bounds_max = np.array([x_max, y_max, z_max]) + (2.0 * voxel_size)
-        # print(f'x min: {x_min:10} x max: {x_max:10}')
-        # print(f'y min: {y_min:10} y max: {y_max:10}')
-        # print(f'z min: {z_min:10} z max: {z_max:10}')
 
         # COmpute the extents of the point cloud data
         extents = bounds_max - bounds_min
-        # print(f'Data Extents: {extents}')
 
         # Calculate grid dimensions
         dimensions = np.ceil((bounds_max - bounds_min) / voxel_size).astype(int)
-        # print(f'Dimensions: {dimensions}')
 
         # Construct the Pixel to Coordinate transform matrix
         pixel_to_coord = np.eye(4, dtype=np.float64)
@@ -539,7 +517,6 @@ class DicomPlanContext(qtc.QObject):
         pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
 
         for contour in structure_contours:
-            # contour_plane = np.zeros(dimensions[1::-1], dtype=np.uint16)
             # Convert the point coords to pixel indexes
             affine_coords = np.vstack((contour.T, np.ones(len(contour))))
             pixel_idxs = np.floor(coord_to_pixel @ affine_coords).astype(int)
@@ -572,34 +549,26 @@ class DicomPlanContext(qtc.QObject):
         structure_points = np.vstack(structure_contours)
 
         z_diffs = structure_points[::, -1][1:] - structure_points[::, -1][0:-1]
-        z_spacing = z_diffs[np.where(z_diffs != 0)]
-        if not np.all(z_spacing - z_spacing[0] == 0):
+        z_spacing = np.round(z_diffs[np.where(z_diffs != 0)], 2)
+        if np.all((z_spacing - z_spacing[0]) == 0):
             z_spacing = z_spacing[0]
-        # print(z_spacing)
 
         voxel_size = np.array([x_spacing, y_spacing, z_spacing])
 
         # Construct VTK PolyData object from structure points
         polydata = vtk.vtkPolyData()
-        # print(type(numpy_to_vtk(structure_points)))
         polydata.points = numpy_to_vtk(structure_points)
-        # print(f'Number of points: {polydata.number_of_points}')
 
         # Grab the bounding coordinates for the contour points in DICOM orientation
         x_min, x_max, y_min, y_max, z_min, z_max = polydata.GetBounds()
         bounds_min = np.array([x_min, y_min, z_min]) - (2.0 * voxel_size)
         bounds_max = np.array([x_max, y_max, z_max]) + (2.0 * voxel_size)
-        # print(f'x min: {x_min:10} x max: {x_max:10}')
-        # print(f'y min: {y_min:10} y max: {y_max:10}')
-        # print(f'z min: {z_min:10} z max: {z_max:10}')
 
         # COmpute the extents of the point cloud data
         extents = bounds_max - bounds_min
-        # print(f'Data Extents: {extents}')
 
         # Calculate grid dimensions
         dimensions = np.ceil((bounds_max - bounds_min) / voxel_size).astype(int)
-        # print(f'Dimensions: {dimensions}')
 
         # Construct the Pixel to Coordinate transform matrix
         pixel_to_coord = np.eye(4, dtype=np.float64)
@@ -616,7 +585,6 @@ class DicomPlanContext(qtc.QObject):
         pixel_data = np.zeros(dimensions[::-1], dtype=np.uint16)
 
         for contour in structure_contours:
-            # contour_plane = np.zeros(dimensions[1::-1], dtype=np.uint16)
             # Convert the point coords to pixel indexes
             affine_coords = np.vstack((contour.T, np.ones(len(contour))))
             pixel_idxs = np.floor(coord_to_pixel @ affine_coords).astype(int)
