@@ -1,7 +1,11 @@
 {
     "dicom": {
-        "dicom_data_directory": "",
-        "arc_check_resolution": 1
+        "dicom_data_directory": "C:/tmp/map app data",
+        "arc_check_resolution": 1,
+        "surface_recon_method": "Zero-Crossing",
+        "pixel_spacing_x": 1.0,
+        "pixel_spacing_y": 1.0,
+        "contours_to_keep": "CCW"
     },
     "maprt": {
         "api_url": "https://localhost:5000",
