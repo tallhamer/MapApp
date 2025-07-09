@@ -418,16 +418,21 @@ distinguishing features. You will note from the right hand image above that a Ma
 and populated in the Patient Context area. Isocenter is place at <0, 0, 0> which mimics the preview plan in the native 
 MapRT software. The isocenter is easily identified using the laser projections on the MapRT surface. The isocenter can
 adjusted to any location using the **Correction** section of the MapRT Context section of the UI. Locating the isocenter 
-within the patient surface will allow you to check the clearance map at that isocenter location. To check the clearance 
-map for the current Isocenter location click the **Get Map** button when you are satisfied with the visual location of 
-isocenter as indicated by the virtual laser suystem. This will populate the clearance map in the Map View tab. Clearance 
-maps are cached in the Map App unlike in the native MapRT application so you are free to check multiple isocenter 
-locations very rapidly due to the threaded nature of the API calls. As the clearance maps are calculated and returned 
-over the API (first as low resolution maps then as high resolution maps) the clearance map graph is updated with the 
-latest information. Each clearance map with its the settings used to generate it are stored in the clearance map 
-dropdown for easy retrieval and review. This can be a useful pre-CT workflow for testing isocenter / patient positioning 
-combinations prior to completing a CT simulation of the patient. Simply capture a surface of the patient and immediately 
-pull the surface into the Map App over the  MapRT API for virtual simulation.
+within the patient surface will allow you to check the clearance map at that isocenter location. 
+
+**To check the clearance map for the current Isocenter location** 
+1. Click the **Get Map** button when you are satisfied with the visual location of isocenter as indicated by the virtual 
+laser system. 
+2. This will populate the clearance map in the Map View tab. 
+>Clearance maps are cached in the Map App unlike in the native MapRT application so you are free to check multiple 
+> isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are calculated and 
+> returned over the API (first as low resolution maps then as high resolution maps) the clearance map graph is updated 
+> with the latest information. 
+3. Each clearance map, with the settings used to generate it, are stored in the clearance map dropdown just below the 
+clearance map graph for easy review.
+
+This can be a useful pre-CT workflow for testing isocenter / patient positioning combinations prior to completing a 
+CT simulation of the patient. Simply capture a surface of the patient and immediately pull the surface into the Map App over the  MapRT API for virtual simulation.
 
 <p align="center">
 <img src="images\virtual_sim_0.png" width="400"/>
