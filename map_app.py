@@ -43,6 +43,9 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
         self.setupUi(self)
 
         self.setWindowTitle("Map App")
+
+        self.w_le_patinet_id.setEchoMode(qtw.QLineEdit.Password)
+
         self.w_tw_patient_settings.setCurrentIndex(0)
         self.w_tw_visualizations.setCurrentIndex(1)
 

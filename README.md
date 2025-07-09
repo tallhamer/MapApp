@@ -69,7 +69,16 @@
         <li><a href="#creating-a-binary-application">Creating a Binary Application</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <li><a href="#usage">Usage</a>
+        <ul>
+        <li><a href="#initial-setup">Initial Setup</a>
+          <ul>
+            <li><a href="#dICOM-settings">DICOM Settings</a></li>
+            <li><a href="#mapRT-settings">MapRT Settings</a></li>
+          </ul>
+        </li>
+      </ul>
+    </li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -83,7 +92,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-![Product Name Screen Shot][product-screenshot]
+![Project Screen Shot][project-screenshot]
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -167,9 +176,90 @@ in the future
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+### Initial Setup
+When you first run the application it will setup to locations in the root of the application folder. The first, if not 
+already present, will be a *.\logs* folder. The application is very *"chatty"* logging calls to, if not all, almost all 
+functions to help with the inevitable troubleshooting as the API matures. I'm also not a professional programmer, so I'm 
+sure I have done things that would make a normal programmer want to kill themselves. The excessive logging helps those 
+folks track down what crazy thing I did and fix their setup from my poor design decisions.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+The second item that the application will create upon first run is an initial settings file that will store all the 
+connection information and global settings for the application. The settings can be accessed from the **Tools** menu 
+within the application so there should be no need to access or change this file from outside of the application. 
+
+<p align="center">
+<img src="images\app_settings_1.png" width="300"/> <img src="images\app_settings_2.png" width="300"/>
+</p>
+
+The application level settings are organized in two sets.
+1. DICOM Settings
+2. MapRT Settings
+
+#### DICOM Settings
+
+Data Directory
+:  The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
+so that the application can validate them using the MapRT API.
+
+Arc Check Resolution
+:  The angular resolution at which to validate an arc treatment field from the DICOM RT plan file.
+
+Surface Reconstruction Method
+:  The reconstruction method that will be used to generate the DICOM surface mesh from the DICOM RT structure contours.
+
+- Zero Crossing Isosurface (Default) - Uses a signed distance image to determine the zero isosurface (fastest)
+- Marchine Cubes - Using a binary volume image generated from the structure contours (slower recon)
+- Contour Isosurface - Using a binary volume image generated from the structure contours (slower recon)
+
+
+The Marching Cubes and Contour Isosurface reconstruction methods alow the user to determine the pixel resolution in the 
+**x** and **y** dimensions (z dimention is determines form the DICOM RT structure contours). The finer the resolution 
+the slower the reconstruction but the closer to the TPS structure volume it will be when generating the 3D binary image 
+from which the surface is generated.
+
+Contours to keep
+:  The contours to include in the surface generation. In DICOM RT (Radiotherapy) Structure Set files, contour 
+orientation—specifically whether the points are ordered clockwise (CW) or counter-clockwise (CCW)—is significant because 
+it indicates the interior (filled area) versus the exterior (excluded area) of the contour.
+
+- CCW (Default) - Keeps only the contours with counter-clockwise orientations (i.e. outer boundaries)
+- CW - Keeps only the contours with clockwise orientation (i.e. holes)
+- ALL - Keeps all contours with no regard for orientation
+
+#### MapRT Settings
+
+URL
+:  The institution specific URL for your MapRT API install including the port the API runs on.
+
+Token
+:  The institution specific Bearer Token used in authentication of API calls.
+
+User Agent
+:  The institution and version specific user agent for the MapRT API
+
+After all of the MapRT settings are entered into the application settings the user can test the MapRT API connection to 
+see if all the settings are properly configured for the MapRT API endpoint. Click the **OK** button will save all the 
+changes made to the application settings. Clicking Cancel will revert all settings back to the defaults or the original 
+settings resulting in all of your changes being lost. 
+
+### Opening DICOM Files
+
+<p align="center">
+<img src="images\dicom_open_1.png" width="400"/> 
+<img src="images\dicom_open_2.png" width="400"/>
+<img src="images\dicom_open_3.png" width="400"/>
+</p>
+
+
+
+
+
+
+
+
+
+
+<!-- For more examples, please refer to the [Documentation](https://example.com)_ -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -178,12 +268,13 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Feature 1
-- [ ] Feature 2
-- [ ] Feature 3
-    - [ ] Nested Feature
+- [ ] Connect the application to ESAPI so that the application can access active plan contexts in Eclipse
+- [ ] Work on implementation of additional 3D visualization and export capabilities
+- [ ] Implement additional surface corrections, couch indexing, and couch centering capabilities for Varian linacs
+- [ ] Improve code commenting
+- [ ] Improve this documentation
 
-See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/tallhamer/MapApp/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -192,25 +283,21 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 <!-- CONTRIBUTING -->
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any 
+contributions you make are **greatly appreciated**.
 
-If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
+That being said I am a novice at these things so if you are better at github than I am feel free to send suggestions 
+and How To's to me on what I need to do to help make contributing an easier process.
+
+If you don't code but have a suggestions that could make this better or more user friendly, please create  open an issue with the tag "enhancement".
 Don't forget to give the project a star! Thanks again!
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Top contributors:
 
-<a href="https://github.com/github_username/repo_name/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=github_username/repo_name" alt="contrib.rocks image" />
-</a>
-
+Do you want  to be listed here? You know you do! Send me an email or suggestion on how we can better expand the use of
+this new API within our clinical practice and I will add you here when it is implemented.
 
 
 <!-- LICENSE -->
@@ -221,13 +308,12 @@ Distributed under the project_license. See `LICENSE.txt` for more information.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@twitter_handle](https://twitter.com/twitter_handle) - email@email_client.com
+Michael J Tallhamer M.Sc DABR - [Michael.Tallhamer@AdventHealth.com](mailto:Michael.Tallhamer@AdventHealth.com)
 
-Project Link: [https://github.com/github_username/repo_name](https://github.com/github_username/repo_name)
+Project Link: [https://github.com/tallhamer/MapApp.git](https://github.com/tallhamer/MapApp.git)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -235,10 +321,14 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
+Thanks to the following for your suggestions, testing, and assistance in getting this project up and running for the 
+community to learn from and continue to develop here or on their own.
 
-* []()
-* []()
-* []()
+* Anton Eagle M.Sc. DABR - Medical Physicist AdventHealth - Parker
+* Adi Robinson PhD DABR - Medical Physicist AdventHealth - Celebration
+* Piotr Cendrowski - Senior Vice President, Research & Development Vision RT
+* Andrzej Wawrzynczyk - Vision RT
+* Christopher Rausch - Vision RT
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -246,9 +336,9 @@ Project Link: [https://github.com/github_username/repo_name](https://github.com/
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[product-screenshot]: images/screenshot.png
+[project-screenshot]: images/screenshot.png
 [Python]: https://img.shields.io/badge/python-3.12.9-blue?logo=python&logoColor=white
 [Python-url]: https://www.python.org/
 [PySide6]: https://img.shields.io/badge/PySide6-Qt%20for%20Python-41cd52?logo=qt&logoColor=white
 [PySide6-url]: https://doc.qt.io/qtforpython-6/
-
+[app-settings-screenshot]: images\app_settings.png
