@@ -454,7 +454,7 @@ Isocenter / Clearance Map combination at isocenter location #2
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <p align="center">
-<img src="images\virtual_sim_4.png" width="400"/>
+<img src="images\virtual_sim_4.png" width="800"/>
 </p>
 
 <span style="font-size:10px;">
