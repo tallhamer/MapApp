@@ -246,15 +246,15 @@ settings resulting in all of your changes being lost.
 ### Opening DICOM Files
 
 <p align="center">
-<img src="images\dicom_open_1.png" width="300"/> 
-<img src="images\dicom_open_2.png" width="300"/>
-<img src="images\dicom_open_3.png" width="300"/>
+<img src="images\dicom_open_1.png" width="250"/> 
+<img src="images\dicom_open_2.png" width="250"/>
+<img src="images\dicom_open_3.png" width="250"/>
 </p>
 
 <p align="center">
 Examples of opening a DICOM RT Plan and DICOM RT Structure Set file combination using different surface reconstruction 
-methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
-(Right) Marching Cubes with 3x3 pixel resolution.
+methods. (Upper Left) Zero-Crossing Isosurface, (Upper Right) Marching Cubes with 1x1 pixel resolution, and 
+(Bottom Center) Marching Cubes with 3x3 pixel resolution.
 </p>
 
 
