@@ -36,9 +36,9 @@
     python application that connects to the MapRT API and provides DICOM plan validation and clearance map visualization.
     <br /> 
     <br />
-    While the application seeks to simply show integration strategies with MapRT's API it does provide some useful 
-    clinical features that users may find useful in clinical practice. The application is provided MIT license and 
-    should be used in clinical practice at the user's own risk.  
+    While the application seeks to simply show integration strategies with MapRT's API it also provides some clinical 
+    features that users may find useful in clinical practice. The application is provided under the MIT license and 
+    can be used in clinical practice at the user's own risk.  
     <br />
     <a href="https://github.com/github_username/repo_name"><strong>Explore the docs »</strong></a>
     <br />
@@ -338,6 +338,8 @@ the image.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Connection to the MapRT API
+
 
 
 <!-- ROADMAP -->
@@ -377,8 +379,9 @@ this new API within our clinical practice and I will add you here when it is imp
 
 <!-- LICENSE -->
 ## License
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Distributed under the project_license. See `LICENSE.txt` for more information.
+Distributed under the MIT license. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
