@@ -200,13 +200,7 @@ within the application, so there should be no need to access or change this file
 <img src="images\app_settings_2.png" width="300"/>
 </p>
 
-<span style="font-size:10px;">
-<p align="center">
-Examples of the application settings dialog. (Left) View of settings with the Zero-Crossing Isosurface surface 
-reconstruction method selected. (Right) View of the application setting dialog with the Marching Cubes surface 
-reconstruction selected showing the options to set the x and y pixel size (set to 1x1 pixel resolution)
-</p>
-</span>
+
 
 The application level settings are organized in two sets.
 1. DICOM Settings
