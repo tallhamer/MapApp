@@ -192,7 +192,7 @@ sure I have done things that would make a normal programmer want to kill themsel
 folks track down what crazy thing I did and fix their setup from my poor design decisions.
 
 The second item that the application will create upon first run is an initial *settings.json* file that will store all 
-the connection information and global settings for the application. The settings can be accessed from the **Tools** menu 
+the connection information and global settings for the application. The settings can be accessed from the **Options** menu 
 within the application, so there should be no need to access or change this file from outside of the application. 
 
 <p align="center">
