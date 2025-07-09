@@ -191,9 +191,9 @@ functions to help with the inevitable troubleshooting as the API matures. I'm al
 sure I have done things that would make a normal programmer want to kill themselves. The excessive logging helps those 
 folks track down what crazy thing I did and fix their setup from my poor design decisions.
 
-The second item that the application will create upon first run is an initial settings file that will store all the 
-connection information and global settings for the application. The settings can be accessed from the **Tools** menu 
-within the application so there should be no need to access or change this file from outside of the application. 
+The second item that the application will create upon first run is an initial *settings.json* file that will store all 
+the connection information and global settings for the application. The settings can be accessed from the **Tools** menu 
+within the application, so there should be no need to access or change this file from outside of the application. 
 
 <p align="center">
 <img src="images\app_settings_1.png" width="300"/> 
