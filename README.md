@@ -173,7 +173,7 @@ generate a standalone executable (.exe) file on windows.
 5. If you are missing the *map_app.spec* file you can run the following command replacing *FullPathToRepoFolder* with the 
    path to the cloned repository on your machine.
     ```sh
-      pyinstaller map_app.py --paths=FullPathToRepoFolder -D --hidden-import=skimage._shared.geometry 
+      pyinstaller map_app.py --paths=FullPathToRepoFolder -D --hidden-import=vtkmodules.util.data_model --hidden-import=vtkmodules.util.execution_model --hidden-import=skimage._shared.geometry 
     ```
 The result should be a *dist* folder with a subfolder named *map_app*. You can move the *map_app* folder to any location 
 and run the map_app.exe from that folder to use the application without needing to activate a virtual python environment 

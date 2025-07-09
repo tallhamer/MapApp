@@ -1,11 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+
 a = Analysis(
     ['map_app.py'],
-    pathex=['C:\\__python__\\Projects\\MapApp'],
+    pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=["vtkmodules.util.data_model", "vtkmodules.util.execution_model", "skimage._shared.geometry"],
+    hiddenimports=['vtkmodules.util.data_model', 'vtkmodules.util.execution_model', 'skimage._shared.geometry'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
