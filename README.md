@@ -200,6 +200,14 @@ within the application, so there should be no need to access or change this file
 <img src="images\app_settings_2.png" width="300"/>
 </p>
 
+<span style="font-size:10px;">
+<p align="center">
+Examples of the application settings dialog. (Left) View of settings with the Zero-Crossing Isosurface surface 
+reconstruction method selected. (Right) View of the application setting dialog with the Marching Cubes surface 
+reconstruction selected showing the options to set the x and y pixel size (set to 1x1 pixel resolution)
+</p>
+</span>
+
 The application level settings are organized in two sets.
 1. DICOM Settings
 2. MapRT Settings
@@ -252,6 +260,12 @@ User Agent
 <img src="images\ping_test.png" width="300"/>
 </p>
 
+<span style="font-size:10px;">
+<p align="center">
+Successful Ping of the MapRT API after proper configuration of the API settings
+</p>
+</span>
+
 After all of the MapRT settings are entered into the application settings the user can test the MapRT API connection to 
 see if all the settings are properly configured for the MapRT API endpoint. Click the **OK** button will save all the 
 changes made to the application settings. Clicking Cancel will revert all settings back to the defaults or the original 
@@ -278,6 +292,12 @@ methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel
 <p align="center">
 <img src="images\dicom_open_0.png" width="800"/>
 </p>
+
+<span style="font-size:10px;">
+<p align="center">
+Interface with DICOM RT information displayed in the <b>Patient Context</b> section. 
+</p>
+</span>
 
 Opening DICOM RT files from the **File->Open->DICOM RT Files** menu will populate the *Patient Context* section of the 
 interface with theinformation from the DICOM RT Plan and DICOM RT Structure Set.
@@ -323,10 +343,12 @@ surface.
 <img src="images\example_save.png" width="300"/>
 </p>
 
+<span style="font-size:10px;">
 <p align="center">
 Examples of bitmap image save with axis orientation widget and view orientation widgets visible (Left) and a .png image 
 save of the 3D model alone (Right) 
 </p>
+</span>
 
 The 3D scene can be manipulated and viewed from any preferred angle or axis direction. The axis orientation widget and 
 the view orientation widget can be hidden from the 3D view settings page if they are not desired by the user. If the 3D
