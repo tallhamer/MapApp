@@ -89,6 +89,7 @@
           <ul>
             <li><a href="#surface-alignment-checks">Surface Alignment Checks</a></li>
             <li><a href="#virtual-simulations">Virtual Simulations</a></li>
+            <li><a href="#experimental-synthetic-cTs">Experimental Synthetic CTs</a></li>
           </ul>
         </li>
       </ul>
