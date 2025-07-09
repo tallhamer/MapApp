@@ -379,8 +379,28 @@ them in the output image they should be turned off the widgets prior to saving t
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Connection to the MapRT API
+<p align="center">
+<img src="images\maprt_connect_0.png" width="800"/>
+</p>
 
+<span style="font-size:10px;">
+<p align="center">
+Image showing a populated MapRT Context section. Information is populated for the currently active <b>Patient Context</b>
+or for the MRN provided after the <b>Fetch Data</b> button is pressed.
+</p>
+</span>
 
+MapRT data for the currently active Patient Context can be retrieved from the MapRT API by clicking the *Fetch Data* 
+button. If there is no active Patient Context to work from the Map App will prompt the user for the
+patient Medical Record Number (MRN) and the orientation of the patient via a small dialog. The orientation is used to 
+convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
+
+**Note:** The Map App converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
+MapRT surfaces and visual registration take place in this coordinate system. The consistency of coordinate frames become 
+important when comparing DICOM structures to MapRT surfaces or exporting MapRT surfaces to DICOM which will be discussed 
+later in the documentation
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
 ## Roadmap
