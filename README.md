@@ -85,6 +85,11 @@
             <li><a href="#visual-settings">Visual Settings</a></li>
           </ul>
         </li>
+        <li><a href="#connection-to-the-mapRT-aPI">Connection to the MapRT API</a>
+          <ul>
+            <li><a href="#virtual-simulations">Virtual Simulations</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -391,14 +396,45 @@ or for the MRN provided after the <b>Fetch Data</b> button is pressed.
 </span>
 
 MapRT data for the currently active Patient Context can be retrieved from the MapRT API by clicking the *Fetch Data* 
-button. If there is no active Patient Context to work from the Map App will prompt the user for the
-patient Medical Record Number (MRN) and the orientation of the patient via a small dialog. The orientation is used to 
-convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
+button. The Medical Record Number from the active Patient Context will be used to query the MapRT API and retrieve not 
+only the patient-specific surfaces but also the room / machine geometries available for clearance map generation. When 
+the surface calls are completed the MapRT surface meshes that are returned are cached for visual display within the 
+DICOM reference coordinate system.
 
->**Note:** The Map App converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
+>**Note:** The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
 >MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in this 
 > coordinate system. The consistency of coordinate frames become important when comparing DICOM structures to MapRT 
 > surfaces or exporting MapRT surfaces to DICOM which will be discussed later in the documentation
+
+Visual verification of the registration between the DICOM body structure and the MapRT surface is crutial to the proper 
+use of the clearance map generated from the MapRT surface. If, as in the case represented by the image above, the DICOM 
+body structure and the MapRT surface are properly aligned the clearance map can be trusted to give you the proper 
+understanding of the available beam arrangements during planning. However, if the the DICOM body structure and the MapRT
+surface are not properly aligned (similar to the image below) the clearance map cannot be trusted to properly reflect 
+the conditions during delivery and can actually produce rather than help avoid collisions by improperly identifying safe 
+beam locations during the planning process.
+
+<p align="center">
+<img src="images\misalignment_0.png" width="400"/>
+<img src="images\misalignment_1.png" width="400"/>
+</p>
+
+<span style="font-size:10px;">
+<p align="center">
+Identification of a misaligned DICOM surface witht he MapRT surface (Left). Corrected MapRT surface now aligned to the 
+DICOM planning surface (Right)
+</p>
+</span>
+
+If a DICOM to MapRT surface misalignment is identified the MapApp will allow the user to correctly align the MapRT 
+surface to the DICOM RT planning surface using the *Correction* section of the MapRT Context and then resubmit the 
+corrected isocenter to the MapRT API for generation of a accurate clearance map.
+
+> Correct alignment of the MapRT surface to the DICOM body structure is a manual process and it is the responsibility of 
+> the user to ensure it is done to a proper level of accuracy to allow for confidence in using the resulting clearance 
+> map for planning. 
+
+#### Virtual Simulations
 
 <p align="center">
 <img src="images\maprt_connect_1.png" width="400"/>
@@ -412,6 +448,9 @@ of loading a patient directly from MapRT API without an active Patient Context.
 </p>
 </span>
 
+If there is no active Patient Context to work from (i.e. at simulation prior to planning) the MapApp will prompt the 
+user for the patient Medical Record Number (MRN) and the orientation of the patient via a small dialog. The orientation 
+is used to convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
 
 Patient loaded directly from MapRT without reference to a Patient Context loaded from DICOM RT files will have a few 
 distinguishing features. You will note from the right hand image above that a MapRT Preview Patient Context is generated 
@@ -424,7 +463,7 @@ within the patient surface will allow you to check the clearance map at that iso
 1. Click the **Get Map** button when you are satisfied with the visual location of isocenter as indicated by the virtual 
 laser system. 
 2. This will populate the clearance map in the Map View tab. 
->Clearance maps are cached in the Map App unlike in the native MapRT application so you are free to check multiple 
+>Clearance maps are cached in the MapApp unlike in the native MapRT application so you are free to check multiple 
 > isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are calculated and 
 > returned over the API (first as low resolution maps then as high resolution maps) the clearance map graph is updated 
 > with the latest information. 
@@ -434,7 +473,7 @@ clearance map graph for easy review. The label in the dropdown is configured as 
 >Note: The 3D visual of the isocenter is currently not linked to the dropdown selection.
 
 This can be a useful pre-CT workflow for testing isocenter / patient positioning combinations prior to completing a 
-CT simulation of the patient. Simply capture a surface of the patient and immediately pull the surface into the Map App over the  MapRT API for virtual simulation.
+CT simulation of the patient. Simply capture a surface of the patient and immediately pull the surface into the MapApp over the  MapRT API for virtual simulation.
 
 <p align="center">
 <img src="images\virtual_sim_0.png" width="400"/>
