@@ -87,6 +87,7 @@
         </li>
         <li><a href="#connection-to-the-mapRT-aPI">Connection to the MapRT API</a>
           <ul>
+            <li><a href="#surface-alignment-checks">Surface Alignment Checks</a></li>
             <li><a href="#virtual-simulations">Virtual Simulations</a></li>
           </ul>
         </li>
@@ -384,6 +385,8 @@ them in the output image they should be turned off the widgets prior to saving t
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Connection to the MapRT API
+
+#### Surface Alignment Checks
 <p align="center">
 <img src="images\maprt_connect_0.png" width="800"/>
 </p>
