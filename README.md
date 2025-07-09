@@ -397,9 +397,9 @@ convert the MapRT surface coordinates into the standard DICOM coordinate system 
 
 
 >**Note:** The Map App converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
-MapRT surfaces and visual registration take place in this coordinate system. The consistency of coordinate frames become 
-important when comparing DICOM structures to MapRT surfaces or exporting MapRT surfaces to DICOM which will be discussed 
-later in the documentation
+>MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in this 
+> coordinate system. The consistency of coordinate frames become important when comparing DICOM structures to MapRT 
+> surfaces or exporting MapRT surfaces to DICOM which will be discussed later in the documentation
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
