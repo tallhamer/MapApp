@@ -1074,9 +1074,11 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             app_settings.dicom.contours_to_keep = settings_dialog.w_cb_contours_to_keep.currentText()
 
             app_settings.maprt.api_url = settings_dialog.w_le_api_url.text()
-            hidden_token = base64.b64encode(binascii.hexlify(self.maprt_api.token.encode('utf-8'))).decode('utf-8')
+            hidden_token = base64.b64encode(binascii.hexlify(settings_dialog.w_le_api_token.text().encode('utf-8'))).decode('utf-8')
             app_settings.maprt.api_token = hidden_token
             app_settings.maprt.api_user_agent = settings_dialog.w_le_api_user_agent.text()
+
+            print()
 
             with open('settings.json', 'w') as settings:
                 settings.write(app_settings.model_dump_json(indent=4))
