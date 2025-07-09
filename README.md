@@ -257,11 +257,13 @@ The institution specific URL for your MapRT API install including the port the A
 
 <span style="color:#0055ff"><b>Token</b></span>
 
-The institution specific Bearer Token used in authentication of API calls.
+The institution specific Bearer Token used in authentication of API calls. This will be provided by Vision RT and is 
+specific to you instance of MapRT.
 
 <span style="color:#0055ff"><b>User Agent</b></span>
 
-The institution and version specific user agent for the MapRT API
+The institution and version specific user agent for the MapRT API. At the time of this documentation the version should 
+be *VisionRT.Integration.Saturn/2.0.0*
 
 <p align="center">
 <img src="images\ping_test.png" width="300"/>
