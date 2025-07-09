@@ -251,7 +251,7 @@ settings resulting in all of your changes being lost.
 <img src="images\dicom_open_3.png" width="250"/>
 </p>
 
-<span style="font-size:12px;">
+<span style="font-size:11px;">
 <p align="center">
 Examples of opening a DICOM RT Plan and DICOM RT Structure Set file combination using different surface reconstruction 
 methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
