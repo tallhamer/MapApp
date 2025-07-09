@@ -253,8 +253,8 @@ settings resulting in all of your changes being lost.
 
 <p align="center">
 Examples of opening a DICOM RT Plan and DICOM RT Structure Set file combination using different surface reconstruction 
-methods. (Upper Left) Zero-Crossing Isosurface, (Upper Right) Marching Cubes with 1x1 pixel resolution, and 
-(Bottom Center) Marching Cubes with 3x3 pixel resolution.
+methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
+(Right) Marching Cubes with 3x3 pixel resolution.
 </p>
 
 
