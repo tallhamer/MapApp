@@ -200,7 +200,13 @@ within the application, so there should be no need to access or change this file
 <img src="images\app_settings_2.png" width="300"/>
 </p>
 
-
+<span style="font-size:10px;">
+<p align="center">
+Examples of the application settings dialog. (Left) View of settings with the Zero-Crossing Isosurface surface 
+reconstruction method selected. (Right) View of the application setting dialog with the Marching Cubes surface 
+reconstruction selected showing the options to set the x and y pixel size (set to 1x1 pixel resolution)
+</p>
+</span>
 
 The application level settings are organized in two sets.
 1. DICOM Settings
@@ -209,13 +215,16 @@ The application level settings are organized in two sets.
 #### DICOM Settings
 
 Data Directory
-:  The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
+
+: The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
 so that the application can validate them using the MapRT API.
 
 Arc Check Resolution
+
 :  The angular resolution at which to validate an arc treatment field from the DICOM RT plan file.
 
 Surface Reconstruction Method
+
 :  The reconstruction method that will be used to generate the DICOM surface mesh from the DICOM RT structure contours.
 
 - Zero Crossing Isosurface (Default) - Uses a signed distance image to determine the zero isosurface (fastest)
@@ -229,6 +238,7 @@ the slower the reconstruction but the closer to the TPS structure volume it will
 from which the surface is generated.
 
 Contours to keep
+
 :  The contours to include in the surface generation. In DICOM RT (Radiotherapy) Structure Set files, contour 
 orientation—specifically whether the points are ordered clockwise (CW) or counter-clockwise (CCW)—is significant because 
 it indicates the interior (filled area) versus the exterior (excluded area) of the contour.
@@ -242,12 +252,15 @@ it indicates the interior (filled area) versus the exterior (excluded area) of t
 #### MapRT Settings
 
 URL
+
 :  The institution specific URL for your MapRT API install including the port the API runs on.
 
 Token
+
 :  The institution specific Bearer Token used in authentication of API calls.
 
 User Agent
+
 :  The institution and version specific user agent for the MapRT API
 
 <p align="center">
