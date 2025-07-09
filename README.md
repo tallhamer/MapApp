@@ -214,7 +214,7 @@ The application level settings are organized in two sets.
 
 #### DICOM Settings
 
-**Data Directory**
+<span style="color:"><b>Data Directory</b></span>
 
 The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
 so that the application can validate them using the MapRT API.
