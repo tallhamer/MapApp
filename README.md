@@ -310,7 +310,7 @@ Interface with DICOM RT information displayed in the <b>Patient Context</b> sect
 </span>
 
 Opening DICOM RT files from the **File->Open->DICOM RT Files** menu will populate the *Patient Context* section of the 
-interface with theinformation from the DICOM RT Plan and DICOM RT Structure Set.
+interface with the information from the DICOM RT Plan and DICOM RT Structure Set.
 You will be presented with
 - The Patient MRN
 - Patient Frist Name
@@ -367,11 +367,11 @@ save of the 3D model alone (Right)
 </span>
 
 The 3D scene can be manipulated and viewed from any preferred angle or axis direction. The axis orientation widget and 
-the view orientation widget can be hidden from the 3D view settings page if they are not desired by the user. If the 3D
-view is desirable for use in presentations or other outside documentation the user can save the view as a .png image 
-where the viewport background is set to transparent or as a .bmp image for when the exact view image is desired. The 
-widgets will be saved in the image so if they are not desired in the output they should be turned off prior to saving 
-the image.
+the view orientation widget can be hidden from the 3D view settings page. It is possible to save the 3D view for use in 
+presentations or other outside documentation. The user can save the 3D view as a *.png* image which will set the  
+viewport background to transparent or as a .bmp image which will preserve the view as seen on the screen. The axis and 
+view orientation widgets will be saved in the image if visible within the view port. If the user does not desired to see
+them in the output image they should be turned off the widgets prior to saving the image.
 
 
 <!-- For more examples, please refer to the [Documentation](https://example.com)_ -->
