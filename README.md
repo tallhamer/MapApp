@@ -140,7 +140,8 @@
       source myenv/bin/activate
     ```
    
-4. Clone the github repo for this project.
+4. Clone the github repo for this project using the command below or simply download the code and unzip the resulting archive to a location on 
+your hard drive.
     ```sh
       git clone https://github.com/tallhamer/MapApp.git
     ```
