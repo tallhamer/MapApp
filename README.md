@@ -77,6 +77,12 @@
             <li><a href="#mapRT-settings">MapRT Settings</a></li>
           </ul>
         </li>
+        <li><a href="#opening-dICOM-files">Opening DICOM Files</a>
+          <ul>
+            <li><a href="#3D-view-manipulation-and-mouse-controls">3D View Manipulation and Mouse Controls</a></li>
+            <li><a href="#visual-settings">Visual Settings</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -227,6 +233,8 @@ it indicates the interior (filled area) versus the exterior (excluded area) of t
 - CW - Keeps only the contours with clockwise orientation (i.e. holes)
 - ALL - Keeps all contours with no regard for orientation
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 #### MapRT Settings
 
 URL
@@ -238,10 +246,16 @@ Token
 User Agent
 :  The institution and version specific user agent for the MapRT API
 
+<p align="center">
+<img src="images\ping_test.png" width="300"/>
+</p>
+
 After all of the MapRT settings are entered into the application settings the user can test the MapRT API connection to 
 see if all the settings are properly configured for the MapRT API endpoint. Click the **OK** button will save all the 
 changes made to the application settings. Clicking Cancel will revert all settings back to the defaults or the original 
 settings resulting in all of your changes being lost. 
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Opening DICOM Files
 
@@ -259,10 +273,48 @@ methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel
 </p>
 </span>
 
+<p align="center">
+<img src="images\dicom_open_0.png" width="800"/>
+</p>
+
+Opening DICOM RT files from the **File->Open->DICOM RT Files** menu will populate the *Patient Context* section of the 
+interface with theinformation from the DICOM RT Plan and DICOM RT Structure Set.
+You will be presented with
+- The Patient MRN
+- Patient Frist Name
+- Patient Last Name
+- Course ID (*F1* if loaded from DICOM RT file - ESAPI integration will populate when implemented)
+- Plan ID (Single unselectable option for DICOM RT file loading - multiple plans available through ESAPI)
+- Isocenter coordinate (for selected plan)
+- Body Structure (tries to select the body but you may need to select from the drop down for BH Body or FB Body)
+- Beam (all fields from the DICOM Plan being validated)
+
+The selected body structure is processed and the surface mesh is generated with the reconstruction method selected in 
+the application settings. The resulting surface mesh can be explored in the 3D viewer to the right. 
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+#### 3D View Manipulation and Mouse Controls
+The camera orientation can be manipulated using the camera orientation widget in the upper right corner of the 3D view 
+by clicking on the axis from which you would like to view the 3D model. The left mouse button will allow you to rotate 
+the view around the camera focus point. Middle mouse press and hold will allow you to pan the model around the view 
+port. Pressing and holding the right mouse button and dragging will allow you to zoom in and out on the model.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+#### Visual Settings
 
+<p align="center">
+<img src="images\3D_view_settings_0.png" width="800"/>
+</p>
 
+All of the visual settings for the 3D view can be customized from the **3D View Settings** tab. Surface colors, laser 
+colors and the view port background color can all be set for the session (unfortunately they are not *"sticky"* right 
+now). The laser projections colors linked across surfaces. The laser opacity is also customizable, however the laser 
+opacity is tied to the surface opacity on which it is projected to avoid lasers projections from one surface that may 
+be completely transparent from being seen on the opposite surface and being mistaken for the projections on that 
+surface.
 
 
 

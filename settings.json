@@ -2,7 +2,7 @@
     "dicom": {
         "dicom_data_directory": "C:/tmp/map app data",
         "arc_check_resolution": 1,
-        "surface_recon_method": "Marching Cubes",
+        "surface_recon_method": "Zero-Crossing",
         "pixel_spacing_x": 3.0,
         "pixel_spacing_y": 3.0,
         "contours_to_keep": "CCW"
