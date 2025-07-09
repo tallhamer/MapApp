@@ -434,6 +434,8 @@ corrected isocenter to the MapRT API for generation of a accurate clearance map.
 > the user to ensure it is done to a proper level of accuracy to allow for confidence in using the resulting clearance 
 > map for planning. 
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 #### Virtual Simulations
 
 <p align="center">
