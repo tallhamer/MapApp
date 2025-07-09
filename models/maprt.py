@@ -584,6 +584,8 @@ class MapRTContext(qtc.QObject):
 
             elif call_type == 'Rooms':
                 self.logger.debug(f'Handling incoming "Rooms" results in MapRTContext')
+
+                #ToDo: Remove this
                 print(text)
                 json_data = json.loads(text)
 
