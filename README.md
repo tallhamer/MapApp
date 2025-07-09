@@ -395,12 +395,12 @@ button. If there is no active Patient Context to work from the Map App will prom
 patient Medical Record Number (MRN) and the orientation of the patient via a small dialog. The orientation is used to 
 convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
 
-```
-**Note:** The Map App converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
+
+>**Note:** The Map App converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
 MapRT surfaces and visual registration take place in this coordinate system. The consistency of coordinate frames become 
 important when comparing DICOM structures to MapRT surfaces or exporting MapRT surfaces to DICOM which will be discussed 
 later in the documentation
-```
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
