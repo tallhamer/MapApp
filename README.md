@@ -188,7 +188,8 @@ connection information and global settings for the application. The settings can
 within the application so there should be no need to access or change this file from outside of the application. 
 
 <p align="center">
-<img src="images\app_settings_1.png" width="300"/> <img src="images\app_settings_2.png" width="300"/>
+<img src="images\app_settings_1.png" width="300"/> 
+<img src="images\app_settings_2.png" width="300"/>
 </p>
 
 The application level settings are organized in two sets.
@@ -245,11 +246,16 @@ settings resulting in all of your changes being lost.
 ### Opening DICOM Files
 
 <p align="center">
-<img src="images\dicom_open_1.png" width="400"/> 
-<img src="images\dicom_open_2.png" width="400"/>
-<img src="images\dicom_open_3.png" width="400"/>
+<img src="images\dicom_open_1.png" width="300"/> 
+<img src="images\dicom_open_2.png" width="300"/>
+<img src="images\dicom_open_3.png" width="300"/>
 </p>
 
+<p align="center">
+Examples of opening a DICOM RT Plan and DICOM RT Structure Set file combination using different surface reconstruction 
+methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
+(Right) Marching Cubes with 3x3 pixel resolution.
+</p>
 
 
 
