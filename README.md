@@ -516,6 +516,88 @@ Cached Clearance Maps can be retrieved by selecting them in the dropdown below t
 
 #### Experimental Synthetic CTs
 
+There may be times when you would like to use the MapRT surface for things other than clearance map generation. This can 
+include things like generating training materials, virtual phantoms, capturing test patients, transfer to AlignRT for 
+use during setup taking advantage of MapRT's larger surface, testing and comparison to other collision detection systems 
+like ClearCheck from Radformation and the list goes on and on.
+
+To achieve many of these tasks, the MapRT surface often needs to be accessible to the Treatment Planning System (TPS). 
+There have been a number of attempts to get the surface meshes generated from these optical systems into the TPS in the 
+past, but there are a number of techinical challenges to doing this and getting a usable result. The MapApp allows the 
+user to move the equivalent of the MapRT surface into the TPS by voxelating the surface and converting it into a 3D image 
+stack. The 3D image stack is converted into a series of DICOM CT images that can then be imported into the TPS and 
+recontoured using the native tools in the TPS. This avoids many, if not all, of the direct surface mesh to contour 
+conversion issues others have reported.
+
+Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
+collision detection tools need to account for this. However, the utility of the surfaces generated in the TPS using this 
+method is often worth the minimal loss in surface accuracy.
+
+To generate a synthetic CT in the MapApp you need to pull the surface information for a patient or phantom from the MapRT 
+API or open a *.obj* file from your local hard drive. When the surface mesh is finished being processed the surface will 
+render in the main 3D viewer where you can inspect its quality. When you are satisfied with the mesh selected use 
+**File->Export->MapRT Surface to DICOM** utility to select the region of the surface you wish to convert to a synthetic 
+CT.
+
+<p align="center">
+<img src="images\export_dicom_0.png" width="400"/>
+<img src="images\export_dicom_1.png" width="400"/>
+</p>
+
+<span style="font-size:10px;">
+<p align="center">
+MapApp Export Surface to DICOM Utility with full surface (Left). Truncated surface removing the legs and everything 
+below the table surface (Right).
+</p>
+</span>
+
+The size of the resulting synthetic CT will be dependent on the settings used to convert the surface to image data. 
+
+**Surface to DICOM Export Settings**
+
+<span style="color:#0055ff"><b>Voxel Size</b></span>
+
+The voxel size will significantly impact the overall quality of the surface in the TPS (as the vovel size increases the 
+detail / quality of the surface will decrease). If the voxel size is too small the surface may have wholes that will 
+reduce the quality of the surface in the TPS. I would recomend a voxel size of 3mm if you are exporting only the surface 
+voxels but experimentation will tell you what is best for your use case.
+
+<span style="color:#0055ff"><b>Fill Down</b></span>
+
+When *"Fill Down"* is enabled it is important to set the bounds so that the bounding box clips at the surface of the CT 
+table. Since MapRT surfaces are open (i.e. not water tight surface meshes) filling down simply uses the surface "Y" 
+coordinate (IEC-61217) as the vertical max and fills all voxels between the surface and the minimum bounds (table 
+surface) with the same voxel value. If the bounding box is not set at the table surface the resulting CT volume will 
+have an artificial height in the TPS if aligned to a support structure like a couch top.
+
+<span style="color:#0055ff"><b>Gaussian Smooth</b></span>
+
+Currently only 3D Gaussian smoothing is available to smooth the pixel values after image generation. This supplies a 
+minimum anount of "whole filling" for low quality surfaces. The associated **Sigma** value simply sets the width of the 
+gaussian window for smoothing so if you have larger wholes and want a smoother surface you will need to increase the 
+sigma value at the detriment of the overall surface quality.
+
+<p align="center">
+<img src="images\export_dicom_0.png" width="800"/>
+<img src="images\export_dicom_2.png" width="400"/>
+<img src="images\export_dicom_3.png" width="400"/>
+</p>
+
+<span style="font-size:10px;">
+<p align="center">
+MapApp Export Surface to DICOM (Top) without (Left) Fill Down selected with (Right) Fill Down selected while holding all other 
+settings the same (3mm voxel gaussian smooth with sigma=1
+</p>
+</span>
+
+
+I would recommend playing with the various settings on surfaces of different qualities to see what can be achieved. 
+There are a bunch of other morphological operations that can be used to clean up these surfaces prior to and even after 
+ voxelation, so feel free to dig in and write up a few additional routines and if you come up with a good one share it 
+with the community.
+
+When you hit **OK** to close the utility it will save the synthetic CT to the configured DICOM directory that you have 
+set in your settings file under a folder named with the patient MRN followed by the voxel size you selected.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
