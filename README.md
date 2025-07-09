@@ -214,22 +214,22 @@ The application level settings are organized in two sets.
 
 #### DICOM Settings
 
-Data Directory
+**Data Directory**
 
-: The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
+The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
 so that the application can validate them using the MapRT API.
 
-Arc Check Resolution
+**Arc Check Resolution**
 
-:  The angular resolution at which to validate an arc treatment field from the DICOM RT plan file.
+The angular resolution at which to validate an arc treatment field from the DICOM RT plan file.
 
-Surface Reconstruction Method
+**Surface Reconstruction Method**
 
-:  The reconstruction method that will be used to generate the DICOM surface mesh from the DICOM RT structure contours.
+The reconstruction method that will be used to generate the DICOM surface mesh from the DICOM RT structure contours.
 
-- Zero Crossing Isosurface (Default) - Uses a signed distance image to determine the zero isosurface (fastest)
-- Marchine Cubes - Using a binary volume image generated from the structure contours (slower recon)
-- Contour Isosurface - Using a binary volume image generated from the structure contours (slower recon)
+- *Zero Crossing* (Default) - Uses a signed distance image to determine the zero-crossing isosurface (fastest)
+- *Marchine Cubes* - Using a binary volume image generated from the structure contours (slower recon)
+- *Contour Isosurface* - Using a binary volume image generated from the structure contours (slower recon)
 
 
 The Marching Cubes and Contour Isosurface reconstruction methods alow the user to determine the pixel resolution in the 
@@ -237,31 +237,31 @@ The Marching Cubes and Contour Isosurface reconstruction methods alow the user t
 the slower the reconstruction but the closer to the TPS structure volume it will be when generating the 3D binary image 
 from which the surface is generated.
 
-Contours to keep
+**Contours to keep**
 
-:  The contours to include in the surface generation. In DICOM RT (Radiotherapy) Structure Set files, contour 
+The contours to include in the surface generation. In DICOM RT (Radiotherapy) Structure Set files, contour 
 orientation—specifically whether the points are ordered clockwise (CW) or counter-clockwise (CCW)—is significant because 
 it indicates the interior (filled area) versus the exterior (excluded area) of the contour.
 
-- CCW (Default) - Keeps only the contours with counter-clockwise orientations (i.e. outer boundaries)
-- CW - Keeps only the contours with clockwise orientation (i.e. holes)
-- ALL - Keeps all contours with no regard for orientation
+- *CCW* (Default) - Keeps only the contours with counter-clockwise orientations (i.e. outer boundaries)
+- *CW* - Keeps only the contours with clockwise orientation (i.e. holes)
+- *ALL* - Keeps all contours with no regard for orientation
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 #### MapRT Settings
 
-URL
+**URL**
 
-:  The institution specific URL for your MapRT API install including the port the API runs on.
+The institution specific URL for your MapRT API install including the port the API runs on.
 
-Token
+**Token**
 
-:  The institution specific Bearer Token used in authentication of API calls.
+The institution specific Bearer Token used in authentication of API calls.
 
-User Agent
+**User Agent**
 
-:  The institution and version specific user agent for the MapRT API
+The institution and version specific user agent for the MapRT API
 
 <p align="center">
 <img src="images\ping_test.png" width="300"/>
