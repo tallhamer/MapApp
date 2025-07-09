@@ -214,16 +214,16 @@ The application level settings are organized in two sets.
 
 #### DICOM Settings
 
-<span style="color:"><b>Data Directory</b></span>
+<span style="color:#0055ff"><b>Data Directory</b></span>
 
 The DICOM data directory is where you can have your favorite DICOM SCP drop DICOM RT plan and structure set files 
 so that the application can validate them using the MapRT API.
 
-**Arc Check Resolution**
+<span style="color:#0055ff"><b>Arc Check Resolution</b></span>
 
 The angular resolution at which to validate an arc treatment field from the DICOM RT plan file.
 
-**Surface Reconstruction Method**
+<span style="color:#0055ff"><b>Surface Reconstruction Method</b></span>
 
 The reconstruction method that will be used to generate the DICOM surface mesh from the DICOM RT structure contours.
 
@@ -237,7 +237,7 @@ The Marching Cubes and Contour Isosurface reconstruction methods alow the user t
 the slower the reconstruction but the closer to the TPS structure volume it will be when generating the 3D binary image 
 from which the surface is generated.
 
-**Contours to keep**
+<span style="color:#0055ff"><b>Contours to keep</b></span>
 
 The contours to include in the surface generation. In DICOM RT (Radiotherapy) Structure Set files, contour 
 orientation—specifically whether the points are ordered clockwise (CW) or counter-clockwise (CCW)—is significant because 
@@ -251,15 +251,15 @@ it indicates the interior (filled area) versus the exterior (excluded area) of t
 
 #### MapRT Settings
 
-**URL**
+<span style="color:#0055ff"><b>URL</b></span>
 
 The institution specific URL for your MapRT API install including the port the API runs on.
 
-**Token**
+<span style="color:#0055ff"><b>Token</b></span>
 
 The institution specific Bearer Token used in authentication of API calls.
 
-**User Agent**
+<span style="color:#0055ff"><b>User Agent</b></span>
 
 The institution and version specific user agent for the MapRT API
 
@@ -337,6 +337,12 @@ port. Pressing and holding the right mouse button and dragging will allow you to
 <p align="center">
 <img src="images\3D_view_settings_0.png" width="800"/>
 </p>
+
+<span style="font-size:10px;">
+<p align="center">
+3D view port with adjusted color settings
+</p>
+</span>
 
 All of the visual settings for the 3D view can be customized from the **3D View Settings** tab. Surface colors, laser 
 colors and the view port background color can all be set for the session (unfortunately they are not *"sticky"* right 
