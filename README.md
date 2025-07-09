@@ -321,6 +321,11 @@ surface.
 <img src="images\example_save.png" width="300"/>
 </p>
 
+<p align="center">
+Examples of bitmap image save with axis orientation widget and view orientation widgets visible (Left) and a .png image 
+save of the 3D model alone (Right) 
+</p>
+
 The 3D scene can be manipulated and viewed from any preferred angle or axis direction. The axis orientation widget and 
 the view orientation widget can be hidden from the 3D view settings page if they are not desired by the user. If the 3D
 view is desirable for use in presentations or other outside documentation the user can save the view as a .png image 
