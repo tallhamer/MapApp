@@ -429,7 +429,9 @@ laser system.
 > returned over the API (first as low resolution maps then as high resolution maps) the clearance map graph is updated 
 > with the latest information. 
 3. Each clearance map, with the settings used to generate it, are stored in the clearance map dropdown just below the 
-clearance map graph for easy review.
+clearance map graph for easy review. The label in the dropdown is configured as follows **[Machine] -- [Surface] -- 
+[Isocenter coordinate] -- [Couch Buffer] -- [Patient Buffer]** to help you locate the proper clearance map.
+>Note: The 3D visual of the isocenter is currently not linked to the dropdown selection.
 
 This can be a useful pre-CT workflow for testing isocenter / patient positioning combinations prior to completing a 
 CT simulation of the patient. Simply capture a surface of the patient and immediately pull the surface into the Map App over the  MapRT API for virtual simulation.
