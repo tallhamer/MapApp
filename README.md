@@ -185,8 +185,8 @@ generate a standalone executable (.exe) file on windows.
       pyinstaller map_app.py --paths=FullPathToRepoFolder -D --hidden-import=vtkmodules.util.data_model --hidden-import=vtkmodules.util.execution_model --hidden-import=skimage._shared.geometry 
     ```
 The result should be a *dist* folder with a subfolder named *map_app*. You can move the *map_app* folder to any location 
-and run the map_app.exe from that folder to use the application without needing to activate a virtual python environment 
-in the future
+and run the *map_app.exe* inside the folder to use the application without needing to activate a virtual python 
+environment in the future.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
