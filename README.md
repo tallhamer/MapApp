@@ -414,12 +414,12 @@ the surface calls are completed, the MapRT surface meshes that are returned are 
 > surfaces to DICOM](#experimental-synthetic-cTs) which will be discussed later in the documentation
 
 Visual verification of the registration between the DICOM body structure and the MapRT surface is crutial to the proper 
-use of the clearance map generated from the MapRT surface. If, as in the case represented by the image above, the DICOM 
-body structure and the MapRT surface are properly aligned the clearance map can be trusted to give you the proper 
-understanding of the available beam arrangements during planning. However, if the the DICOM body structure and the MapRT
-surface are not properly aligned (similar to the image below) the clearance map cannot be trusted to properly reflect 
-the conditions during delivery and can actually produce rather than help avoid collisions by improperly identifying safe 
-beam locations during the planning process.
+use of the clearance map generated using the MapRT surface captured during CT simulation. If, as in the case represented 
+by the image above, the DICOM body structure and the MapRT surface are properly aligned, the clearance map can be 
+trusted to provide an accurate understanding of the available beam arrangements during planning. However, if the DICOM 
+body structure and the MapRT surface are not properly aligned (as shown in the image below), the clearance map cannot 
+be trusted to accurately reflect the conditions during delivery and may actually cause collisions rather than help the 
+user avoid them.
 
 <p align="center">
 <img src="images\misalignment_0.png" width="400"/>
