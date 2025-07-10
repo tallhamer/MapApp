@@ -133,7 +133,8 @@
     ```sh
       python -m venv myenv
     ```
-3. Navigate the the new *Scripts* folder and activate the new virtual environment using the proper active script.
+3. Navigate to the *Scripts* folder under the new *myenv* folder and activate the virtual environment using the proper 
+activate script.
    ### Windows (Command prompt):
     ```sh
       myenv\Scripts\activate.bat
