@@ -409,9 +409,9 @@ the surface calls are completed, the MapRT surface meshes that are returned are 
 3D view using the DICOM coordinate system.
 
 >**Note:** The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
->MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in this 
-> coordinate system. The consistency of coordinate frames become important when comparing DICOM structures to MapRT 
-> surfaces or exporting MapRT surfaces to DICOM which will be discussed later in the documentation
+>MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in the 
+> DICOM coordinate system. This become important when comparing DICOM structures to MapRT surfaces or [exporting MapRT 
+> surfaces to DICOM](#experimental-synthetic-cTs) which will be discussed later in the documentation
 
 Visual verification of the registration between the DICOM body structure and the MapRT surface is crutial to the proper 
 use of the clearance map generated from the MapRT surface. If, as in the case represented by the image above, the DICOM 
