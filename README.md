@@ -212,9 +212,9 @@ menu within the application, so there should be no need to access or change this
 
 <span style="font-size:10px;">
 <p align="center">
-Examples of the application settings dialog. (Left) View of settings with the Zero-Crossing Isosurface surface 
-reconstruction method selected. (Right) View of the application setting dialog with the Marching Cubes surface 
-reconstruction selected showing the options to set the x and y pixel size (set to 1x1 pixel resolution)
+Examples of the application settings dialog. View of settings with the Zero-Crossing Isosurface reconstruction method 
+selected (Left) . View of the application setting dialog with the Marching Cubes surface reconstruction selected 
+showing the options to set the 'x' and 'y' pixel size (set to 1 x 1 pixel resolution) (Right) 
 </p>
 </span>
 
