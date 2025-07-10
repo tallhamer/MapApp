@@ -428,8 +428,8 @@ user avoid them.
 
 <span style="font-size:10px;">
 <p align="center">
-Identification of a misaligned DICOM surface witht he MapRT surface (Left). Corrected MapRT surface now aligned to the 
-DICOM planning surface (Right)
+Misaligned DICOM surface with the MapRT surface (Left). Corrected MapRT surface now aligned with the DICOM body surface 
+(Right)
 </p>
 </span>
 
