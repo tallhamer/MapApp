@@ -365,14 +365,14 @@ forcing the laser lines projected on an associated surface to fade away with tha
 to a value of 0.  
 
 <p align="center">
-<img src="images\example_save.bmp" width="300"/>
 <img src="images\example_save.png" width="300"/>
+<img src="images\example_save.bmp" width="300"/>
 </p>
 
 <span style="font-size:10px;">
 <p align="center">
-Examples of bitmap image save with axis orientation widget and view orientation widgets visible (Left) and a .png image 
-save of the 3D model alone (Right) 
+Examples of a .png image saved with the 3D model alone (Left) and a .bmp image saved with the axis orientation and view 
+orientation widgets visible (Right). 
 </p>
 </span>
 
