@@ -195,15 +195,15 @@ environment in the future.
 ## Usage
 
 ### Initial Setup
-When you first run the application it will setup two locations in the root of the application folder. The first, if not 
+When you first run the application it will setup two items in the root of the application folder. The first, if not 
 already present, will be a *.\logs* folder. The application is very *"chatty"* logging calls to, if not all, almost all 
 functions to help with the inevitable troubleshooting as the API matures. I'm also not a professional programmer, so I'm 
 sure I have done things that would make a normal programmer want to kill themselves. The excessive logging helps those 
 folks track down what crazy thing I did and fix their setup from my poor design decisions.
 
-The second item that the application will create upon first run is an initial *settings.json* file that will store all 
-the connection information and global settings for the application. The settings can be accessed from the **Options** menu 
-within the application, so there should be no need to access or change this file from outside of the application. 
+The second item that the application will create in the root folder is a *settings.json* file that will store all 
+the connection information and global settings for the application. The settings can be accessed from the **Options** 
+menu within the application, so there should be no need to access or change this file from outside the application. 
 
 <p align="center">
 <img src="images\app_settings_1.png" width="300"/> 
