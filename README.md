@@ -320,7 +320,7 @@ Interface with DICOM RT information displayed in the <b>Patient Context</b> sect
 Opening DICOM RT files from the **File->Open->DICOM RT Files** menu will populate the *Patient Context* section of the 
 interface with the information from the DICOM RT Plan and DICOM RT Structure Set.
 You will be presented with
-- Patient MRN
+- Patient Medical Record Number (MRN)
 - Patient First Name
 - Patient Last Name
 - Course ID (*F1* if loaded from DICOM RT file - **ESAPI integration will populate when implemented**)
@@ -403,10 +403,10 @@ or for the MRN provided after the <b>Fetch Data</b> button is pressed.
 </span>
 
 MapRT data for the currently active Patient Context can be retrieved from the MapRT API by clicking the *Fetch Data* 
-button. The Medical Record Number from the active Patient Context will be used to query the MapRT API and retrieve not 
-only the patient-specific surfaces but also the room / machine geometries available for clearance map generation. When 
-the surface calls are completed the MapRT surface meshes that are returned are cached for visual display within the 
-DICOM reference coordinate system.
+button. The MRN from the active Patient Context will be used to query the MapRT API and retrieve not only the 
+patient-specific surfaces but also the room / machine geometries available for clearance map generation. When 
+the surface calls are completed, the MapRT surface meshes that are returned are cached for visual display within the 
+3D view using the DICOM coordinate system.
 
 >**Note:** The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
 >MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in this 
