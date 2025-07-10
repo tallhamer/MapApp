@@ -471,11 +471,11 @@ check the clearance map at that location.
 **To check the clearance map for the current Isocenter location** 
 1. Click the **Get Map** button when you are satisfied with the visual location of isocenter as indicated by the virtual 
 laser system. 
-2. This will populate the clearance map in the Map View tab. 
->Clearance maps are cached in the MapApp unlike in the native MapRT application so you are free to check multiple 
-> isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are calculated and 
-> returned over the API (first as low resolution maps then as high resolution maps) the clearance map graph is updated 
-> with the latest information. 
+2. This will populate the clearance map in the *Map View* tab. 
+> Clearance maps are cached in the MapApp unlike in the native MapRT application. This means you are able to check 
+> multiple isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are 
+> calculated and returned from the API (first as low resolution maps then as high resolution maps) the clearance map 
+> graph is updated with the latest information. 
 3. Each clearance map, with the settings used to generate it, are stored in the clearance map dropdown just below the 
 clearance map graph for easy review. The label in the dropdown is configured as follows **[Machine] -- [Surface] -- 
 [Isocenter coordinate] -- [Couch Buffer] -- [Patient Buffer]** to help you locate the proper clearance map.
