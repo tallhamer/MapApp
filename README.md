@@ -430,13 +430,12 @@ DICOM planning surface (Right)
 </p>
 </span>
 
-If a DICOM to MapRT surface misalignment is identified the MapApp will allow the user to correctly align the MapRT 
-surface to the DICOM RT planning surface using the *Correction* section of the MapRT Context and then resubmit the 
-corrected isocenter to the MapRT API for generation of a accurate clearance map.
+If a DICOM to MapRT surface misalignment is identified, MapApp will allow the user to correctly align the MapRT 
+surface to the DICOM RT planning surface using the *Correction* section of the MapRT Context. The user can then resubmit 
+the corrected isocenter coordinate to the MapRT API for generation of a corrected clearance map.
 
-> Correct alignment of the MapRT surface to the DICOM body structure is a manual process and it is the responsibility of 
-> the user to ensure it is done to a proper level of accuracy to allow for confidence in using the resulting clearance 
-> map for planning. 
+> Aligning the MapRT surface to the DICOM body structure is a manual process. It is the responsibility of the user to 
+> ensure that the alignment is done properly to allow for confidence in using the resulting clearance map for planning. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
