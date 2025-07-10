@@ -242,10 +242,10 @@ The reconstruction method that will be used to generate the DICOM surface mesh f
 - *Contour Isosurface* - Using a binary volume image generated from the structure contours (slower recon)
 
 
-The Marching Cubes and Contour Isosurface reconstruction methods alow the user to determine the pixel resolution in the 
-**x** and **y** dimensions (z dimention is determines form the DICOM RT structure contours). The finer the resolution 
-the slower the reconstruction but the closer to the TPS structure volume it will be when generating the 3D binary image 
-from which the surface is generated.
+The *Marching Cubes* and *Contour Isosurface* reconstruction methods allow the user to determine the pixel resolution in 
+the *x* and *y* dimensions (the z dimension is determined form the DICOM RT structure contours). The finer the 
+resolution the slower the reconstruction but the closer to the TPS structure volume it will be when generating the 3D 
+binary image from which the surface mesh is generated.
 
 <span style="color:#0055ff"><b>Contours to keep</b></span>
 
@@ -263,16 +263,16 @@ it indicates the interior (filled area) versus the exterior (excluded area) of t
 
 <span style="color:#0055ff"><b>URL</b></span>
 
-The institution specific URL for your MapRT API install including the port the API runs on.
+The institution's specific URL for the MapRT API install including the port that the API runs on.
 
 <span style="color:#0055ff"><b>Token</b></span>
 
-The institution specific Bearer Token used in authentication of API calls. This will be provided by Vision RT and is 
+The institution's specific *Bearer Token* used in authentication of API calls. This will be provided by Vision RT and is 
 specific to you instance of MapRT.
 
 <span style="color:#0055ff"><b>User Agent</b></span>
 
-The institution and version specific user agent for the MapRT API. At the time of this documentation the version should 
+The institution's version specific user agent for the MapRT API. At the time of this documentation, the version should 
 be *VisionRT.Integration.Saturn/2.0.0*
 
 <p align="center">
@@ -285,10 +285,9 @@ Successful Ping of the MapRT API after proper configuration of the API settings
 </p>
 </span>
 
-After all of the MapRT settings are entered into the application settings the user can test the MapRT API connection to 
-see if all the settings are properly configured for the MapRT API endpoint. Click the **OK** button will save all the 
-changes made to the application settings. Clicking Cancel will revert all settings back to the defaults or the original 
-settings resulting in all of your changes being lost. 
+After all MapRT API settings are entered into the application settings dialog the user can test the MapRT API connection 
+to see if all the settings are properly configured for the MapRT API endpoint. Clicking the **OK** button will save all 
+the changes made to the application settings. Clicking the **Cancel** button will discard all changes made. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
