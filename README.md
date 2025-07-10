@@ -148,18 +148,19 @@ activate script.
       source myenv/bin/activate
     ```
    
-4. Clone the github repo for this project using the command below or simply download the code and unzip the resulting archive to a location on 
-your hard drive.
+4. If you have [Git](https://git-scm.com/) installed, clone the github repo for this project using the command below or 
+simply download the code from the [repo](https://github.com/tallhamer/MapApp) and unzip the resulting archive to a 
+location on your hard drive.
     ```sh
       git clone https://github.com/tallhamer/MapApp.git
     ```
-5. With the virtual python environment activated, navigate to the location of the cloned git repo and install the project 
-   dependencies using the requirement.txt file.
+5. With the virtual python environment activated, navigate to the location of the cloned git repo and install the 
+project dependencies using the *requirement.txt* file.
     ```sh
       pip install -r requirements.txt
     ```
-After all of the python libraries have been successfully installed, you should be able to simply type the following from 
-the activated virtual python environment to launch the application.
+After all dependencies have been successfully installed, you should be able to type the following command at the command 
+prompt of the activated virtual python environment to launch the application.
 ```sh
    python map_app.py
 ```
