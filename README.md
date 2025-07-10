@@ -522,27 +522,28 @@ Cached Clearance Maps can be retrieved by selecting them in the dropdown below t
 #### Experimental Synthetic CTs
 
 There may be times when you would like to use the MapRT surface for things other than clearance map generation. This can 
-include things like generating training materials, virtual phantoms, capturing test patients, transfer to AlignRT for 
-use during setup taking advantage of MapRT's larger surface, testing and comparison to other collision detection systems 
+include generating things like training materials and virtual phantoms or capturing surfaces to transfer to AlignRT to 
+use during patient setup taking advantage of MapRT's larger surface captures to see anatomy far from isocenter. The 
+MapRT surfaces and clearance maps can also be used in testing and comparison to other collision detection systems 
 like ClearCheck from Radformation and the list goes on and on.
 
 To achieve many of these tasks, the MapRT surface often needs to be accessible to the Treatment Planning System (TPS). 
 There have been a number of attempts to get the surface meshes generated from these optical systems into the TPS in the 
-past, but there are a number of techinical challenges to doing this and getting a usable result. The MapApp allows the 
-user to move the equivalent of the MapRT surface into the TPS by voxelating the surface and converting it into a 3D image 
-stack. The 3D image stack is converted into a series of DICOM CT images that can then be imported into the TPS and 
-recontoured using the native tools in the TPS. This avoids many, if not all, of the direct surface mesh to contour 
-conversion issues others have reported.
+past. Unfortunately, there are a number of technical challenges to achieving this and getting a usable result. The 
+MapApp allows the user to move the equivalent of the MapRT surface into the TPS by voxelating the surface and converting 
+it into a 3D image stack. The 3D image stack is then converted into a series of DICOM synthetic CT images that can be 
+imported into the TPS. Once imported into the TPS the images can be contoured using the native contouring tools. This 
+avoids many (not all) of the direct surface mesh to contour conversion issues others have reported.
 
-Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
-collision detection tools need to account for this. However, the utility of the surfaces generated in the TPS using this 
-method is often worth the minimal loss in surface accuracy.
+>Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
+>collision detection tools need to account for this. However, the utility of the surfaces generated in the TPS using 
+> this method is often worth the minimal loss in surface accuracy.
 
-To generate a synthetic CT in the MapApp you need to pull the surface information for a patient or phantom from the MapRT 
-API or open a *.obj* file from your local hard drive. When the surface mesh is finished being processed the surface will 
-render in the main 3D viewer where you can inspect its quality. When you are satisfied with the mesh selected use 
-**File->Export->MapRT Surface to DICOM** utility to select the region of the surface you wish to convert to a synthetic 
-CT.
+To generate a synthetic CT in the MapApp you need to retrieve the surface information for a patient or phantom from the 
+MapRT API or open a *.obj* file from your local hard drive. Once the surface mesh is imported into the MapApp the 
+surface will be rendered in the main 3D viewer where you can inspect its quality. When you are satisfied with the mesh 
+select **File->Export->MapRT Surface to DICOM** to launch the export utility. The utility will allow you to select the 
+region of the surface you wish to convert to a synthetic CT and the settings to use in doing so.
 
 <p align="center">
 <img src="images\export_dicom_0.png" width="400"/>
