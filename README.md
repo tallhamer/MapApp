@@ -301,8 +301,8 @@ the changes made to the application settings. Clicking the **Cancel** button wil
 
 <span style="font-size:10px;">
 <p align="center">
-Examples of opening a DICOM RT Plan and DICOM RT Structure Set file combination using different surface reconstruction 
-methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
+Examples of the interface after opening a patient's DICOM RT Plan and Structure Set files using different surface 
+reconstruction methods. (Left) Zero-Crossing Isosurface, (Center) Marching Cubes with 1x1 pixel resolution, and 
 (Right) Marching Cubes with 3x3 pixel resolution.
 </p>
 </span>
@@ -320,17 +320,18 @@ Interface with DICOM RT information displayed in the <b>Patient Context</b> sect
 Opening DICOM RT files from the **File->Open->DICOM RT Files** menu will populate the *Patient Context* section of the 
 interface with the information from the DICOM RT Plan and DICOM RT Structure Set.
 You will be presented with
-- The Patient MRN
-- Patient Frist Name
+- Patient MRN
+- Patient First Name
 - Patient Last Name
-- Course ID (*F1* if loaded from DICOM RT file - ESAPI integration will populate when implemented)
-- Plan ID (Single unselectable option for DICOM RT file loading - multiple plans available through ESAPI)
-- Isocenter coordinate (for selected plan)
-- Body Structure (tries to select the body but you may need to select from the drop down for BH Body or FB Body)
-- Beam (all fields from the DICOM Plan being validated)
+- Course ID (*F1* if loaded from DICOM RT file - **ESAPI integration will populate when implemented**)
+- Plan ID (Single unselectable option for DICOM RT file loading - **multiple plans available through ESAPI**)
+- Isocenter coordinate (for the selected plan)
+- Body Structure (The Body or External structure but you may need to select another more appropriate structure from the 
+dropdown for things like *BH Body* or *FB Body*)
+- Beams (all fields from the DICOM Plan being validated)
 
-The selected body structure is processed and the surface mesh is generated with the reconstruction method selected in 
-the application settings. The resulting surface mesh can be explored in the 3D viewer to the right. 
+The selected body structure is processed, and the surface mesh is generated with the reconstruction method selected in 
+the application settings. The resulting surface mesh can be explored in the 3D viewer. 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
