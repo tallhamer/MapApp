@@ -338,8 +338,9 @@ the application settings. The resulting surface mesh can be explored in the 3D v
 #### 3D View Manipulation and Mouse Controls
 The camera orientation can be manipulated using the camera orientation widget in the upper right corner of the 3D view 
 by clicking on the axis from which you would like to view the 3D model. The left mouse button will allow you to rotate 
-the view around the camera focus point. Middle mouse press and hold will allow you to pan the model around the view 
-port. Pressing and holding the right mouse button and dragging will allow you to zoom in and out on the model.
+the view around the camera focus point. Pressing and holding the middle mouse button will allow you to pan the model 
+around the 3D view port. Pressing and holding the right mouse button and dragging will allow you to zoom in and out on 
+the model.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
