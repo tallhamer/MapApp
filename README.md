@@ -481,8 +481,9 @@ clearance map graph for easy review. The label in the dropdown is configured as 
 [Isocenter coordinate] -- [Couch Buffer] -- [Patient Buffer]** to help you locate the proper clearance map.
 >Note: The 3D visual of the isocenter is currently not linked to the dropdown selection.
 
-This can be a useful pre-CT workflow for testing isocenter / patient positioning combinations prior to completing a 
-CT simulation of the patient. Simply capture a surface of the patient and immediately pull the surface into the MapApp over the  MapRT API for virtual simulation.
+This workflow is helpful in testing isocenter / patient positioning combinations prior to completing a CT simulation of 
+the patient. By capturing a surface of the patient and pulling that surface into the MapApp prior to initiating the CT 
+you can rapidly verify the patient's position will not contribute to undue collision risk prior to simulation.
 
 <p align="center">
 <img src="images\virtual_sim_0.png" width="400"/>
