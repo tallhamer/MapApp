@@ -37,7 +37,7 @@
     <br /> 
     <br />
     While the application seeks to simply show integration strategies with MapRT's API it also provides some clinical 
-    features that users may find useful in clinical practice. The application is provided under the MIT license and 
+    features that users may find useful in their clinical practice. The application is provided under the MIT license and 
     can be used in clinical practice at the user's own risk.  
     <br />
     <a href="#getting-started"><strong>Explore the docs »</strong></a>
