@@ -456,16 +456,17 @@ of loading a patient directly from MapRT API without an active Patient Context.
 </p>
 </span>
 
-If there is no active Patient Context to work from (i.e. at simulation prior to planning) the MapApp will prompt the 
-user for the patient Medical Record Number (MRN) and the orientation of the patient via a small dialog. The orientation 
-is used to convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
+If there is no active Patient Context to work from (i.e. at CT simulation prior to start of planning), the MapApp will 
+prompt the user for the patient's MRN and the orientation of the patient via a small dialog. The orientation is used to 
+convert the MapRT surface coordinates into the standard DICOM coordinate system (IEC-61217).
 
-Patient loaded directly from MapRT without reference to a Patient Context loaded from DICOM RT files will have a few 
-distinguishing features. You will note from the right hand image above that a MapRT Preview Patient Context is generated 
-and populated in the Patient Context area. Isocenter is place at <0, 0, 0> which mimics the preview plan in the native 
-MapRT software. The isocenter is easily identified using the laser projections on the MapRT surface. The isocenter can
-adjusted to any location using the **Correction** section of the MapRT Context section of the UI. Locating the isocenter 
-within the patient surface will allow you to check the clearance map at that isocenter location. 
+Patients loaded directly from MapRT API without an active Patient Context loaded from DICOM RT files will have a few 
+distinguishing features. You will note from the right-hand image above that a *MapRT Preview* Patient Context is 
+generated and populated in the Patient Context section. The isocenter is placed at <0, 0, 0> which mimics the preview 
+plan in the native MapRT application. The isocenter is easily identified visually using the laser projections on the 
+MapRT surface in the 3D view. The isocenter can be adjusted to any location using the **Correction** section within the 
+MapRT Context section of the UI. Placing the isocenter on the patient surface within the 3D view will allow you to 
+check the clearance map at that location. 
 
 **To check the clearance map for the current Isocenter location** 
 1. Click the **Get Map** button when you are satisfied with the visual location of isocenter as indicated by the virtual 
