@@ -1,6 +1,7 @@
 import sys
 import json
 import uuid
+import binascii
 import base64
 import logging
 import datetime as dt
@@ -16,6 +17,7 @@ import PySide6.QtNetwork as qtn
 import pyqtgraph as pg
 
 from models.dicom import DicomPlanContext
+from models.settings import app_settings
 
 
 class ObjFileValidationError(Exception):
@@ -95,14 +97,26 @@ class MapRTAPIManager(qtc.QObject):
     status_bar_clear = qtc.Signal()
     progress_coms = qtc.Signal(int)
 
-    def __init__(self, api_url, token, user_agent):
+    def __init__(self, api_url=None, token=None, user_agent=None):
         self.logger = logging.getLogger('MapApp.models.maprt.MapRTAPIManager')
         self.logger.debug(f'Initializing attributes for MapRTAPIManager object')
         super().__init__()
 
-        self._api_url = api_url
-        self._token = token
-        self._user_agent = user_agent
+        if api_url is None:
+            self._api_url = app_settings.maprt.api_url
+        else:
+            self._api_url = api_url
+
+        if token is None:
+            token = binascii.unhexlify(base64.b64decode(app_settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+            self._token = token
+        else:
+            self._token = token
+
+        if user_agent is None:
+            self._user_agent = app_settings.maprt.api_user_agent
+        else:
+            self._user_agent = user_agent
 
         self.logger.debug(f'Setting SSL Configuration for MapRTAPIManager')
         self.ssl_config = qtn.QSslConfiguration.defaultConfiguration()
@@ -119,6 +133,7 @@ class MapRTAPIManager(qtc.QObject):
     @property
     def api_url(self):
         return self._api_url
+
 
     @api_url.setter
     def api_url(self, value):
@@ -152,8 +167,8 @@ class MapRTAPIManager(qtc.QObject):
         return header
 
     def get_status(self):
-        self.logger.debug(f'Ping call made to "/integration/ping" API endpoint in MapRTAPIManager')
         url = self.api_url + "/integration/ping"
+        self.logger.debug(f'Ping call made to "{url}" API endpoint in MapRTAPIManager')
         attributes = f"Ping:"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
@@ -167,8 +182,8 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_rooms(self):
-        self.logger.debug(f'Get Rooms call made to "/integration/rooms" API endpoint in MapRTAPIManager')
         url = self.api_url + "/integration/rooms"
+        self.logger.debug(f'Get Rooms call made to "{url}" API endpoint in MapRTAPIManager')
         attributes = f"Rooms:"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
@@ -182,8 +197,8 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_treatment_room(self, room_name):
-        self.logger.debug(f'Get Room call made to "/integration/rooms/{room_name}" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/rooms/{room_name}"
+        self.logger.debug(f'Get Room call made to "{url}" API endpoint in MapRTAPIManager')
         attributes = f"Room:{room_name}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
@@ -197,8 +212,8 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_patient_surfaces(self, patient_id):
-        self.logger.debug(f'Get Surfaces call made to "/integration/patients/{patient_id}/surfaces" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/patients/{patient_id}/surfaces"
+        self.logger.debug(f'Get Surfaces call made to "{url}" API endpoint in MapRTAPIManager')
         attributes = f"Surfaces:{patient_id}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
@@ -212,8 +227,8 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_surface(self, surface_id):
-        self.logger.debug(f'Get Surfaces call made to "/integration/surfaces/{surface_id}" API endpoint in MapRTAPIManager')
         url = self.api_url + f"/integration/surfaces/{surface_id}"
+        self.logger.debug(f'Get Surfaces call made to "{url}" API endpoint in MapRTAPIManager')
         attributes = f"Surface:{surface_id}"
 
         request = qtn.QNetworkRequest(qtc.QUrl(url))
@@ -227,12 +242,12 @@ class MapRTAPIManager(qtc.QObject):
         self.manager.get(request)
 
     def get_map(self, ctx, x_shift=0, y_shift=0, z_shift=0):
-        self.logger.debug(f'Get Map call made to "/integration/GetMap" API endpoint in MapRTAPIManager')
         if ctx.plan_context is not None:
             # print('\tPlanContext found')
             if ctx.current_surface is not None:
                 # print('\tMapRT Surfact found')
                 url = self.api_url + f"/integration/GetMap"
+                self.logger.debug(f'Get Map call made to "{url}" API endpoint in MapRTAPIManager')
 
                 # Perform Isocenter manipulation for any correction applied in the interface
                 X, Y, Z = ctx.plan_context.isocenter

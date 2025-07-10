@@ -101,12 +101,13 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
     def _setup_api_manager(self):
         self.logger.debug("Setup master MapRT API Manager")
 
-        # Setup the global MapRT API connection manager
-        token = binascii.unhexlify(base64.b64decode(app_settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
-        self.maprt_api = MapRTAPIManager(app_settings.maprt.api_url,
-                                         token,
-                                         app_settings.maprt.api_user_agent
-                                         )
+        # Setup the global MapRT API connection manager from settings file
+        self.maprt_api = MapRTAPIManager()
+        # token = binascii.unhexlify(base64.b64decode(app_settings.maprt.api_token.encode('utf-8'))).decode('utf-8')
+        # self.maprt_api = MapRTAPIManager(app_settings.maprt.api_url,
+        #                                  token,
+        #                                  app_settings.maprt.api_user_agent
+        #                                  )
 
         # Connect the ui signals to the MapRTAPIManager objects methods
         self.w_pb_fetch_api_data.clicked.connect(self.fetch_api_data)
@@ -1073,15 +1074,21 @@ class MainWindow(qtw.QMainWindow, Ui_MainWindow):
             app_settings.dicom.pixel_spacing_y = settings_dialog.w_dsb_pixel_spacing_y.value()
             app_settings.dicom.contours_to_keep = settings_dialog.w_cb_contours_to_keep.currentText()
 
+            # Update the api_manager within the MapRT Context to use the new API settings
             app_settings.maprt.api_url = settings_dialog.w_le_api_url.text()
+            self.maprt_ctx.api_manager.api_url = settings_dialog.w_le_api_url.text()
+
             hidden_token = base64.b64encode(binascii.hexlify(settings_dialog.w_le_api_token.text().encode('utf-8'))).decode('utf-8')
             app_settings.maprt.api_token = hidden_token
+            self.maprt_ctx.api_manager.token = settings_dialog.w_le_api_token.text()
+
             app_settings.maprt.api_user_agent = settings_dialog.w_le_api_user_agent.text()
+            self.maprt_ctx.api_manager.user_agent = settings_dialog.w_le_api_user_agent.text()
 
-            print()
-
+            # Save the new settings to the settings file
             with open('settings.json', 'w') as settings:
                 settings.write(app_settings.model_dump_json(indent=4))
+
         else:
             print("ignoring settings changes")
 
