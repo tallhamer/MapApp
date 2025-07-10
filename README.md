@@ -359,10 +359,10 @@ the model.
 
 All of the visual settings for the 3D view can be customized from the **3D View Settings** tab. Surface colors, laser 
 colors and the view port background color can all be set for the session (unfortunately they are not *"sticky"* right 
-now). The laser projections colors linked across surfaces. The laser opacity is also customizable, however the laser 
-opacity is tied to the surface opacity on which it is projected to avoid lasers projections from one surface that may 
-be completely transparent from being seen on the opposite surface and being mistaken for the projections on that 
-surface.
+now). The laser colors are linked across surfaces and can be customized. The laser opacity is also customizable, 
+however, the laser opacity is tied to the surface opacity on which it is projected. This helps to avoid confusion by 
+forcing the laser lines projected on an associated surface to fade away with that surface as its opacity is adjusted 
+to a value of 0.  
 
 <p align="center">
 <img src="images\example_save.bmp" width="300"/>
