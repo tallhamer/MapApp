@@ -3,7 +3,7 @@
 
 a = Analysis(
     ['map_app.py'],
-    pathex=['.', ''./ui', './models'],
+    pathex=['.', './ui', './models'],
     binaries=[],
     datas=[],
     hiddenimports=['vtkmodules.util.data_model', 'vtkmodules.util.execution_model', 'skimage._shared.geometry'],
