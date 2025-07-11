@@ -525,14 +525,14 @@ There may be times when you would like to use the MapRT surface for things other
 include generating things like training materials and virtual phantoms or capturing surfaces to transfer to AlignRT to 
 use during patient setup taking advantage of MapRT's larger surface captures to see anatomy far from isocenter. The 
 MapRT surfaces and clearance maps can also be used in testing and comparison to other collision detection systems 
-like ClearCheck from Radformation and the list goes on and on.
+like those provided by Radformation and the list goes on and on.
 
 To achieve many of these tasks, the MapRT surface often needs to be accessible to the Treatment Planning System (TPS). 
 There have been a number of attempts to get the surface meshes generated from these optical systems into the TPS in the 
-past. Unfortunately, there are a number of technical challenges to achieving this and getting a usable result. The 
+past. Unfortunately, there are a number of technical challenges to achieving this while maintaining a usable result. The 
 MapApp allows the user to move the equivalent of the MapRT surface into the TPS by voxelating the surface and converting 
 it into a 3D image stack. The 3D image stack is then converted into a series of DICOM synthetic CT images that can be 
-imported into the TPS. Once imported into the TPS the images can be contoured using the native contouring tools. This 
+imported into the TPS. Once imported into the TPS, the images can be contoured using the native contouring tools. This 
 avoids many (not all) of the direct surface mesh to contour conversion issues others have reported.
 
 >Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
@@ -540,7 +540,7 @@ avoids many (not all) of the direct surface mesh to contour conversion issues ot
 > this method is often worth the minimal loss in surface accuracy.
 
 To generate a synthetic CT in the MapApp you need to retrieve the surface information for a patient or phantom from the 
-MapRT API or open a *.obj* file from your local hard drive. Once the surface mesh is imported into the MapApp the 
+MapRT API or open a *.obj* file from your local hard drive. Once the surface mesh has been imported into the MapApp the 
 surface will be rendered in the main 3D viewer where you can inspect its quality. When you are satisfied with the mesh 
 select **File->Export->MapRT Surface to DICOM** to launch the export utility. The utility will allow you to select the 
 region of the surface you wish to convert to a synthetic CT and the settings to use in doing so.
@@ -563,25 +563,26 @@ The size of the resulting synthetic CT will be dependent on the settings used to
 
 <span style="color:#0055ff"><b>Voxel Size</b></span>
 
-The voxel size will significantly impact the overall quality of the surface in the TPS (as the vovel size increases the 
-detail / quality of the surface will decrease). If the voxel size is too small the surface may have wholes that will 
-reduce the quality of the surface in the TPS. I would recomend a voxel size of 3mm if you are exporting only the surface 
-voxels but experimentation will tell you what is best for your use case.
+The voxel size will significantly impact the overall quality of the surface in the TPS (as the voxel size increases, the 
+detail / quality of the surface will decrease). If the voxel size is too small, the surface may have wholes that will 
+reduce the quality of the surface in the TPS. I would recommend a voxel size of 3mm if you are exporting the surface 
+mesh voxels without filling, but experimentation will tell you what will best for your use case.
 
 <span style="color:#0055ff"><b>Fill Down</b></span>
 
-When *"Fill Down"* is enabled it is important to set the bounds so that the bounding box clips at the surface of the CT 
-table. Since MapRT surfaces are open (i.e. not water tight surface meshes) filling down simply uses the surface "Y" 
-coordinate (IEC-61217) as the vertical max and fills all voxels between the surface and the minimum bounds (table 
-surface) with the same voxel value. If the bounding box is not set at the table surface the resulting CT volume will 
-have an artificial height in the TPS if aligned to a support structure like a couch top.
+When *"Fill Down"* is enabled, it is important to set the bounds so that the bounding box clips the surface mesh slose 
+to the surface of the CT table. Since MapRT surfaces are open (i.e. not water tight surface meshes) filling down simply 
+uses the *<y>* coordinate (in IEC-61217) of the surface mesh points as the vertical max and fills all voxels between the 
+surface and the minimum bounds (i.e. ideally the table surface) with the same voxel value. If the bounding box is not 
+set at the table surface the resulting CT volume will have an artificial "height" in the TPS if aligned to a support 
+structure like a couch top.
 
 <span style="color:#0055ff"><b>Gaussian Smooth</b></span>
 
 Currently only 3D Gaussian smoothing is available to smooth the pixel values after image generation. This supplies a 
-minimum anount of "whole filling" for low quality surfaces. The associated **Sigma** value simply sets the width of the 
-gaussian window for smoothing so if you have larger wholes and want a smoother surface you will need to increase the 
-sigma value at the detriment of the overall surface quality.
+minimum amount of "whole filling" for low quality surfaces (i.e. many holes). The associated **Sigma** value simply sets 
+the width of the gaussian kernel for smoothing. If you have larger wholes and want a smoother surface, you will need to 
+increase the sigma value at the detriment of the overall surface detail.
 
 <p align="center">
 <img src="images\export_dicom_0.png" width="800"/>
@@ -598,13 +599,13 @@ settings the same (3mm voxel gaussian smooth with sigma=1
 
 
 I would recommend playing with the various settings on surfaces of different qualities to see what can be achieved. 
-There are a bunch of other morphological operations that can be used to clean up these surfaces prior to and even after 
- voxelation, so feel free to dig in and write up a few additional routines and if you come up with a good one share it 
-with the community.
+There are a bunch of other morphological operations that can be used to clean up these surfaces prior to, and even 
+after, voxelation. Feel free to dig in and write up a few additional routines and if you come up with a good one share 
+it with the community.
 
-When you hit **OK** to close the utility it will save the synthetic CT to the configured DICOM directory that you have 
-set in your settings file under a folder named with the patient MRN followed by the voxel size you selected.
-
+When you hit **OK** within the export utility window, the utility will save the synthetic CT slices to the configured 
+DICOM directory under a folder named with the patient MRN followed by the voxel size you selected. The dicom directory 
+can be configured in your settings file using the **Options->Settings** menu. 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
