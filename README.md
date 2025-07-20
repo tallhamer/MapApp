@@ -181,8 +181,22 @@ prompt of the activated virtual python environment to launch the application.
 ```
 
 ### Creating a Binary Application
-If you don't want to have to activate the virtual python environment each time you want to run the application you can 
-generate a standalone executable (.exe) file on windows.
+If you don't want to have to activate the virtual python environment to run the application or you simply just want to 
+play with the application with no interested in the code itself, you can generate a standalone executable (.exe) file 
+on windows using one of the two approaches below. 
+
+> [!NOTE]
+> This should work on other OSs like macOS and Linux based on the pyinstaller documentation, however, it has not been 
+> tested.
+> Platform-Specific Tips
+> * macOS:
+>   - Use --windowed to suppress terminal for GUI apps. 
+>   - You may need to sign and notarize the app if distributing. 
+>   - codesign and xattr may be required for running apps on other Macs.
+> * Linux:
+>   - Make sure required shared libraries are available.
+>   - You can use tools like ldd to inspect dependencies.
+>   - Consider using a static build or AppImage for broad compatibility.
 
 1. Activating the virtual python environment using the steps above.
 
