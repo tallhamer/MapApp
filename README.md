@@ -408,7 +408,7 @@ patient-specific surfaces but also the room / machine geometries available for c
 the surface calls are completed, the MapRT surface meshes that are returned are cached for visual display within the 
 3D view using the DICOM coordinate system.
 
-> [!NOTE]
+> [!IMPORTANT]
 > The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
 > MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in the 
 > DICOM coordinate system. This become important when comparing DICOM structures to MapRT surfaces or [exporting MapRT 
@@ -438,7 +438,7 @@ If a DICOM to MapRT surface misalignment is identified, MapApp will allow the us
 surface to the DICOM RT planning surface using the *Correction* section of the MapRT Context. The user can then resubmit 
 the corrected isocenter coordinate to the MapRT API for generation of a corrected clearance map.
 
-> [!NOTE]
+> [!CAUTION]
 > Aligning the MapRT surface to the DICOM body structure is a manual process. It is the responsibility of the user to 
 > ensure that the alignment is done properly to allow for confidence in using the resulting clearance map for planning. 
 
