@@ -594,7 +594,8 @@ below the table surface (Right).
 </p>
 </span>
 
-The size of the resulting synthetic CT will be dependent on the settings used to convert the surface to image data. 
+> [!TIP]
+> The size of the resulting synthetic CT will be dependent on the settings used to convert the surface to image data. 
 
 **Surface to DICOM Export Settings**
 
