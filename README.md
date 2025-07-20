@@ -475,7 +475,7 @@ check the clearance map at that location.
 laser system. 
 2. This will populate the clearance map in the *Map View* tab. 
 
-> [!NOTE]
+> [!TIP]
 > Clearance maps are cached in the MapApp unlike in the native MapRT application. This means you are able to check 
 > multiple isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are 
 > calculated and returned from the API (first as low resolution maps then as high resolution maps) the clearance map 
