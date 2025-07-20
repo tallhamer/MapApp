@@ -670,7 +670,9 @@ contributions you make are **greatly appreciated**.
 That being said I am a novice at these things so if you are better at github than I am feel free to send suggestions 
 and How To's to me on what I need to do to help make contributing an easier process.
 
-If you don't code but have a suggestions that could make this better or more user friendly, please create  open an issue with the tag "enhancement".
+If you don't code but have a suggestions that could make this project better or more user-friendly, please open an issue 
+with the tag "enhancement". 
+
 Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
