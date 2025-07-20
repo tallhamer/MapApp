@@ -71,7 +71,7 @@
 > release the current version based on a number of community requests to do so.
 
 <!-- TABLE OF CONTENTS -->
-<details>
+<details open>
   <summary>Table of Contents</summary>
   <ol>
     <li>
