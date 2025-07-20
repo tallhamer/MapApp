@@ -186,8 +186,8 @@ play with the application with no interested in the code itself, you can generat
 on windows using one of the two approaches below. 
 
 > [!TIP]
-> This should work on other OSs like macOS and Linux based on the pyinstaller documentation, however, it has not been 
-> tested.
+> This should work on other platforms like macOS and Linux based on the pyinstaller documentation, however, it has not 
+> been tested.
 > 
 > Platform-Specific Tips
 > * macOS:
