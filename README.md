@@ -549,7 +549,7 @@ Isocenter / Clearance Map combination at isocenter location #2
 
 <span style="font-size:10px;">
 <p align="center">
-Cached Clearance Maps can be retrieved by selecting them in the dropdown below the clearance map grap
+Cached Clearance Maps can be retrieved by selecting them in the dropdown below the clearance map graph
 </p>
 </span>
 
