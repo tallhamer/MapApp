@@ -185,7 +185,7 @@ If you don't want to have to activate the virtual python environment to run the 
 play with the application with no interested in the code itself, you can generate a standalone executable (.exe) file 
 on windows using one of the two approaches below. 
 
-> [!NOTE]
+> [!TIP]
 > This should work on other OSs like macOS and Linux based on the pyinstaller documentation, however, it has not been 
 > tested.
 > 
