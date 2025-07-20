@@ -408,8 +408,9 @@ patient-specific surfaces but also the room / machine geometries available for c
 the surface calls are completed, the MapRT surface meshes that are returned are cached for visual display within the 
 3D view using the DICOM coordinate system.
 
->**Note:** The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
->MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in the 
+> [!NOTE]
+> The MapApp converts all coordinates to the native DICOM coordinate system of IEC-61217. All corrections to 
+> MapRT surfaces and visual verification of the registration between MapRT and your DICOM structures take place in the 
 > DICOM coordinate system. This become important when comparing DICOM structures to MapRT surfaces or [exporting MapRT 
 > surfaces to DICOM](#experimental-synthetic-cTs) which will be discussed later in the documentation
 
@@ -437,6 +438,7 @@ If a DICOM to MapRT surface misalignment is identified, MapApp will allow the us
 surface to the DICOM RT planning surface using the *Correction* section of the MapRT Context. The user can then resubmit 
 the corrected isocenter coordinate to the MapRT API for generation of a corrected clearance map.
 
+> [!NOTE]
 > Aligning the MapRT surface to the DICOM body structure is a manual process. It is the responsibility of the user to 
 > ensure that the alignment is done properly to allow for confidence in using the resulting clearance map for planning. 
 
@@ -472,6 +474,8 @@ check the clearance map at that location.
 1. Click the **Get Map** button when you are satisfied with the visual location of isocenter as indicated by the virtual 
 laser system. 
 2. This will populate the clearance map in the *Map View* tab. 
+
+> [!NOTE]
 > Clearance maps are cached in the MapApp unlike in the native MapRT application. This means you are able to check 
 > multiple isocenter locations very rapidly due to the threaded nature of the API calls. As the clearance maps are 
 > calculated and returned from the API (first as low resolution maps then as high resolution maps) the clearance map 
@@ -479,7 +483,9 @@ laser system.
 3. Each clearance map, with the settings used to generate it, are stored in the clearance map dropdown just below the 
 clearance map graph for easy review. The label in the dropdown is configured as follows **[Machine] -- [Surface] -- 
 [Isocenter coordinate] -- [Couch Buffer] -- [Patient Buffer]** to help you locate the proper clearance map.
->Note: The 3D visual of the isocenter is currently not linked to the dropdown selection.
+
+> [!NOTE]
+> The 3D visual of the isocenter is currently not linked to the dropdown selection.
 
 This workflow is helpful in testing isocenter / patient positioning combinations prior to completing a CT simulation of 
 the patient. By capturing a surface of the patient and pulling that surface into the MapApp prior to initiating the CT 
