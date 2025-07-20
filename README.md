@@ -59,6 +59,17 @@
 > private users for accuracy and simplicity in getting the app setup so these should not change unless a major error is 
 > found.
 
+> [!WARNING]
+> If you are attempting to install this on a Varian FAT client (test or production clients), this code will not run due 
+> to the outdated version of Windows 10 that Varian machines require. I have a working copy that requires downgrading 
+> both the version of python (to a version no newer than 3.10) and Qt from PySide6 to PySide2 that I am testing. You can 
+> make these same changes to you local repo and run this on a Varian machine however, it will require updating a number 
+> of QT imports due to the library structure changes made when they switched from PySide2 to PySide6.
+> 
+> I hope to have a branched version for use on Varian FAT clients soon (testing under way) because this will be required 
+> for ESAPI integration.  The issue with these FAT clients was caught late in the development, so I have opted to 
+> release the current version based on a number of community requests to do so.
+
 <!-- TABLE OF CONTENTS -->
 <details>
   <summary>Table of Contents</summary>
