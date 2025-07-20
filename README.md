@@ -188,6 +188,7 @@ on windows using one of the two approaches below.
 > [!NOTE]
 > This should work on other OSs like macOS and Linux based on the pyinstaller documentation, however, it has not been 
 > tested.
+> 
 > Platform-Specific Tips
 > * macOS:
 >   - Use --windowed to suppress terminal for GUI apps. 
