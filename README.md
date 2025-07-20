@@ -535,8 +535,9 @@ it into a 3D image stack. The 3D image stack is then converted into a series of 
 imported into the TPS. Once imported into the TPS, the images can be contoured using the native contouring tools. This 
 avoids many (not all) of the direct surface mesh to contour conversion issues others have reported.
 
->Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
->collision detection tools need to account for this. However, the utility of the surfaces generated in the TPS using 
+> [!NOTE]
+> Using this method can reduce the surface resolution of the captured MapRT surface so studies on accuracy between 
+> collision detection tools need to account for this. However, the utility of the surfaces generated in the TPS using 
 > this method is often worth the minimal loss in surface accuracy.
 
 To generate a synthetic CT in the MapApp you need to retrieve the surface information for a patient or phantom from the 
