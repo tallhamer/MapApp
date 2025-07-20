@@ -56,7 +56,7 @@
 > [!IMPORTANT]
 > The documentation on for this repo is currently being edited and checked for accuracy. Very rapid and drastic changes 
 > may be made as the maintainer has time. The installation and setup instructions have been tested by a number of 
-> private users for accuracy and simplicity in getting the app setup so these should not change unless major errors are 
+> private users for accuracy and simplicity in getting the app setup so these should not change unless a major error is 
 > found.
 
 <!-- TABLE OF CONTENTS -->
