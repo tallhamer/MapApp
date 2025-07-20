@@ -198,3 +198,6 @@ fabric.properties
 
 .idea/pymp.iml
 .idea/pymp.iml
+
+# Settings Information
+*settings.json
